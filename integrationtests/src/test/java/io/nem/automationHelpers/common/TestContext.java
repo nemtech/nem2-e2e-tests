@@ -6,6 +6,7 @@ import io.nem.automationHelpers.network.SocketClient;
 import io.nem.automationHelpers.network.SocketFactory;
 import io.nem.core.crypto.KeyPair;
 import io.nem.core.crypto.PrivateKey;
+import io.nem.core.crypto.PublicKey;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.blockchain.NetworkType;
 import io.nem.sdk.model.transaction.SignedTransaction;
@@ -27,8 +28,8 @@ public class TestContext {
         final int apiPort = configFileReader.getApiPort();
         SocketClient socket = SocketFactory.OpenSocket(apiServerHost, apiPort, configFileReader.getSocketTimeoutInMilliseconds());
 
-        PrivateKey privateKey = PrivateKey.fromHexString(configFileReader.getApiServerKey());
-        KeyPair keyPairServer = new KeyPair(privateKey);
+        PublicKey publicKey = PublicKey.fromHexString(configFileReader.getApiServerKey());
+        KeyPair keyPairServer = new KeyPair(publicKey);
         authenticatedSocket = AuthenticatedSocket.CreateAuthenticatedSocket(socket, keyPairServer);
 
         final String privateString = configFileReader.getUserKey();

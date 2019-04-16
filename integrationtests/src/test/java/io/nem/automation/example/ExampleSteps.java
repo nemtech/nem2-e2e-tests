@@ -10,8 +10,6 @@ import io.nem.automationHelpers.Infrastructure.TransactionConnection;
 import io.nem.automationHelpers.Infrastructure.TransactionsDB;
 import io.nem.automationHelpers.common.TestContext;
 import io.nem.automationHelpers.network.AuthenticatedSocket;
-import io.nem.core.crypto.KeyPair;
-import io.nem.core.crypto.PrivateKey;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.account.AccountInfo;
 import io.nem.sdk.model.account.Address;
@@ -45,7 +43,6 @@ public class ExampleSteps {
     }
 
     @When("^Bob transfer (\\d+) XEM to Jill$")
-    //@When("^Bob transfer 10 XEM to Jill$")
     public void bob_transfer_xem_to_jill(int transferAmount) throws Throwable {
         final Account signerAccount = testContext.getDefaultSignerAccount();
         final String dbHost = testContext.getConfigFileReader().getMongodbHost();
