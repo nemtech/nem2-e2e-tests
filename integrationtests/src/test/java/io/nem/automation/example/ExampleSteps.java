@@ -10,8 +10,6 @@ import io.nem.automationHelpers.Infrastructure.TransactionConnection;
 import io.nem.automationHelpers.Infrastructure.TransactionsDB;
 import io.nem.automationHelpers.common.TestContext;
 import io.nem.automationHelpers.network.AuthenticatedSocket;
-import io.nem.automationHelpers.network.SocketClient;
-import io.nem.automationHelpers.network.SocketFactory;
 import io.nem.core.crypto.KeyPair;
 import io.nem.core.crypto.PrivateKey;
 import io.nem.sdk.model.account.Account;

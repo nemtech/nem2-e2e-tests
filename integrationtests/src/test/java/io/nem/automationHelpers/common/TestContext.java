@@ -1,6 +1,5 @@
 package io.nem.automationHelpers.common;
 
-import io.nem.automationHelpers.auth.VerifyPeerException;
 import io.nem.automationHelpers.config.ConfigFileReader;
 import io.nem.automationHelpers.network.AuthenticatedSocket;
 import io.nem.automationHelpers.network.SocketClient;

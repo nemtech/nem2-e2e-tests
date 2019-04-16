@@ -4,8 +4,6 @@ import io.nem.automationHelpers.network.SocketClient;
 import io.nem.core.crypto.KeyPair;
 import io.nem.core.crypto.PublicKey;
 
-import java.io.IOException;
-
 /**
  * Verifies a connection with a catapult server.
  * @class Verifier

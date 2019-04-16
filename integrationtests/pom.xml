@@ -165,6 +165,7 @@
     </dependencies>
 
     <build>
+        <sourceDirectory>${project.basedir}/src/main/src/main/java</sourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
