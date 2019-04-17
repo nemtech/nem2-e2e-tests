@@ -1,5 +1,10 @@
-# generated files #
-######################
+# OS generated files
 .DS_Store
 .DS_Store?
+
+# IntelliJ files
 .idea/
+*.iml
+
+# output files
+target/
