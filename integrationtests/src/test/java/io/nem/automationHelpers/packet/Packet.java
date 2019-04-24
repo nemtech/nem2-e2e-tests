@@ -23,35 +23,66 @@ package io.nem.automationHelpers.packet;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+/**
+ * packet from server
+ */
 public class Packet {
-    final PacketHeader packetHeader;
-    final ByteBuffer data;
+	final PacketHeader packetHeader;
+	final ByteBuffer data;
 
-    public Packet(byte[] bytes) {
-            this(ByteBuffer.allocate(bytes.length).put(bytes));
-    }
+	/**
+	 * Constructor
+	 *
+	 * @param bytes The bytes of the packet
+	 */
+	public Packet(final byte[] bytes) {
+		this(ByteBuffer.allocate(bytes.length).put(bytes));
+	}
 
-    public Packet(ByteBuffer bytebuffer) {
-        this.packetHeader = new PacketHeader(bytebuffer);
-        this.data = ByteBuffer.allocate(bytebuffer.remaining());
-        bytebuffer.get(data.array());
-    }
+	/**
+	 * Constructor
+	 *
+	 * @param bytebuffer byte buffer
+	 */
+	public Packet(final ByteBuffer bytebuffer) {
+		this.packetHeader = new PacketHeader(bytebuffer);
+		this.data = ByteBuffer.allocate(bytebuffer.remaining());
+		bytebuffer.get(data.array());
+	}
 
-    public PacketHeader getPacketHeader() {
-        return this.packetHeader;
-    }
+	/**
+	 * Get the packet header
+	 *
+	 * @return packet header
+	 */
+	public PacketHeader getPacketHeader() {
+		return this.packetHeader;
+	}
 
-    public ByteBuffer getData() {
-        return this.data;
-    }
+	/**
+	 * get the data from the packet
+	 *
+	 * @return byte buffer
+	 */
+	public ByteBuffer getData() {
+		return this.data;
+	}
 
-    public static ByteBuffer CreatePacketByteBuffer(PacketType packetType, byte[] bytes) {
-        int size = PacketHeader.Size + bytes.length;
-        ByteBuffer buffer = ByteBuffer.allocate(size);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        buffer.put(PacketHeader.createPacketHeader(packetType, size));
-        buffer.put(bytes);
-        buffer.rewind();
-        return buffer;
-    }
+	/**
+	 * Create a byte buffer
+	 *
+	 * @param packetType packet type
+	 * @param bytes      array of bytes
+	 * @return byte buffer
+	 */
+	public static ByteBuffer CreatePacketByteBuffer(final PacketType packetType,
+													final byte[] bytes) {
+		int size = PacketHeader.Size + bytes.length;
+		ByteBuffer buffer = ByteBuffer.allocate(size);
+		buffer.order(ByteOrder.LITTLE_ENDIAN);
+		buffer.put(PacketHeader.createPacketHeader(packetType, size));
+		buffer.put(bytes);
+		buffer.rewind();
+		return buffer;
+	}
 }

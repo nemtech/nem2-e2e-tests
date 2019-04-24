@@ -26,32 +26,54 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+/**
+ * Connection to the catapult server
+ */
 public class SocketClient {
 
-    protected Socket socket;
+	protected final Socket socket;
 
-    public SocketClient(Socket socket) {
-        this.socket = socket;
-    }
+	/**
+	 * Constructor
+	 *
+	 * @param socket Connection to the server
+	 */
+	public SocketClient(final Socket socket) {
+		this.socket = socket;
+	}
 
-    public ByteBuffer Read(int size) throws IOException {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(size);
-        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        byte[] buffer = byteBuffer.array();
+	/**
+	 * Read data from the server
+	 *
+	 * @param size the size of the data
+	 * @return byte buffer
+	 * @throws IOException
+	 */
+	public ByteBuffer Read(final int size) throws IOException {
+		final ByteBuffer byteBuffer = ByteBuffer.allocate(size);
+		byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+		final byte[] buffer = byteBuffer.array();
 
-        int index = 0;
-        int readSize = 0;
-        do {
-            readSize = socket.getInputStream().read(buffer, index, buffer.length - index);
-            index += readSize;
-        } while ((readSize != -1) && (index < size));
-        byteBuffer.rewind();
-        return byteBuffer;
-    }
+		int index = 0;
+		int readSize = 0;
+		do {
+			readSize = socket.getInputStream()
+					.read(buffer, index, buffer.length - index);
+			index += readSize;
+		} while ((readSize != -1) && (index < size));
+		byteBuffer.rewind();
+		return byteBuffer;
+	}
 
-    public void Write(ByteBuffer byteBuffer) throws IOException {
-        OutputStream outStream = socket.getOutputStream();
+	/**
+	 * Write data to the server
+	 *
+	 * @param byteBuffer byte buffer
+	 * @throws IOException
+	 */
+	public void Write(final ByteBuffer byteBuffer) throws IOException {
+		final OutputStream outStream = socket.getOutputStream();
 
-        outStream.write(byteBuffer.array());
-    }
+		outStream.write(byteBuffer.array());
+	}
 }

@@ -17,30 +17,48 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Catapult.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package io.nem.automationHelpers.packet;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-/** @exports packet/header */
+/**
+ * packet header.
+ */
 public class PacketHeader {
 	/**
 	 * The size (in bytes) of a packet header.
 	 */
-	final public static byte Size = 8;
-	final private int packetSize;
-	final private PacketType packetType;
+	public final static byte Size = 8;
+	private final int packetSize;
+	private final PacketType packetType;
 
-	public PacketHeader(ByteBuffer byteBuffer) {
+	/**
+	 * constructor.
+	 *
+	 * @param byteBuffer byte buffer.
+	 */
+	public PacketHeader(final ByteBuffer byteBuffer) {
 		byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		this.packetSize = byteBuffer.getInt();
 		packetType = PacketType.GetEnum(byteBuffer.getInt());
 	}
 
+	/**
+	 * Get the packet size.
+	 *
+	 * @return packet size.
+	 */
 	public int getPacketSize() {
 		return this.packetSize;
 	}
 
+	/**
+	 * Get the packet type.
+	 *
+	 * @return packet type.
+	 */
 	public PacketType getPacketType() {
 		return this.packetType;
 	}
@@ -51,7 +69,8 @@ public class PacketHeader {
 	 * size The packet size.
 	 * The packet header buffer.
 	 */
-	public static ByteBuffer createPacketHeader(PacketType packetType, int size) {
+	public static ByteBuffer createPacketHeader(final PacketType packetType,
+												final int size) {
 		ByteBuffer header = ByteBuffer.allocate(PacketHeader.Size);
 		header.order(ByteOrder.LITTLE_ENDIAN);
 		header.putInt(size);

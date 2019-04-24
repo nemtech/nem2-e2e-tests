@@ -22,24 +22,31 @@ package io.nem.automationHelpers.auth;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+
 
 import io.nem.automationHelpers.network.SocketClient;
 import io.nem.automationHelpers.packet.Packet;
 import io.nem.automationHelpers.packet.PacketHeader;
 import io.nem.automationHelpers.packet.PacketType;
 import io.nem.core.crypto.KeyPair;
-import io.nem.core.crypto.PublicKey;
 
+/**
+ * Verify the connection to the catapult server.
+ */
 class VerifyServerHandler {
 
-	private SocketClient serverSocket;
-	private KeyPair clientKeyPair;
-	private  KeyPair serverKeyPair;
-	ByteBuffer serverChallenge;
-	final private ConnectionSecurityMode securityMode;
-	List<PacketTraits> packetHandlers;
+	private final SocketClient serverSocket;
+	private final KeyPair clientKeyPair;
+	private final KeyPair serverKeyPair;
+	private ByteBuffer serverChallenge;
+	private final ConnectionSecurityMode securityMode;
+	private final List<PacketTraits> packetHandlers;
 
+	/**
+	 * Handles server packet traits.
+	 */
 	abstract class PacketTraits {
 
 		final protected PacketType ChallengeType;
@@ -48,63 +55,100 @@ class VerifyServerHandler {
 			this.ChallengeType = packetType;
 		}
 
-		abstract public void handleChallenge(ByteBuffer byteBuffer) throws VerifyPeerException;
-		abstract public ByteBuffer tryParse(Packet packet) throws VerifyPeerException;
+		abstract public void handleChallenge(ByteBuffer byteBuffer)
+				throws VerifyPeerException;
+
+		abstract public ByteBuffer tryParse(Packet packet)
+				throws VerifyPeerException;
 	}
 
-	VerifyServerHandler(SocketClient socket, KeyPair clientKeyPair, KeyPair serverKeyPair, ConnectionSecurityMode mode) {
+	/**
+	 * Constructor.
+	 *
+	 * @param socket        The socket connection to the catapult server.
+	 * @param clientKeyPair client key pair.
+	 * @param serverKeyPair server key pair.
+	 * @param mode          the connection security mode.
+	 */
+	VerifyServerHandler(SocketClient socket,
+						KeyPair clientKeyPair,
+						KeyPair serverKeyPair,
+						ConnectionSecurityMode mode) {
 		this.serverSocket = socket;
 		this.clientKeyPair = clientKeyPair;
 		this.serverKeyPair = serverKeyPair;
 		this.securityMode = mode;
-		this.packetHandlers = new LinkedList<PacketTraits>();
+		this.packetHandlers = new LinkedList<>();
 
-		// add handshake requirements for successful processing of a server challenge and a client challenge
+		// add handshake requirements for successful processing of
+		// a server challenge and a client challenge
 		this.packetHandlers.add(new PacketTraits(PacketType.SERVER_CHALLENGE) {
 			@Override
-			public void handleChallenge(ByteBuffer byteBuffer) throws VerifyPeerException {
+			public void handleChallenge(ByteBuffer byteBuffer)
+					throws VerifyPeerException {
 				handleServerChallenge(byteBuffer);
 			}
 
 			@Override
-			public ByteBuffer tryParse(Packet packet) throws VerifyPeerException {
-				 return ChallengeParser.tryParseChallenge(packet, this.ChallengeType);
+			public ByteBuffer tryParse(Packet packet)
+					throws VerifyPeerException {
+				return ChallengeParser
+						.tryParseChallenge(packet, this.ChallengeType);
 			}
 		});
 
 		this.packetHandlers.add(new PacketTraits(PacketType.CLIENT_CHALLENGE) {
 			@Override
-			public void handleChallenge(ByteBuffer byteBuffer) throws VerifyPeerException {
+			public void handleChallenge(ByteBuffer byteBuffer)
+					throws VerifyPeerException {
 				handleClientChallenge(byteBuffer);
 			}
 
 			@Override
-			public ByteBuffer tryParse(Packet packet) throws VerifyPeerException {
-				return ChallengeParser.tryParseChallenge(packet, this.ChallengeType);
+			public ByteBuffer tryParse(Packet packet)
+					throws VerifyPeerException {
+				return ChallengeParser
+						.tryParseChallenge(packet, this.ChallengeType);
 			}
 		});
 	}
 
+	/**
+	 * Verify the connection with the catapult server
+	 *
+	 * @throws VerifyPeerException
+	 */
 	void process() throws VerifyPeerException {
 
-		for (PacketTraits challenge: this.packetHandlers) {
+		for (PacketTraits challenge : this.packetHandlers) {
 			try {
-				Packet packet = new Packet(this.serverSocket.Read(ChallengeParser.ChallengePacketSize));
+				Packet packet = new Packet(this.serverSocket
+						.Read(ChallengeParser.CHALLENGE_PACKET_SIZE));
 				ByteBuffer parsedPacket = challenge.tryParse(packet);
 				challenge.handleChallenge(parsedPacket);
-			} catch(Exception ex)
-			{
+			}
+			catch (Exception ex) {
 				throw new VerifyPeerException(ex.getMessage());
 			}
 		}
 	}
 
-	void handleServerChallenge(ByteBuffer packet) throws VerifyPeerException {
+	/**
+	 * Respond to the server challenge
+	 *
+	 * @param packet server packet
+	 * @throws VerifyPeerException
+	 */
+	void handleServerChallenge(final ByteBuffer packet)
+			throws VerifyPeerException {
 		try {
-			ByteBuffer response = ChallengeHelper.generateServerChallengeResponse(packet, this.clientKeyPair, this.securityMode);
+			final ByteBuffer response = ChallengeHelper
+					.generateServerChallengeResponse(packet, this.clientKeyPair,
+							this.securityMode);
 			response.position(PacketHeader.Size);
-			this.serverChallenge = ByteBuffer.allocate(ChallengeHelper.challengeSize);
-			byte[] challenge = this.serverChallenge.array();
+			this.serverChallenge =
+					ByteBuffer.allocate(ChallengeHelper.CHALLENGE_SIZE);
+			final byte[] challenge = this.serverChallenge.array();
 			response.get(challenge);
 			this.serverSocket.Write(response);
 		}
@@ -113,9 +157,20 @@ class VerifyServerHandler {
 		}
 	}
 
-	void handleClientChallenge(ByteBuffer response) throws VerifyPeerException {
-		boolean isVerified = ChallengeHelper.verifyClientChallengeResponse(response, this.serverKeyPair, this.serverChallenge);
-		if (!isVerified)
-			throw new VerifyPeerException("Server signature verification failed.");
+	/**
+	 * handles client challenge
+	 *
+	 * @param response The response
+	 * @throws VerifyPeerException
+	 */
+	void handleClientChallenge(final ByteBuffer response)
+			throws VerifyPeerException {
+		final boolean isVerified = ChallengeHelper
+				.verifyClientChallengeResponse(response, this.serverKeyPair,
+						this.serverChallenge);
+		if (!isVerified) {
+			throw new VerifyPeerException(
+					"Server signature verification failed.");
+		}
 	}
 }

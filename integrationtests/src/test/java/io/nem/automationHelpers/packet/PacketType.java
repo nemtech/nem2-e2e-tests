@@ -17,52 +17,88 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Catapult.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package io.nem.automationHelpers.packet;
 
 /**
  * Packet types.
  */
 public enum PacketType {
-	/** A challenge from a server to a client. */
+	/**
+	 * A challenge from a server to a client.
+	 */
 	SERVER_CHALLENGE(1),
 
-	/** A challenge from a client to a server. */
+	/**
+	 * A challenge from a client to a server.
+	 */
 	CLIENT_CHALLENGE(2),
 
-	/** Blocks have been pushed by a peer. */
+	/**
+	 * Blocks have been pushed by a peer.
+	 */
 	PUSH_BLOCK(3),
 
-	/** Transactions have been pushed by an api-node or a peer. */
+	/**
+	 * Transactions have been pushed by an api-node or a peer.
+	 */
 	PUSH_TRANSACTIONS(9),
 
-	/** Partial aggregate transactions have been pushed by an api-node. */
+	/**
+	 * Partial aggregate transactions have been pushed by an api-node.
+	 */
 	PUSH_PARTIAL_TRANSACTIONS(500),
 
-	/** Detached cosignatures have been pushed by an api-node. */
+	/**
+	 * Detached cosignatures have been pushed by an api-node.
+	 */
 	PUSH_DETACTED_COSIGNATURES(501),
 
-	/** Node information has been requested by a peer. */
+	/**
+	 * Node information has been requested by a peer.
+	 */
 	NODE_DISCOVERY_PULL_PING(601),
 
-	/** Node time information has been requested by a peer. */
+	/**
+	 * Node time information has been requested by a peer.
+	 */
 	TIME_SYNC_NODE_TIME(700);
 
 	final int packetType;
 
-	PacketType(int packetType) {
+	/**
+	 * Constructor.
+	 *
+	 * @param packetType packet type.
+	 */
+	PacketType(final int packetType) {
 		this.packetType = packetType;
 	}
 
+	/**
+	 * Get the value of the enum.
+	 *
+	 * @return enum value.
+	 */
 	public int toInteger() {
 
 		return this.packetType;
 	}
 
-	public static PacketType GetEnum(int val) throws RuntimeException {
+	/**
+	 * Get the enum from int.
+	 *
+	 * @param value value to get.
+	 * @return enum value.
+	 * @throws RuntimeException
+	 */
+	public static PacketType GetEnum(final int value) throws RuntimeException {
 		for (PacketType current : PacketType.values()) {
-			if (val == current.packetType)
+			if (value == current.packetType) {
 				return current;
+			}
 		}
-		throw new RuntimeException(val + " was not a backing value for PacketType.");
+		throw new RuntimeException(
+				value + " was not a backing value for PacketType.");
 	}
 }

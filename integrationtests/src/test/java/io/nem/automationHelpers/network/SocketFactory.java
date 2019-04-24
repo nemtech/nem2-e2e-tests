@@ -20,26 +20,40 @@
 
 package io.nem.automationHelpers.network;
 
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 
+/**
+ * Create a connection with catapult server
+ */
 public class SocketFactory {
 
-    /**
-     * Open a socket connection to the given server on the given port.
-    */
-    public static SocketClient OpenSocket(String server, int port, int timeoutInMilliseconds) throws Exception
-    {
-        Socket socket;
+	/**
+	 * Open a socket connection to the given server on the given port.
+	 *
+	 * @param server                Server connection
+	 * @param port                  server port
+	 * @param timeoutInMilliseconds timeout
+	 * @return client socket
+	 * @throws Exception
+	 */
+	public static SocketClient OpenSocket(final String server, final int port,
+										  final int timeoutInMilliseconds)
+			throws Exception {
+		final Socket socket;
 
-        InetAddress inetAddress = InetAddress.getByName(server);
-        SocketAddress socketAddress = new InetSocketAddress(inetAddress, port);
+		final InetAddress inetAddress = InetAddress.getByName(server);
+		final SocketAddress socketAddress =
+				new InetSocketAddress(inetAddress, port);
 
-        // create a socket
-        socket = new Socket();
+		// create a socket
+		socket = new Socket();
 
-        // this method will block no more than timeout ms.
-        socket.connect(socketAddress, timeoutInMilliseconds);
+		// this method will block no more than timeout ms.
+		socket.connect(socketAddress, timeoutInMilliseconds);
 
-        return new SocketClient(socket);
-    }
+		return new SocketClient(socket);
+	}
 }

@@ -18,29 +18,41 @@
  * along with Catapult.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 package io.nem.automationHelpers.auth;
 
 
 /**
  * Possible results of a verification handshake with a peer.
  */
-public enum VerifyResult  {
-	/** The peer was verified. */
+public enum VerifyResult {
+	/**
+	 * The peer was verified.
+	 */
 	SUCCESS(0),
 
-	/** An i/o error was encountered during verification. */
+	/**
+	 * An i/o error was encountered during verification.
+	 */
 	IO_ERROR(1),
 
-	/** The peer sent malformed data. */
+	/**
+	 * The peer sent malformed data.
+	 */
 	MALFORMED_DATA(2),
 
-	/** The peer failed the challenge. */
+	/**
+	 * The peer failed the challenge.
+	 */
 	FAILED_CHALLENGE(3);
 
 	private final int value;
 
-	VerifyResult(int value)  {
+	/**
+	 * Constructor.
+	 *
+	 * @param value the enum value.
+	 */
+	VerifyResult(final int value) {
 		this.value = value;
 	}
 }
