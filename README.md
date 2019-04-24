@@ -22,10 +22,10 @@ Before contributing please [read this](CONTRIBUTING.md).
 1) Get the latest catapult-service-bootstrap - https://github.com/tech-bureau/catapult-service-bootstrap
 2) Start the service with the dev docker compose file - docker-compose -f docker-compose-with-explorer-dev.yml up
 3) Update the some of the properties in the integrationtests/src/test/resources/configs/config-default.properties file to match your bootstrap environment
-    a. The apiServerKey property - This is the public key of the API server and can be found in build/catapult-config/api-node-0/userconfig/resources/peers-api.json
-    b. The userKey property - This is the private key of the user which will be use to sign each transaction.
+    - The apiServerKey property - This is the public key of the API server and can be found in build/catapult-config/api-node-0/userconfig/resources/peers-api.json
+    - The userKey property - This is the private key of the user which will be use to sign each transaction.
         A list of users can be found in in the build/generated-addresses/addresses.yaml file under the nemesis_addresses section.
-    c. Update the mosaicId to match that of the userKey above.  You can find the mosaic id of the user by going to http://localhost:8000/#/account/<public key of user>
+    - Update the mosaicId to match that of the userKey above.  You can find the mosaic id of the user by going to http://localhost:8000/#/account/<public key of user>
 
 
 ## Running tests
