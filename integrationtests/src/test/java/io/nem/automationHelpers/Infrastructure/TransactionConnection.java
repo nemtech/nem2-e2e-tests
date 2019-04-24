@@ -53,11 +53,14 @@ public class TransactionConnection {
 	 * @throws IOException
 	 * @throws DecoderException
 	 */
-	public void announce(final SignedTransaction transaction)
-			throws IOException, DecoderException {
-		final ByteBuffer ph =
-				Packet.CreatePacketByteBuffer(PacketType.PUSH_TRANSACTIONS,
-						Hex.decodeHex(transaction.getPayload()));
-		socketClient.Write(ph);
+	public void announce(final SignedTransaction transaction) {
+		try {
+			final ByteBuffer ph =
+					Packet.CreatePacketByteBuffer(PacketType.PUSH_TRANSACTIONS,
+							Hex.decodeHex(transaction.getPayload()));
+			socketClient.Write(ph);
+		} catch(Exception ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 }

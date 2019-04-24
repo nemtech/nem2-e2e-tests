@@ -47,7 +47,7 @@ public class TestContext {
 	 *
 	 * @throws Exception
 	 */
-	public TestContext() throws Exception {
+	public TestContext() {
 		configFileReader = new ConfigFileReader();
 		scenarioContext = new ScenarioContext();
 

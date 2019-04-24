@@ -90,9 +90,8 @@ public enum PacketType {
 	 *
 	 * @param value value to get.
 	 * @return enum value.
-	 * @throws RuntimeException
 	 */
-	public static PacketType GetEnum(final int value) throws RuntimeException {
+	public static PacketType GetEnum(final int value) {
 		for (PacketType current : PacketType.values()) {
 			if (value == current.packetType) {
 				return current;

@@ -39,10 +39,9 @@ public class AuthenticatedSocket extends SocketClient {
 	 *
 	 * @param socket        client socket
 	 * @param keyPairServer keypair value
-	 * @throws VerifyPeerException
 	 */
 	public AuthenticatedSocket(final Socket socket, final KeyPair keyPairServer)
-			throws VerifyPeerException {
+	{
 		super(socket);
 		VerifyServer verifyServer =
 				new VerifyServer(this, keyPair, keyPairServer,

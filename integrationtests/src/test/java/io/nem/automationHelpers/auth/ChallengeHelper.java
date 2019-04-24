@@ -53,6 +53,7 @@ public class ChallengeHelper {
 			SecureRandom.getInstanceStrong().nextBytes(bytes);
 		}
 		catch (NoSuchAlgorithmException ex) {
+			throw new RuntimeException(ex);
 		}
 
 		return bytes;

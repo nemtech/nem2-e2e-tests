@@ -40,19 +40,23 @@ public class SocketFactory {
 	 * @throws Exception
 	 */
 	public static SocketClient OpenSocket(final String server, final int port,
-										  final int timeoutInMilliseconds)
-			throws Exception {
+										  final int timeoutInMilliseconds) {
 		final Socket socket;
 
-		final InetAddress inetAddress = InetAddress.getByName(server);
-		final SocketAddress socketAddress =
-				new InetSocketAddress(inetAddress, port);
+		try {
+			final InetAddress inetAddress = InetAddress.getByName(server);
+			final SocketAddress socketAddress =
+					new InetSocketAddress(inetAddress, port);
 
-		// create a socket
-		socket = new Socket();
+			// create a socket
+			socket = new Socket();
 
-		// this method will block no more than timeout ms.
-		socket.connect(socketAddress, timeoutInMilliseconds);
+			// this method will block no more than timeout ms.
+			socket.connect(socketAddress, timeoutInMilliseconds);
+		}
+		catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
 
 		return new SocketClient(socket);
 	}

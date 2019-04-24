@@ -55,11 +55,9 @@ class VerifyServerHandler {
 			this.ChallengeType = packetType;
 		}
 
-		abstract public void handleChallenge(ByteBuffer byteBuffer)
-				throws VerifyPeerException;
+		abstract public void handleChallenge(ByteBuffer byteBuffer);
 
-		abstract public ByteBuffer tryParse(Packet packet)
-				throws VerifyPeerException;
+		abstract public ByteBuffer tryParse(Packet packet);
 	}
 
 	/**
@@ -84,14 +82,12 @@ class VerifyServerHandler {
 		// a server challenge and a client challenge
 		this.packetHandlers.add(new PacketTraits(PacketType.SERVER_CHALLENGE) {
 			@Override
-			public void handleChallenge(ByteBuffer byteBuffer)
-					throws VerifyPeerException {
+			public void handleChallenge(ByteBuffer byteBuffer) {
 				handleServerChallenge(byteBuffer);
 			}
 
 			@Override
-			public ByteBuffer tryParse(Packet packet)
-					throws VerifyPeerException {
+			public ByteBuffer tryParse(Packet packet) {
 				return ChallengeParser
 						.tryParseChallenge(packet, this.ChallengeType);
 			}
@@ -99,14 +95,12 @@ class VerifyServerHandler {
 
 		this.packetHandlers.add(new PacketTraits(PacketType.CLIENT_CHALLENGE) {
 			@Override
-			public void handleChallenge(ByteBuffer byteBuffer)
-					throws VerifyPeerException {
+			public void handleChallenge(ByteBuffer byteBuffer) {
 				handleClientChallenge(byteBuffer);
 			}
 
 			@Override
-			public ByteBuffer tryParse(Packet packet)
-					throws VerifyPeerException {
+			public ByteBuffer tryParse(Packet packet) {
 				return ChallengeParser
 						.tryParseChallenge(packet, this.ChallengeType);
 			}
@@ -115,10 +109,8 @@ class VerifyServerHandler {
 
 	/**
 	 * Verify the connection with the catapult server
-	 *
-	 * @throws VerifyPeerException
 	 */
-	void process() throws VerifyPeerException {
+	void process() {
 
 		for (PacketTraits challenge : this.packetHandlers) {
 			try {
@@ -128,7 +120,7 @@ class VerifyServerHandler {
 				challenge.handleChallenge(parsedPacket);
 			}
 			catch (Exception ex) {
-				throw new VerifyPeerException(ex.getMessage());
+				throw new RuntimeException(ex);
 			}
 		}
 	}
@@ -137,10 +129,8 @@ class VerifyServerHandler {
 	 * Respond to the server challenge
 	 *
 	 * @param packet server packet
-	 * @throws VerifyPeerException
 	 */
-	void handleServerChallenge(final ByteBuffer packet)
-			throws VerifyPeerException {
+	void handleServerChallenge(final ByteBuffer packet) {
 		try {
 			final ByteBuffer response = ChallengeHelper
 					.generateServerChallengeResponse(packet, this.clientKeyPair,
@@ -153,7 +143,7 @@ class VerifyServerHandler {
 			this.serverSocket.Write(response);
 		}
 		catch (IOException ex) {
-			throw new VerifyPeerException(ex.getMessage());
+			throw new RuntimeException(ex);
 		}
 	}
 
@@ -161,10 +151,8 @@ class VerifyServerHandler {
 	 * handles client challenge
 	 *
 	 * @param response The response
-	 * @throws VerifyPeerException
 	 */
-	void handleClientChallenge(final ByteBuffer response)
-			throws VerifyPeerException {
+	void handleClientChallenge(final ByteBuffer response) {
 		final boolean isVerified = ChallengeHelper
 				.verifyClientChallengeResponse(response, this.serverKeyPair,
 						this.serverChallenge);

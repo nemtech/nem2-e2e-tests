@@ -53,7 +53,7 @@ public class ChallengeParser {
 	 *
 	 * @param packet     The raw packet to parse.
 	 * @param packetType The expected packet type.
-	 * @returns The parsed packet or throws VerifyPeerException.
+	 * @returns The parsed packet.
 	 */
 	public static ByteBuffer tryParseChallenge(final Packet packet,
 											   final PacketType packetType) {

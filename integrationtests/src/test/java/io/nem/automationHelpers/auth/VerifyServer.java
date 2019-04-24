@@ -57,7 +57,7 @@ public class VerifyServer {
 	 *
 	 * @throws VerifyPeerException
 	 */
-	public void verifyConnection() throws VerifyPeerException {
+	public void verifyConnection() {
 		this.verifyHandler.process();
 	}
 }
