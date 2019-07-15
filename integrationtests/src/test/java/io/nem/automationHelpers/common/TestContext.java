@@ -21,125 +21,138 @@
 package io.nem.automationHelpers.common;
 
 import io.nem.automationHelpers.config.ConfigFileReader;
-import io.nem.automationHelpers.network.AuthenticatedSocket;
-import io.nem.automationHelpers.network.SocketClient;
-import io.nem.automationHelpers.network.SocketFactory;
-import io.nem.core.crypto.KeyPair;
 import io.nem.core.crypto.PublicKey;
+import io.nem.sdk.infrastructure.common.CatapultContext;
 import io.nem.sdk.model.account.Account;
-import io.nem.sdk.model.blockchain.NetworkType;
+import io.nem.sdk.model.blockchain.BlockInfo;
 import io.nem.sdk.model.transaction.SignedTransaction;
 import io.nem.sdk.model.transaction.Transaction;
+import io.nem.sdk.model.transaction.TransactionType;
 
-/**
- * The test context
- */
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+/** Test context */
 public class TestContext {
-	private final ConfigFileReader configFileReader;
-	private final AuthenticatedSocket authenticatedSocket;
-	private final Account defaultSignerAccount;
-	private final ScenarioContext scenarioContext;
-	private Transaction transaction;
-	private SignedTransaction signedTransaction;
+  private static BlockInfo firstBlock;
+  private ConfigFileReader configFileReader;
+  private CatapultContext catapultContext;
+  private Account defaultSignerAccount;
+  private ScenarioContext scenarioContext;
+  private List<Transaction> transactions;
+  private SignedTransaction signedTransaction;
 
-	/**
-	 * Constructor
-	 *
-	 * @throws Exception
-	 */
-	public TestContext() {
-		configFileReader = new ConfigFileReader();
-		scenarioContext = new ScenarioContext();
+  /** Constructor. */
+  public TestContext() {
+    configFileReader = new ConfigFileReader();
+    scenarioContext = new ScenarioContext();
+    final PublicKey publicKey = PublicKey.fromHexString(configFileReader.getApiServerPublicKey());
+    catapultContext =
+        new CatapultContext(
+            publicKey,
+            configFileReader.getApiHost(),
+            configFileReader.getMongodbPort(),
+            configFileReader.getApiPort(),
+            configFileReader.getDatabaseQueryTimeoutInSeconds(),
+            configFileReader.getSocketTimeoutInMilliseconds());
+    transactions = new ArrayList<>();
 
-		final String apiServerHost = configFileReader.getApiHost();
-		final int apiPort = configFileReader.getApiPort();
-		final SocketClient socket = SocketFactory
-				.OpenSocket(apiServerHost, apiPort,
-						configFileReader.getSocketTimeoutInMilliseconds());
+    final String privateString = configFileReader.getUserPrivateKey();
+    defaultSignerAccount =
+        Account.createFromPrivateKey(privateString, configFileReader.getNetworkType());
+  }
 
-		final PublicKey publicKey =
-				PublicKey.fromHexString(configFileReader.getApiServerKey());
-		final KeyPair keyPairServer = new KeyPair(publicKey);
-		authenticatedSocket = AuthenticatedSocket
-				.CreateAuthenticatedSocket(socket, keyPairServer);
+  /**
+   * Gets the configuration reader.
+   *
+   * @return Configuration reader.
+   */
+  public ConfigFileReader getConfigFileReader() {
+    return configFileReader;
+  }
 
-		final String privateString = configFileReader.getUserKey();
-		final NetworkType networkType =
-				NetworkType.valueOf(configFileReader.getNetworkType());
-		defaultSignerAccount =
-				Account.createFromPrivateKey(privateString, networkType);
-	}
+  /**
+   * Gets default signer account.
+   *
+   * @return Default signer account.
+   */
+  public Account getDefaultSignerAccount() {
+    return defaultSignerAccount;
+  }
 
-	/**
-	 * Get the config file reader
-	 *
-	 * @return config file reader
-	 */
-	public ConfigFileReader getConfigFileReader() {
-		return configFileReader;
-	}
+  /**
+   * Gets scenario context.
+   *
+   * @return Scenario context.
+   */
+  public ScenarioContext getScenarioContext() {
+    return scenarioContext;
+  }
 
-	/**
-	 * Get the authenticated server connection
-	 *
-	 * @return server connection
-	 */
-	public AuthenticatedSocket getAuthenticatedSocket() {
-		return authenticatedSocket;
-	}
+  /**
+   * Gets catapult context.
+   *
+   * @return Catapult context.
+   */
+  public CatapultContext getCatapultContext() {
+    return catapultContext;
+  }
 
-	/**
-	 * Get the signer account
-	 *
-	 * @return signer account
-	 */
-	public Account getDefaultSignerAccount() {
-		return defaultSignerAccount;
-	}
+  /**
+   * Gets transactations.
+   *
+   * @return List of transactions.
+   */
+  public List<Transaction> getTransactions() {
+    return transactions;
+  }
 
-	/**
-	 * Get the scenario context
-	 *
-	 * @return scenario context
-	 */
-	public ScenarioContext getScenarioContext() {
-		return scenarioContext;
-	}
+  /**
+   * Gets a transactation of a given type.
+   *
+   * @param transactionType Transactiion type.
+   * @return Transaction object if found.
+   */
+  public <T extends Transaction> Optional<T> findTransaction(
+      final TransactionType transactionType) {
+    for (final Transaction transaction : transactions) {
+      if (transaction.getType() == transactionType) {
+        return Optional.of((T) transaction);
+      }
+    }
+    return Optional.empty();
+  }
 
-	/**
-	 * Get the transaction
-	 *
-	 * @return the transaction
-	 */
-	public Transaction getTransaction() {
-		return transaction;
-	}
+  /**
+   * Adds a transaction.
+   *
+   * @param transaction Transaction to add.
+   */
+  public void addTransaction(Transaction transaction) {
+    this.transactions.add(transaction);
+  }
 
-	/**
-	 * Set the transaction
-	 *
-	 * @param transaction the transaction
-	 */
-	public void setTransaction(Transaction transaction) {
-		this.transaction = transaction;
-	}
+  /** Clear the transaction list. */
+  public void clearTransaction() {
+    this.transactions.clear();
+  }
 
-	/**
-	 * Get the signed transaction
-	 *
-	 * @return the signed transaction
-	 */
-	public SignedTransaction getSignedTransaction() {
-		return signedTransaction;
-	}
+  /**
+   * Gets signed transaction.
+   *
+   * @return Signed transaction.
+   */
+  public SignedTransaction getSignedTransaction() {
+    return signedTransaction;
+  }
 
-	/**
-	 * Set the signed transaction
-	 *
-	 * @param signedTransaction The signed transaction
-	 */
-	public void setSignedTransaction(
-			final SignedTransaction signedTransaction) {
-		this.signedTransaction = signedTransaction;
-	}
+  /**
+   * Sets the signed transaction.
+   *
+   * @param signedTransaction Signed transaction.
+   */
+  public void setSignedTransaction(SignedTransaction signedTransaction) {
+    this.signedTransaction = signedTransaction;
+  }
 }
