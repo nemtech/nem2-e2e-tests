@@ -5,30 +5,46 @@ Feature: Link a namespace to an address
   So that it is memorable and easily recognizable
 
   @bvt
-  Scenario: An account links and unlink a namespace to an address
+  Scenario: An account links a namespace to an address
     Given Alice registered the namespace "sue"
     And Alice registered the asset "X"
     When Alice links the namespace "sue" to the address of Sue
     Then she should receive a confirmation message
     And Alice can send asset "X" to the namespace "sue" instead of the address of Sue
-    When Alice unlinks the namespace "sue" from the address of Sue
-    Then she should receive a confirmation message
-    When Alice tries to send asset "X" to the namespace "sue" instead of the address of Sue
-    Then she should receive the error "Failure_Core_Invalid_Address" 
 
   @bvt
-  Scenario: An account links and unlink a subnamespace to an address
+  Scenario: An account unlink a namespace to an address
+    Given Alice registered the namespace "sue"
+    And Alice registered the asset "X"
+    And Alice links the namespace "sue" to the address of Sue
+    When Alice unlinks the namespace "sue" from the address of Sue
+    And Alice tries to send asset "X" to the namespace "sue" instead of the address of Sue
+    Then she should receive the error "Failure_Core_Invalid_Address"
+
+  @bvt
+  Scenario: An account links a subnamespace to an address
     Given Alice registered the subnamespace "accounts.sue"
     And Alice registered the asset "X"
     When Alice links the namespace "accounts.sue" to the address of Sue
     Then she should receive a confirmation message
     And Alice can send asset "X" to the namespace "accounts.sue" instead of the address of Sue
-    When Alice unlinks the namespace "accounts.sue" from the address of Sue
-    Then she should receive a confirmation message
-    When Alice tries to send asset "X" to the namespace "accounts.sue" instead of the address of Sue
-    Then she should receive the error "Failure_Core_Invalid_Address" 
 
-  Scenario: An account tries to link a namespace already is already linked
+  @bvt
+  Scenario: An account unlink a subnamespace to an address
+    Given Alice registered the subnamespace "accounts.sue"
+    And Alice registered the asset "X"
+    And Alice links the namespace "accounts.sue" to the address of Sue
+    When Alice unlinks the namespace "accounts.sue" from the address of Sue
+    And Alice tries to send asset "X" to the namespace "accounts.sue" instead of the address of Sue
+    Then she should receive the error "Failure_Core_Invalid_Address"
+
+  Scenario: An account link a namespace to an unknown account
+    Given Alice registered the namespace "tom"
+    And Alice registered the asset "T"
+    When Alice tries to link the namespace "tom" to the address of Tom
+    Then she should receive the error "Failure_Namespace_Alias_Invalid_Address"
+
+  Scenario: An account tries to link a namespace already linked
     Given Alice registered the namespace "sue"
     And Alice links the namespace "sue" to the address of Sue
     When Alice tries to link the namespace "sue" to the address of Sue
@@ -42,7 +58,7 @@ Feature: Link a namespace to an address
     When Alice tries to unlink the namespace "unknown" from the address of Sue
     Then she should receive the error "Failure_Namespace_Alias_Namespace_Unknown"
 
-  Scenario: An account tries to link a namespace she does not own to an address
+  Scenario: An account tries to link a namespace that it does not own to an address
     Given Bob registered the namespace "bob"
     When Alice tries to link the namespace "bob" to the address of Alice
     Then she should receive the error "Failure_Namespace_Alias_Owner_Conflict"

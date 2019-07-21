@@ -9,16 +9,16 @@ Feature: Alter an asset supply
 
   @bvt
   Scenario Outline: An account alters an asset supply
-    Given Alice has registered a <supplymutable> asset with an initial supply of 20 units
+    Given Alice has registered a supply <supply-mutability> asset with an initial supply of 20 units
     When Alice decides to <direction> the asset supply in <amount> units
     Then the balance of the asset in her account should <direction> in <amount> units
 
     Examples:
-      | supplymutable    | direction | amount |
-      | true             | increase  | 5      |
-      | false            | increase  | 5      |
-      | true             | decrease  | 20     |
-      | false            | decrease  | 20     |
+      | supply-mutability | direction | amount |
+      | mutable           | increase  | 5      |
+      | immutable         | increase  | 5      |
+      | mutable           | decrease  | 20     |
+      | immutable         | decrease  | 20     |
 
   @bvt
   Scenario Outline: An account tries to alter an asset supply incorrectly
@@ -33,13 +33,13 @@ Feature: Alter an asset supply
       | increase  | 0                | Failure_Mosaic_Invalid_Supply_Change_Amount |
 
   Scenario: An account tries to alter the supply of a supply mutable asset but does not own all the units
-    Given Alice has registered a "supply-mutable" asset with an initial supply of 20 units
+    Given Alice has registered a supply mutable asset with an initial supply of 20 units
     And she transfer 10 units to another account
     When Alice decides to increase the asset supply in 2 units
     Then the balance of the asset in her account should increase in 2 units
 
-  Scenario: An account tries to alter the supply of a supply immutable asset but does not own all the units
-    Given Alice has registered a "supply-immutable" asset with an initial supply of 20 units
+  Scenario: An account tries to alter the supply of a supply non-mutable asset but does not own all the units
+    Given Alice has registered a supply immutable asset with an initial supply of 20 units
     And she transfer 10 units to another account
     When Alice tries to increase the asset supply in 2 units
     Then she should receive the error "Failure_Mosaic_Supply_Immutable"

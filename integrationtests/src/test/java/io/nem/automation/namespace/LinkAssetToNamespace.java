@@ -40,105 +40,108 @@ import io.nem.sdk.model.transaction.PlainMessage;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-/** Link asset to namespace. */
+/**
+ * Link asset to namespace.
+ */
 public class LinkAssetToNamespace extends BaseTest {
-  final NamespaceHelper namespaceHelper;
+	final NamespaceHelper namespaceHelper;
 
-  /**
-   * Constructor.
-   * @param testContext Test context.
-   */
-  public LinkAssetToNamespace(final TestContext testContext) {
-    super(testContext);
-    namespaceHelper = new NamespaceHelper(testContext);
-  }
+	/**
+	 * Constructor.
+	 *
+	 * @param testContext Test context.
+	 */
+	public LinkAssetToNamespace(final TestContext testContext) {
+		super(testContext);
+		namespaceHelper = new NamespaceHelper(testContext);
+	}
 
-  private MosaicId resolveMosaicIdFromName(final String name) {
-    final MosaicInfo mosaicInfo = getTestContext().getScenarioContext().getContext(name);
-    return mosaicInfo != null
-        ? mosaicInfo.getMosaicId()
-        : MosaicId.createFromNonce(
-            MosaicNonce.createRandom(),
-            getTestContext().getDefaultSignerAccount().getPublicAccount());
-  }
+	private MosaicId resolveMosaicIdFromName(final String name) {
+		final MosaicInfo mosaicInfo = getTestContext().getScenarioContext().getContext(name);
+		return mosaicInfo != null
+				? mosaicInfo.getMosaicId()
+				: MosaicId.createFromNonce(
+				MosaicNonce.createRandom(),
+				getTestContext().getDefaultSignerAccount().getPublicAccount());
+	}
 
-  @When("^(\\w+) links the namespace \"(.*)\" to the asset \"(\\w+)\"$")
-  public void linkNamespaceToAsset(
-      final String username, final String namespaceName, final String assetName) {
-    final Account userAccount = getUser(username);
-    final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
-    final MosaicId mosaicId = resolveMosaicIdFromName(assetName);
-    namespaceHelper.submitLinkMosaicAliasAndWait(userAccount, namespaceId, mosaicId);
-  }
+	@When("^(\\w+) links the namespace \"(.*)\" to the asset \"(\\w+)\"$")
+	public void linkNamespaceToAsset(
+			final String username, final String namespaceName, final String assetName) {
+		final Account userAccount = getUser(username);
+		final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
+		final MosaicId mosaicId = resolveMosaicIdFromName(assetName);
+		namespaceHelper.submitLinkMosaicAliasAndWait(userAccount, namespaceId, mosaicId);
+	}
 
-  @When("^(\\w+) tries to link the namespace \"(.*)\" to the asset \"(\\w+)\"$")
-  public void triesToLinkNamespaceToAsset(
-      final String username, final String namespaceName, final String assetName) {
-    final Account userAccount = getUser(username);
-    final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
-    final MosaicId mosaicId = resolveMosaicIdFromName(assetName);
-    namespaceHelper.createLinkMosaicAliasAndAnnonce(userAccount, namespaceId, mosaicId);
-  }
+	@When("^(\\w+) tries to link the namespace \"(.*)\" to the asset \"(\\w+)\"$")
+	public void triesToLinkNamespaceToAsset(
+			final String username, final String namespaceName, final String assetName) {
+		final Account userAccount = getUser(username);
+		final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
+		final MosaicId mosaicId = resolveMosaicIdFromName(assetName);
+		namespaceHelper.createLinkMosaicAliasAndAnnonce(userAccount, namespaceId, mosaicId);
+	}
 
-  @When("^(\\w+) unlinks the namespace \"(.*)\" from the asset \"(\\w+)\"$")
-  public void unlinkNamespaceToAsset(
-      final String username, final String namespaceName, final String assetName) {
-    final Account userAccount = getUser(username);
-    final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
-    final MosaicId mosaicId = resolveMosaicIdFromName(assetName);
-    namespaceHelper.submitUnlinkMosaicAliasAndWait(userAccount, namespaceId, mosaicId);
-  }
+	@When("^(\\w+) unlinks the namespace \"(.*)\" from the asset \"(\\w+)\"$")
+	public void unlinkNamespaceToAsset(
+			final String username, final String namespaceName, final String assetName) {
+		final Account userAccount = getUser(username);
+		final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
+		final MosaicId mosaicId = resolveMosaicIdFromName(assetName);
+		namespaceHelper.submitUnlinkMosaicAliasAndWait(userAccount, namespaceId, mosaicId);
+	}
 
-  @When("^(\\w+) tries to unlink the namespace \"(.*)\" from the asset \"(\\w+)\"$")
-  public void triesToUnlinkNamespaceToAsset(
-      final String username, final String namespaceName, final String assetName) {
-    final Account userAccount = getUser(username);
-    final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
-    final MosaicId mosaicId = resolveMosaicIdFromName(assetName);
-    namespaceHelper.createUnlinkMosaicAliasAndAnnonce(userAccount, namespaceId, mosaicId);
-  }
+	@When("^(\\w+) tries to unlink the namespace \"(.*)\" from the asset \"(\\w+)\"$")
+	public void triesToUnlinkNamespaceToAsset(
+			final String username, final String namespaceName, final String assetName) {
+		final Account userAccount = getUser(username);
+		final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
+		final MosaicId mosaicId = resolveMosaicIdFromName(assetName);
+		namespaceHelper.createUnlinkMosaicAliasAndAnnonce(userAccount, namespaceId, mosaicId);
+	}
 
-  @And("^(\\w+) can send \"(.*)\" instead of asset \"(\\w+)\" to (\\w+)$")
-  public void sendTransferWithNamespaceInsteadAsset(
-      final String sender,
-      final String namespaceName,
-      final String assetName,
-      final String recipient) {
-    final Account senderAccount = getUser(sender);
-    final Account recipientAccount = getUser(recipient);
-    final AccountHelper accountHelper = new AccountHelper(getTestContext());
-    final AccountInfo senderInfo = accountHelper.getAccountInfo(senderAccount.getAddress());
-    final AccountInfo recipientInfo = accountHelper.getAccountInfo(recipientAccount.getAddress());
-    final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
-    final MosaicInfo mosaicInfo = getTestContext().getScenarioContext().getContext(assetName);
-    final int amount = 1;
-    final TransferHelper transferHelper = new TransferHelper(getTestContext());
-    transferHelper.submitTransferAndWait(
-        senderAccount,
-        recipientAccount.getAddress(),
-        Arrays.asList(new Mosaic(namespaceId, BigInteger.valueOf(amount))),
-        PlainMessage.Empty);
-    CommonHelper.verifyAccountBalance(
-        getTestContext(), senderInfo, mosaicInfo.getMosaicId(), -amount);
-    CommonHelper.verifyAccountBalance(
-        getTestContext(), recipientInfo, mosaicInfo.getMosaicId(), amount);
-  }
+	@And("^(\\w+) can send \"(.*)\" instead of asset \"(\\w+)\" to (\\w+)$")
+	public void sendTransferWithNamespaceInsteadAsset(
+			final String sender,
+			final String namespaceName,
+			final String assetName,
+			final String recipient) {
+		final Account senderAccount = getUser(sender);
+		final Account recipientAccount = getUser(recipient);
+		final AccountHelper accountHelper = new AccountHelper(getTestContext());
+		final AccountInfo senderInfo = accountHelper.getAccountInfo(senderAccount.getAddress());
+		final AccountInfo recipientInfo = accountHelper.getAccountInfo(recipientAccount.getAddress());
+		final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
+		final MosaicInfo mosaicInfo = getTestContext().getScenarioContext().getContext(assetName);
+		final int amount = 1;
+		final TransferHelper transferHelper = new TransferHelper(getTestContext());
+		transferHelper.submitTransferAndWait(
+				senderAccount,
+				recipientAccount.getAddress(),
+				Arrays.asList(new Mosaic(namespaceId, BigInteger.valueOf(amount))),
+				PlainMessage.Empty);
+		CommonHelper.verifyAccountBalance(
+				getTestContext(), senderInfo, mosaicInfo.getMosaicId(), -amount);
+		CommonHelper.verifyAccountBalance(
+				getTestContext(), recipientInfo, mosaicInfo.getMosaicId(), amount);
+	}
 
-  @When("^(\\w+) tries to send \"(.*)\" instead of asset \"(\\w+)\" to (\\w+)$")
-  public void triesToSendNamespaceAsAsset(
-      final String sender,
-      final String namespaceName,
-      final String assetName,
-      final String recipient) {
-    final Account senderAccount = getUser(sender);
-    final Account recipientAccount = getUser(recipient);
-    final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
-    final int amount = 1;
-    final TransferHelper transferHelper = new TransferHelper(getTestContext());
-    transferHelper.createTransferAndAnnounce(
-        senderAccount,
-        recipientAccount.getAddress(),
-        Arrays.asList(new Mosaic(namespaceId, BigInteger.valueOf(amount))),
-        PlainMessage.Empty);
-  }
+	@When("^(\\w+) tries to send \"(.*)\" instead of asset \"(\\w+)\" to (\\w+)$")
+	public void triesToSendNamespaceAsAsset(
+			final String sender,
+			final String namespaceName,
+			final String assetName,
+			final String recipient) {
+		final Account senderAccount = getUser(sender);
+		final Account recipientAccount = getUser(recipient);
+		final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
+		final int amount = 1;
+		final TransferHelper transferHelper = new TransferHelper(getTestContext());
+		transferHelper.createTransferAndAnnounce(
+				senderAccount,
+				recipientAccount.getAddress(),
+				Arrays.asList(new Mosaic(namespaceId, BigInteger.valueOf(amount))),
+				PlainMessage.Empty);
+	}
 }

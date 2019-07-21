@@ -26,39 +26,41 @@ import io.nem.automationHelpers.common.Log;
 import org.junit.After;
 import org.junit.Before;
 
-/** Hooks for all tests */
+/**
+ * Hooks for all tests
+ */
 public abstract class Hooks {
-  private ScenarioNameMap scenarioNameMap;
+	private ScenarioNameMap scenarioNameMap;
 
-  private Hooks() {
-    scenarioNameMap = ScenarioNameMap.getInstance();
-  }
+	private Hooks() {
+		scenarioNameMap = ScenarioNameMap.getInstance();
+	}
 
-  /**
-   * Sets up the scenario.
-   *
-   * @param scenario Scenario.
-   */
-  @Before()
-  public void beforeScenario(final Scenario scenario) {
-    final String scenarioName = scenario.getName();
-    scenarioNameMap.addScenario(scenarioName);
-    Log.getLogger(scenarioName).scenarioStart(scenarioName);
-  }
+	/**
+	 * Sets up the scenario.
+	 *
+	 * @param scenario Scenario.
+	 */
+	@Before()
+	public void beforeScenario(final Scenario scenario) {
+		final String scenarioName = scenario.getName();
+		scenarioNameMap.addScenario(scenarioName);
+		Log.getLogger(scenarioName).scenarioStart(scenarioName);
+	}
 
-  /**
-   * Runs after the scenario is complete.
-   *
-   * @param scenario Scenario info.
-   */
-  @After()
-  public void afterScenario(final Scenario scenario) {
-    final String scenarioName = scenario.getName();
-    final Log logger = Log.getLogger(scenarioName);
-    logger.senscarioEnd(scenarioName, scenario.getStatus().ordinal());
-    if (scenario.isFailed()) {
-      ScenarioImpl impl = (ScenarioImpl) scenario;
-      logger.LogException(impl.getError());
-    }
-  }
+	/**
+	 * Runs after the scenario is complete.
+	 *
+	 * @param scenario Scenario info.
+	 */
+	@After()
+	public void afterScenario(final Scenario scenario) {
+		final String scenarioName = scenario.getName();
+		final Log logger = Log.getLogger(scenarioName);
+		logger.scenarioEnd(scenarioName, scenario.getStatus().ordinal());
+		if (scenario.isFailed()) {
+			ScenarioImpl impl = (ScenarioImpl) scenario;
+			logger.LogException(impl.getError());
+		}
+	}
 }

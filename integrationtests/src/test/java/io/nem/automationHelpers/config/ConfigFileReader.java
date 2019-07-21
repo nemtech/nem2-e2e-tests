@@ -31,153 +31,163 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-/** Config reader for the automation framework. */
+/**
+ * Config reader for the automation framework.
+ */
 public class ConfigFileReader {
-  /** List of key-pair vaules. */
-  private final Properties properties;
-  /** The config file. */
-  private final String propertyFile = "configs/config-default.properties";
+	/**
+	 * List of key-pair vaules.
+	 */
+	private final Properties properties;
+	/**
+	 * The config file.
+	 */
+	private final String propertyFile = "configs/config-default.properties";
 
-  /** Constructor. */
-  public ConfigFileReader() {
-    final BufferedReader reader;
-    try {
-      final Path resourcePath =
-          Paths.get(
-              Thread.currentThread().getContextClassLoader().getResource(propertyFile).getPath());
-      reader = new BufferedReader(new FileReader(resourcePath.toFile().getAbsolutePath()));
-      properties = new Properties();
-      try {
-        properties.load(reader);
-        reader.close();
-      } catch (final IOException e) {
-        e.printStackTrace();
-      }
-    } catch (final FileNotFoundException e) {
-      e.printStackTrace();
-      throw new RuntimeException(propertyFile + " file not found");
-    }
-  }
+	/**
+	 * Constructor.
+	 */
+	public ConfigFileReader() {
+		final BufferedReader reader;
+		try {
+			final Path resourcePath =
+					Paths.get(
+							Thread.currentThread().getContextClassLoader().getResource(propertyFile).getPath());
+			reader = new BufferedReader(new FileReader(resourcePath.toFile().getAbsolutePath()));
+			properties = new Properties();
+			try {
+				properties.load(reader);
+				reader.close();
+			}
+			catch (final IOException e) {
+				e.printStackTrace();
+			}
+		}
+		catch (final FileNotFoundException e) {
+			e.printStackTrace();
+			throw new RuntimeException(propertyFile + " file not found");
+		}
+	}
 
-  /**
-   * Gets the api host address.
-   *
-   * @return Api host name/address.
-   */
-  public String getApiHost() {
-    return getPropertyValue("apiHost");
-  }
+	/**
+	 * Gets the api host address.
+	 *
+	 * @return Api host name/address.
+	 */
+	public String getApiHost() {
+		return getPropertyValue("apiHost");
+	}
 
-  /**
-   * Gets the api host port.
-   *
-   * @return Api host port.
-   */
-  public int getApiPort() {
-    return Integer.parseInt(getPropertyValue("apiPort"));
-  }
+	/**
+	 * Gets the api host port.
+	 *
+	 * @return Api host port.
+	 */
+	public int getApiPort() {
+		return Integer.parseInt(getPropertyValue("apiPort"));
+	}
 
-  /**
-   * Gets the api server public key.
-   *
-   * @return Api host public key.
-   */
-  public String getApiServerPublicKey() {
-    return getPropertyValue("apiServerPublicKey").toUpperCase();
-  }
+	/**
+	 * Gets the api server public key.
+	 *
+	 * @return Api host public key.
+	 */
+	public String getApiServerPublicKey() {
+		return getPropertyValue("apiServerPublicKey").toUpperCase();
+	}
 
-  /**
-   * Gets the test user private key.
-   *
-   * @return Test user private key.
-   */
-  public String getUserPrivateKey() {
-    return getPropertyValue("userPrivateKey").toUpperCase();
-  }
+	/**
+	 * Gets the test user private key.
+	 *
+	 * @return Test user private key.
+	 */
+	public String getUserPrivateKey() {
+		return getPropertyValue("userPrivateKey").toUpperCase();
+	}
 
-  /**
-   * Gets the mongo database host name.
-   *
-   * @return Mongo database host name.
-   */
-  public String getMongodbHost() {
-    return getPropertyValue("mongodbHost");
-  }
+	/**
+	 * Gets the mongo database host name.
+	 *
+	 * @return Mongo database host name.
+	 */
+	public String getMongodbHost() {
+		return getPropertyValue("mongodbHost");
+	}
 
-  /**
-   * Gets mongo database port.
-   *
-   * @return Mongo database port.
-   */
-  public int getMongodbPort() {
-    return Integer.parseInt(getPropertyValue("mongodbPort"));
-  }
+	/**
+	 * Gets mongo database port.
+	 *
+	 * @return Mongo database port.
+	 */
+	public int getMongodbPort() {
+		return Integer.parseInt(getPropertyValue("mongodbPort"));
+	}
 
-  /**
-   * Gets network type.
-   *
-   * @return Network Type.
-   */
-  public NetworkType getNetworkType() {
-    return NetworkType.valueOf(getPropertyValue("networkType"));
-  }
+	/**
+	 * Gets network type.
+	 *
+	 * @return Network Type.
+	 */
+	public NetworkType getNetworkType() {
+		return NetworkType.valueOf(getPropertyValue("networkType"));
+	}
 
-  /**
-   * Gets cat currency id.
-   *
-   * @return Currency id.
-   */
-  public BigInteger getCatCurrencyId() {
-    return new BigInteger(getPropertyValue("cat.currency"), 16);
-  }
+	/**
+	 * Gets cat currency id.
+	 *
+	 * @return Currency id.
+	 */
+	public BigInteger getCatCurrencyId() {
+		return new BigInteger(getPropertyValue("cat.currency"), 16);
+	}
 
-  /**
-   * Gets max fee.
-   *
-   * @return Max fee.
-   */
-  public BigInteger getMaxFee() {
-    return new BigInteger(getPropertyValue("maxFee"));
-  }
+	/**
+	 * Gets max fee.
+	 *
+	 * @return Max fee.
+	 */
+	public BigInteger getMaxFee() {
+		return new BigInteger(getPropertyValue("maxFee"));
+	}
 
-  /**
-   * Gets socket timeout in milliseconds.
-   *
-   * @return Socket timeout in millisecond.
-   */
-  public int getSocketTimeoutInMilliseconds() {
-    return Integer.parseInt(getPropertyValue("socketTimeoutInMilliseconds"));
-  }
+	/**
+	 * Gets socket timeout in milliseconds.
+	 *
+	 * @return Socket timeout in millisecond.
+	 */
+	public int getSocketTimeoutInMilliseconds() {
+		return Integer.parseInt(getPropertyValue("socketTimeoutInMilliseconds"));
+	}
 
-  /**
-   * Gets the database query timeout in seconds.
-   *
-   * @return Database query timeout in seconds.
-   */
-  public int getDatabaseQueryTimeoutInSeconds() {
-    return Integer.parseInt(getPropertyValue("databaseQueryTimeoutInSeconds"));
-  }
+	/**
+	 * Gets the database query timeout in seconds.
+	 *
+	 * @return Database query timeout in seconds.
+	 */
+	public int getDatabaseQueryTimeoutInSeconds() {
+		return Integer.parseInt(getPropertyValue("databaseQueryTimeoutInSeconds"));
+	}
 
-  /**
-   * Gets generation hash.
-   *
-   * @return Generation hash.
-   */
-  public String getGenerationHash() {
-    return getPropertyValue("generationHash");
-  }
+	/**
+	 * Gets generation hash.
+	 *
+	 * @return Generation hash.
+	 */
+	public String getGenerationHash() {
+		return getPropertyValue("generationHash");
+	}
 
-  /**
-   * Gets a property value from the config file.
-   *
-   * @param propertyName Property name.
-   * @return Property value.
-   */
-  private String getPropertyValue(String propertyName) {
-    String propertyValue = properties.getProperty(propertyName);
-    if (propertyValue != null) {
-      return propertyValue;
-    }
-    throw new RuntimeException(propertyName + " not specified in the " + propertyFile + " file.");
-  }
+	/**
+	 * Gets a property value from the config file.
+	 *
+	 * @param propertyName Property name.
+	 * @return Property value.
+	 */
+	private String getPropertyValue(String propertyName) {
+		String propertyValue = properties.getProperty(propertyName);
+		if (propertyValue != null) {
+			return propertyValue;
+		}
+		throw new RuntimeException(propertyName + " not specified in the " + propertyFile + " file.");
+	}
 }

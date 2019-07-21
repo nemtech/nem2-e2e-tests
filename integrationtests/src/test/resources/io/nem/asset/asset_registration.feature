@@ -12,17 +12,17 @@ Feature: Register an asset
     and the maximum asset supply is 9000000000
 
   @bvt
-  Scenario Outline: An account registers an expiring asset with valid properties and divisibility
-    When Alice registers an asset for <duration> in blocks with valid <transferable>, <supplymutable> and <divisibility>
+  Scenario Outline: An account registers an expiring asset with valid properties with divisibility
+    When Alice registers <transferability>, supply <supply-mutability> with divisibility <divisibility> asset for <duration> in blocks
     Then Alice should become the owner of the new asset for at least <duration> blocks
     And Alice "cat.currency" balance should decrease in 500 units
 
     Examples:
-      | duration | transferable | supplymutable | divisibility |
-      | 1        | true         | false         | 0            |
-      | 2        | false        | true          | 6            |
-      | 3        | true         | true          | 1            |
-      | 1        | false        | false         | 2            |
+      | duration | transferability    | supply-mutability | divisibility |
+      | 1        | transferable       | immutable         | 0            |
+      | 2        | nontransferable    | mutable           | 6            |
+      | 3        | transferable       | mutable           | 1            |
+      | 1        | nontransferable    | immutable         | 2            |
 
   @bvt
   Scenario: An account registers a non-expiring asset
@@ -31,7 +31,7 @@ Feature: Register an asset
     And Alice "cat.currency" balance should decrease in 500 units
 
   Scenario Outline: An account tries to register an asset with invalid values
-    When Alice registers an asset for <duration> in blocks and <divisibility> divisibility 
+    When Alice registers an asset for <duration> in blocks with <divisibility> divisibility
     Then she should receive the error "<error>"
     And Alice "cat.currency" balance should remain intact
 
@@ -47,17 +47,3 @@ Feature: Register an asset
     When Sue registers an asset
     Then she should receive the error "Failure_Core_Insufficient_Balance"
 
-  # Assest Transfer
-  @bvt
-  Scenario: An account register a non-transferable asset and 
-    Given Alice registers a non transferable asset which she transfer 10 asset to Sue
-    When Sue transfer 1 asset to Bob
-    Then she should receive the error "Failure_Mosaic_Non_Transferable"
-    When Sue transfer 1 asset to Alice
-    Then 1 asset transfered successfully
-
-  @bvt
-  Scenario: An account register a transferable asset
-    Given Alice registers a transferable asset which she transfer asset to Bob
-    When Bob transfer 10 asset to Sue
-    Then 10 asset transfered successfully

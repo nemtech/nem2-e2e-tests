@@ -38,117 +38,119 @@ import java.math.BigInteger;
 
 import static org.junit.Assert.assertEquals;
 
-/** Register subnamcespace tests. */
+/**
+ * Register subnamcespace tests.
+ */
 public class RegisterSubNamespace extends BaseTest {
-  private final NamespaceHelper namespaceHelper;
+	private final NamespaceHelper namespaceHelper;
 
-  /**
-   * Constructor.
-   *
-   * @param testContext Test context.
-   */
-  public RegisterSubNamespace(final TestContext testContext) {
-    super(testContext);
-    namespaceHelper = new NamespaceHelper(testContext);
-  }
+	/**
+	 * Constructor.
+	 *
+	 * @param testContext Test context.
+	 */
+	public RegisterSubNamespace(final TestContext testContext) {
+		super(testContext);
+		namespaceHelper = new NamespaceHelper(testContext);
+	}
 
-  private String getParentName(final String subNamespace) {
-    final int parentEnd = subNamespace.lastIndexOf(".");
-    return subNamespace.substring(0, parentEnd);
-  }
+	private String getParentName(final String subNamespace) {
+		final int parentEnd = subNamespace.lastIndexOf(".");
+		return subNamespace.substring(0, parentEnd);
+	}
 
-  private String getSubNamespaceName(final String subNamespace) {
-    final int parentEnd = subNamespace.lastIndexOf(".");
-    return subNamespace.substring(parentEnd + 1);
-  }
+	private String getSubNamespaceName(final String subNamespace) {
+		final int parentEnd = subNamespace.lastIndexOf(".");
+		return subNamespace.substring(parentEnd + 1);
+	}
 
-  private void saveInitialAccountInfo(final Account account) {
-    final AccountInfo accountInfo =
-        new AccountHelper(getTestContext()).getAccountInfo(account.getAddress());
-    getTestContext().getScenarioContext().setContext(ACCOUNT_INFO_KEY, accountInfo);
-  }
+	private void saveInitialAccountInfo(final Account account) {
+		final AccountInfo accountInfo =
+				new AccountHelper(getTestContext()).getAccountInfo(account.getAddress());
+		getTestContext().getScenarioContext().setContext(ACCOUNT_INFO_KEY, accountInfo);
+	}
 
-  private void createSubNamespaceForUser(
-      final Account account, final String name, final String parentName) {
-    saveInitialAccountInfo(account);
-    namespaceHelper.createSubNamespaceAndAnnonce(account, name, parentName);
-  }
+	private void createSubNamespaceForUser(
+			final Account account, final String name, final String parentName) {
+		saveInitialAccountInfo(account);
+		namespaceHelper.createSubNamespaceAndAnnonce(account, name, parentName);
+	}
 
-  private void registerSubNamespaceForUserAndWait(
-      final Account account, final String name, final String parentName) {
-    saveInitialAccountInfo(account);
-    namespaceHelper.createSubNamespaceAndWait(account, name, parentName);
-  }
+	private void registerSubNamespaceForUserAndWait(
+			final Account account, final String name, final String parentName) {
+		saveInitialAccountInfo(account);
+		namespaceHelper.createSubNamespaceAndWait(account, name, parentName);
+	}
 
-  private void verifySubNamespaceInfo(final String namespace) {
-    final NamespaceId namespaceId = new NamespaceId(namespace);
-    final NamespaceInfo namespaceInfo =
-        new NamespaceHelper(getTestContext()).getNamesapceInfo(namespaceId);
-    final String errorMessage =
-        "SubNamespace info check failed for id: " + namespaceId.getIdAsLong();
-    assertEquals(errorMessage, namespaceId.getIdAsLong(), namespaceInfo.getId().getIdAsLong());
-    final AccountInfo accountInfo =
-        getTestContext().getScenarioContext().getContext(ACCOUNT_INFO_KEY);
-    assertEquals(
-        errorMessage,
-        accountInfo.getAddress().plain(),
-        namespaceInfo.getOwner().getAddress().plain());
-    final String[] namespaceParts = namespace.split("\\.");
-    assertEquals(errorMessage, NamespaceType.SubNamespace, namespaceInfo.getType());
-    assertEquals(errorMessage, namespaceParts.length, namespaceInfo.getDepth().intValue());
-    final NamespaceId parentNamespaceId = new NamespaceId(getParentName(namespace));
-    assertEquals(
-        errorMessage,
-        parentNamespaceId.getIdAsLong(),
-        namespaceInfo.parentNamespaceId().getIdAsLong());
-    assertEquals(errorMessage, true, namespaceInfo.isSubnamespace());
-  }
+	private void verifySubNamespaceInfo(final String namespace) {
+		final NamespaceId namespaceId = new NamespaceId(namespace);
+		final NamespaceInfo namespaceInfo =
+				new NamespaceHelper(getTestContext()).getNamesapceInfo(namespaceId);
+		final String errorMessage =
+				"SubNamespace info check failed for id: " + namespaceId.getIdAsLong();
+		assertEquals(errorMessage, namespaceId.getIdAsLong(), namespaceInfo.getId().getIdAsLong());
+		final AccountInfo accountInfo =
+				getTestContext().getScenarioContext().getContext(ACCOUNT_INFO_KEY);
+		assertEquals(
+				errorMessage,
+				accountInfo.getAddress().plain(),
+				namespaceInfo.getOwner().getAddress().plain());
+		final String[] namespaceParts = namespace.split("\\.");
+		assertEquals(errorMessage, NamespaceType.SubNamespace, namespaceInfo.getType());
+		assertEquals(errorMessage, namespaceParts.length, namespaceInfo.getDepth().intValue());
+		final NamespaceId parentNamespaceId = new NamespaceId(getParentName(namespace));
+		assertEquals(
+				errorMessage,
+				parentNamespaceId.getIdAsLong(),
+				namespaceInfo.parentNamespaceId().getIdAsLong());
+		assertEquals(errorMessage, true, namespaceInfo.isSubnamespace());
+	}
 
-  @When("^(\\w+) creates a subnamespace named \"(.*)\"$")
-  public void createSubNamespace(final String username, final String subNamespace) {
-    final Account account = getUser(username);
-    registerSubNamespaceForUserAndWait(
-        account, getSubNamespaceName(subNamespace), getParentName(subNamespace));
-  }
+	@When("^(\\w+) creates a subnamespace named \"(.*)\"$")
+	public void createSubNamespace(final String username, final String subNamespace) {
+		final Account account = getUser(username);
+		registerSubNamespaceForUserAndWait(
+				account, getSubNamespaceName(subNamespace), getParentName(subNamespace));
+	}
 
-  @And("^she should become the owner of the new subnamespace \"(.*)\"$")
-  public void verifySubNamespaceOwnerShip(final String name) {
-    verifySubNamespaceInfo(resolveNamespaceName(name));
-  }
+	@And("^she should become the owner of the new subnamespace \"(.*)\"$")
+	public void verifySubNamespaceOwnerShip(final String name) {
+		verifySubNamespaceInfo(resolveNamespaceName(name));
+	}
 
-  @Given("^(\\w+) registered the subnamespace \"(.*)\"$")
-  public void registerSubNamespace(final String username, final String subNamespace) {
-    final Account account = getUser(username);
-    final BigInteger duration = BigInteger.valueOf(50);
-    final String subNamespaceName = getSubNamespaceName(subNamespace);
-    final String parentName = getParentName(subNamespace);
-    final String randomSubName = CommonHelper.getRandomNamespaceName(subNamespaceName);
-    new RegisterNamespace(getTestContext())
-        .registerNamespaceForUserAndWait(account, parentName, duration);
-    registerSubNamespaceForUserAndWait(account, randomSubName, parentName);
-    getTestContext()
-        .getScenarioContext()
-        .setContext(subNamespace, parentName + "." + randomSubName);
-  }
+	@Given("^(\\w+) registered the subnamespace \"(.*)\"$")
+	public void registerSubNamespace(final String username, final String subNamespace) {
+		final Account account = getUser(username);
+		final BigInteger duration = BigInteger.valueOf(50);
+		final String subNamespaceName = getSubNamespaceName(subNamespace);
+		final String parentName = getParentName(subNamespace);
+		final String randomSubName = CommonHelper.getRandomNamespaceName(subNamespaceName);
+		new RegisterNamespace(getTestContext())
+				.registerNamespaceForUserAndWait(account, parentName, duration);
+		registerSubNamespaceForUserAndWait(account, randomSubName, parentName);
+		getTestContext()
+				.getScenarioContext()
+				.setContext(subNamespace, parentName + "." + randomSubName);
+	}
 
-  @When("^(\\w+) tries to creates a subnamespace named \"(.*)\"$")
-  public void createSubNamespaceInvalid(final String username, final String subNamespace) {
-    final Account account = getUser(username);
-    final String realName = resolveNamespaceName(subNamespace);
-    createSubNamespaceForUser(
-        account, getSubNamespaceName(realName), getParentName(realName));
-  }
+	@When("^(\\w+) tries to creates a subnamespace named \"(.*)\"$")
+	public void createSubNamespaceInvalid(final String username, final String subNamespace) {
+		final Account account = getUser(username);
+		final String realName = resolveNamespaceName(subNamespace);
+		createSubNamespaceForUser(
+				account, getSubNamespaceName(realName), getParentName(realName));
+	}
 
-  @When("^(\\w+) tries to creates a subnamespace \"(.*)\" which is too deep$")
-  public void createSubNamespaceTooDeep(final String username, final String subNamespace) {
-    final Account account = getUser(username);
-    final String[] parts = subNamespace.split("\\.");
-    String parentName = parts[0];
-    for (int i = 1; i < parts.length - 1; i++) {
-      final String randomSubName = CommonHelper.getRandomNamespaceName(parts[i]);
-      registerSubNamespaceForUserAndWait(account, randomSubName, parentName);
-      parentName += "." + randomSubName;
-    }
-    createSubNamespaceForUser(account, parts[parts.length - 1], parentName);
-  }
+	@When("^(\\w+) tries to creates a subnamespace \"(.*)\" which is too deep$")
+	public void createSubNamespaceTooDeep(final String username, final String subNamespace) {
+		final Account account = getUser(username);
+		final String[] parts = subNamespace.split("\\.");
+		String parentName = parts[0];
+		for (int i = 1; i < parts.length - 1; i++) {
+			final String randomSubName = CommonHelper.getRandomNamespaceName(parts[i]);
+			registerSubNamespaceForUserAndWait(account, randomSubName, parentName);
+			parentName += "." + randomSubName;
+		}
+		createSubNamespaceForUser(account, parts[parts.length - 1], parentName);
+	}
 }

@@ -32,65 +32,64 @@ import io.nem.sdk.model.namespace.NamespaceInfo;
 
 import java.math.BigInteger;
 
-/** Extend namespace Registration tests. */
+/**
+ * Extend namespace Registration tests.
+ */
 public class ExtendNamespaceRegistration extends BaseTest {
-  private static final String NAMESPACE_FIRST_INFO_KEY = "firstNamespaceInfo";
-  private static final String EXTEND_AFTER_EXPIRED = "extendNamespaceAfterExpiration";
-  private final NamespaceHelper namespaceHelper;
+	private static final String NAMESPACE_FIRST_INFO_KEY = "firstNamespaceInfo";
+	private static final String EXTEND_AFTER_EXPIRED = "extendNamespaceAfterExpiration";
+	private final NamespaceHelper namespaceHelper;
 
-  /**
-   * Constructor.
-   *
-   * @param testContext Test context.
-   */
-  public ExtendNamespaceRegistration(final TestContext testContext) {
-    super(testContext);
-    namespaceHelper = new NamespaceHelper(testContext);
-  }
+	/**
+	 * Constructor.
+	 *
+	 * @param testContext Test context.
+	 */
+	public ExtendNamespaceRegistration(final TestContext testContext) {
+		super(testContext);
+		namespaceHelper = new NamespaceHelper(testContext);
+	}
 
-  @When("^(\\w+) extends the registration of the namespace named \"(\\w+)\" for (\\d+) blocks?$")
-  public void extendsNamespaceRegistration(
-      final String username, final String name, final BigInteger duration) {
-    final NamespaceInfo namespaceInfo =
-        getTestContext().getScenarioContext().getContext(NAMESPACE_INFO_KEY);
-    getTestContext().getScenarioContext().setContext(NAMESPACE_FIRST_INFO_KEY, namespaceInfo);
-    final Account userAccount = getUser(username);
-    new RegisterNamespace(getTestContext())
-        .registerNamespaceForUserAndWait(userAccount, name, duration);
-  }
+	@When("^(\\w+) extends the registration of the namespace named \"(\\w+)\" for (\\d+) blocks?$")
+	public void extendsNamespaceRegistration(
+			final String username, final String name, final BigInteger duration) {
+		final NamespaceInfo namespaceInfo =
+				getTestContext().getScenarioContext().getContext(NAMESPACE_INFO_KEY);
+		getTestContext().getScenarioContext().setContext(NAMESPACE_FIRST_INFO_KEY, namespaceInfo);
+		final Account userAccount = getUser(username);
+		new RegisterNamespace(getTestContext())
+				.registerNamespaceForUserAndWait(userAccount, name, duration);
+	}
 
-  @When(
-      "^(\\w+) tries to extends the registration of the namespace named \"(\\w+)\" for (\\d+) blocks?$")
-  public void extendsNamespaceRegistrationFails(
-      final String username, final String name, final BigInteger duration) {
-    final Account userAccount = getUser(username);
-    new RegisterNamespace(getTestContext()).registerNamespaceForUser(userAccount, name, duration);
-  }
+	@When(
+			"^(\\w+) tries to extends the registration of the namespace named \"(\\w+)\" for (\\d+) blocks?$")
+	public void extendsNamespaceRegistrationFails(
+			final String username, final String name, final BigInteger duration) {
+		final Account userAccount = getUser(username);
+		new RegisterNamespace(getTestContext()).registerNamespaceForUser(userAccount, name, duration);
+	}
 
-  @And("^the namespace is now under redemption period$")
-  public void waitForNamespaceToExpire() {
-    final NamespaceInfo namespaceInfo =
-        getTestContext().getScenarioContext().getContext(NAMESPACE_INFO_KEY);
-    final BlockChainHelper blockchainDao = new BlockChainHelper(getTestContext());
-    while (blockchainDao.getBlockchainHeight().longValue()
-        <= namespaceInfo.getEndHeight().longValue()) {
-      ExceptionUtils.propagateVoid(() -> Thread.sleep(1000));
-    }
-    getTestContext().getScenarioContext().setContext(EXTEND_AFTER_EXPIRED, true);
-  }
+	@And("^the namespace is now under grace period$")
+	public void waitForNamespaceToExpire() {
+		final NamespaceInfo namespaceInfo =
+				getTestContext().getScenarioContext().getContext(NAMESPACE_INFO_KEY);
+		final BlockChainHelper blockchainDao = new BlockChainHelper(getTestContext());
+		while (blockchainDao.getBlockchainHeight().longValue()
+				<= namespaceInfo.getEndHeight().longValue()) {
+			ExceptionUtils.propagateVoid(() -> Thread.sleep(1000));
+		}
+		getTestContext().getScenarioContext().setContext(EXTEND_AFTER_EXPIRED, true);
+	}
 
-  @And("^the namespace registration period should be extended for at least (\\d+) blocks?$")
-  public void verifyNamespaceRegistrationExtension(final BigInteger duration) {
-    final NamespaceInfo namespaceFirstInfo =
-        getTestContext().getScenarioContext().getContext(NAMESPACE_FIRST_INFO_KEY);
-    final boolean extendAfterExpiration =
-            getTestContext().getScenarioContext().isContains(EXTEND_AFTER_EXPIRED) &&
-                    getTestContext().getScenarioContext().<Boolean>getContext(EXTEND_AFTER_EXPIRED);
-/*    final NamespaceInfo namespaceInfo =
-            getTestContext().getScenarioContext().getContext(NAMESPACE_INFO_KEY);
-    final BigInteger blockChainHeight = new BlockChainHelper(getTestContext()).getBlockchainHeight();*/
-    final BigInteger updateDuration =  extendAfterExpiration ? duration :
-            namespaceFirstInfo.getEndHeight().subtract(namespaceFirstInfo.getStartHeight()).add(duration);
-    new RegisterNamespace(getTestContext()).verifyNamespaceInfo(namespaceFirstInfo.getId(), updateDuration);
-  }
+	@And("^the namespace registration period should be extended for at least (\\d+) blocks?$")
+	public void verifyNamespaceRegistrationExtension(final BigInteger duration) {
+		final NamespaceInfo namespaceFirstInfo =
+				getTestContext().getScenarioContext().getContext(NAMESPACE_FIRST_INFO_KEY);
+		final boolean extendAfterExpiration =
+				getTestContext().getScenarioContext().isContains(EXTEND_AFTER_EXPIRED) &&
+						getTestContext().getScenarioContext().<Boolean>getContext(EXTEND_AFTER_EXPIRED);
+		final BigInteger updateDuration = extendAfterExpiration ? duration :
+				namespaceFirstInfo.getEndHeight().subtract(namespaceFirstInfo.getStartHeight()).add(duration);
+		new RegisterNamespace(getTestContext()).verifyNamespaceInfo(namespaceFirstInfo.getId(), updateDuration);
+	}
 }

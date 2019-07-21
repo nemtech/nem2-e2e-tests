@@ -34,331 +34,334 @@ import io.nem.sdk.model.transaction.*;
 import java.math.BigInteger;
 import java.util.Optional;
 
-/** Namespace helper. */
+/**
+ * Namespace helper.
+ */
 public class NamespaceHelper {
-  private final TestContext testContext;
+	private final TestContext testContext;
 
-  /**
-   * Constructor.
-   *
-   * @param testContext Test context.
-   */
-  public NamespaceHelper(final TestContext testContext) {
-    this.testContext = testContext;
-  }
+	/**
+	 * Constructor.
+	 *
+	 * @param testContext Test context.
+	 */
+	public NamespaceHelper(final TestContext testContext) {
+		this.testContext = testContext;
+	}
 
-  private RegisterNamespaceTransaction createRootNamespaceTransaction(
-      final Deadline deadline,
-      final BigInteger fee,
-      final String namespaceName,
-      final BigInteger duration) {
-    return RegisterNamespaceTransaction.createRootNamespace(
-        deadline, fee, namespaceName, duration, new NetworkHelper(testContext).getNetworkType());
-  }
+	private RegisterNamespaceTransaction createRootNamespaceTransaction(
+			final Deadline deadline,
+			final BigInteger maxFee,
+			final String namespaceName,
+			final BigInteger duration) {
+		return RegisterNamespaceTransaction.createRootNamespace(
+				deadline, maxFee, namespaceName, duration, new NetworkHelper(testContext).getNetworkType());
+	}
 
-  private RegisterNamespaceTransaction createRootNamespaceTransaction(
-      final String namespaceName, final BigInteger duration) {
-    return createRootNamespaceTransaction(
-        TransactionHelper.getDefaultDeadline(),
-        TransactionHelper.getDefaultMaxFee(),
-        namespaceName,
-        duration);
-  }
+	private RegisterNamespaceTransaction createRootNamespaceTransaction(
+			final String namespaceName, final BigInteger duration) {
+		return createRootNamespaceTransaction(
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				namespaceName,
+				duration);
+	}
 
-  private RegisterNamespaceTransaction createSubNamespaceTransaction(
-      final Deadline deadline,
-      final BigInteger fee,
-      final String namespaceName,
-      final String parentNamespaceName) {
-    return RegisterNamespaceTransaction.createSubNamespace(
-        deadline,
-        fee,
-        namespaceName,
-        parentNamespaceName,
-        new NetworkHelper(testContext).getNetworkType());
-  }
+	private RegisterNamespaceTransaction createSubNamespaceTransaction(
+			final Deadline deadline,
+			final BigInteger maxFee,
+			final String namespaceName,
+			final String parentNamespaceName) {
+		return RegisterNamespaceTransaction.createSubNamespace(
+				deadline,
+				maxFee,
+				namespaceName,
+				parentNamespaceName,
+				new NetworkHelper(testContext).getNetworkType());
+	}
 
-  private RegisterNamespaceTransaction createSubNamespaceTransaction(
-      final String namespaceName, final String parentNamespaceName) {
-    return createSubNamespaceTransaction(
-        TransactionHelper.getDefaultDeadline(),
-        TransactionHelper.getDefaultMaxFee(),
-        namespaceName,
-        parentNamespaceName);
-  }
+	private RegisterNamespaceTransaction createSubNamespaceTransaction(
+			final String namespaceName, final String parentNamespaceName) {
+		return createSubNamespaceTransaction(
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				namespaceName,
+				parentNamespaceName);
+	}
 
-  private AddressAliasTransaction createAddressAliasTransaction(
-      final Deadline deadline,
-      final BigInteger fee,
-      final AliasAction aliasAction,
-      final NamespaceId namespaceId,
-      final Address address) {
-    return AddressAliasTransaction.create(
-        deadline,
-        fee,
-        aliasAction,
-        namespaceId,
-        address,
-        new NetworkHelper(testContext).getNetworkType());
-  }
+	private AddressAliasTransaction createAddressAliasTransaction(
+			final Deadline deadline,
+			final BigInteger maxFee,
+			final AliasAction aliasAction,
+			final NamespaceId namespaceId,
+			final Address address) {
+		return AddressAliasTransaction.create(
+				deadline,
+				maxFee,
+				aliasAction,
+				namespaceId,
+				address,
+				new NetworkHelper(testContext).getNetworkType());
+	}
 
-  private AddressAliasTransaction createAddressAliasTransaction(
-      final AliasAction aliasAction, final NamespaceId namespaceId, final Address address) {
-    return createAddressAliasTransaction(
-        TransactionHelper.getDefaultDeadline(),
-        TransactionHelper.getDefaultMaxFee(),
-        aliasAction,
-        namespaceId,
-        address);
-  }
+	private AddressAliasTransaction createAddressAliasTransaction(
+			final AliasAction aliasAction, final NamespaceId namespaceId, final Address address) {
+		return createAddressAliasTransaction(
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				aliasAction,
+				namespaceId,
+				address);
+	}
 
-  private MosaicAliasTransaction createMosaicAliasTransaction(
-      final Deadline deadline,
-      final BigInteger fee,
-      final AliasAction aliasAction,
-      final NamespaceId namespaceId,
-      final MosaicId mosaicId) {
-    return MosaicAliasTransaction.create(
-        deadline,
-        fee,
-        aliasAction,
-        namespaceId,
-        mosaicId,
-        new NetworkHelper(testContext).getNetworkType());
-  }
+	private MosaicAliasTransaction createMosaicAliasTransaction(
+			final Deadline deadline,
+			final BigInteger maxFee,
+			final AliasAction aliasAction,
+			final NamespaceId namespaceId,
+			final MosaicId mosaicId) {
+		return MosaicAliasTransaction.create(
+				deadline,
+				maxFee,
+				aliasAction,
+				namespaceId,
+				mosaicId,
+				new NetworkHelper(testContext).getNetworkType());
+	}
 
-  private MosaicAliasTransaction createMosaicAliasTransaction(
-      final AliasAction aliasAction, final NamespaceId namespaceId, final MosaicId mosaicId) {
-    return createMosaicAliasTransaction(
-        TransactionHelper.getDefaultDeadline(),
-        TransactionHelper.getDefaultMaxFee(),
-        aliasAction,
-        namespaceId,
-        mosaicId);
-  }
+	private MosaicAliasTransaction createMosaicAliasTransaction(
+			final AliasAction aliasAction, final NamespaceId namespaceId, final MosaicId mosaicId) {
+		return createMosaicAliasTransaction(
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				aliasAction,
+				namespaceId,
+				mosaicId);
+	}
 
-  /**
-   * Creates and announce a root namespace transaction.
-   *
-   * @param account Signer account.
-   * @param namespaceName Namesapce name.
-   * @param duration Duration.
-   * @return Signed transaction.
-   */
-  public SignedTransaction createRootNamespaceAndAnnonce(
-      final Account account, final String namespaceName, final BigInteger duration) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransaction(
-            account, () -> createRootNamespaceTransaction(namespaceName, duration));
-  }
+	/**
+	 * Creates and announce a root namespace transaction.
+	 *
+	 * @param account       Signer account.
+	 * @param namespaceName Namesapce name.
+	 * @param duration      Duration.
+	 * @return Signed transaction.
+	 */
+	public SignedTransaction createRootNamespaceAndAnnonce(
+			final Account account, final String namespaceName, final BigInteger duration) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransaction(
+						account, () -> createRootNamespaceTransaction(namespaceName, duration));
+	}
 
-  /**
-   * Creates and announce a root namespace transaction. Wait for transaction to complete.
-   *
-   * @param account Signer account.
-   * @param namespaceName Namesapce name.
-   * @param duration Duration.
-   * @return Namespace transaction.
-   */
-  public RegisterNamespaceTransaction createRootNamespaceAndWait(
-      final Account account, final String namespaceName, final BigInteger duration) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransactionAndWait(
-            account, () -> createRootNamespaceTransaction(namespaceName, duration));
-  }
+	/**
+	 * Creates and announce a root namespace transaction. Wait for transaction to complete.
+	 *
+	 * @param account       Signer account.
+	 * @param namespaceName Namesapce name.
+	 * @param duration      Duration.
+	 * @return Namespace transaction.
+	 */
+	public RegisterNamespaceTransaction createRootNamespaceAndWait(
+			final Account account, final String namespaceName, final BigInteger duration) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransactionAndWait(
+						account, () -> createRootNamespaceTransaction(namespaceName, duration));
+	}
 
-  /**
-   * Creates and announce a sub namespace transaction.
-   *
-   * @param account Signer account.
-   * @param namespaceName Namesapce name.
-   * @param parentNamespaceName Parent namespace name.
-   * @return Signed transaction.
-   */
-  public SignedTransaction createSubNamespaceAndAnnonce(
-      final Account account, final String namespaceName, final String parentNamespaceName) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransaction(
-            account, () -> createSubNamespaceTransaction(namespaceName, parentNamespaceName));
-  }
+	/**
+	 * Creates and announce a sub namespace transaction.
+	 *
+	 * @param account             Signer account.
+	 * @param namespaceName       Namesapce name.
+	 * @param parentNamespaceName Parent namespace name.
+	 * @return Signed transaction.
+	 */
+	public SignedTransaction createSubNamespaceAndAnnonce(
+			final Account account, final String namespaceName, final String parentNamespaceName) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransaction(
+						account, () -> createSubNamespaceTransaction(namespaceName, parentNamespaceName));
+	}
 
-  /**
-   * Creates and announce a sub namespace transaction. Waits for the transaction to complete.
-   *
-   * @param account Signer account.
-   * @param namespaceName Namesapce name.
-   * @param parentNamespaceName Parent namespace name.
-   * @return Signed transaction.
-   */
-  public RegisterNamespaceTransaction createSubNamespaceAndWait(
-      final Account account, final String namespaceName, final String parentNamespaceName) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransactionAndWait(
-            account, () -> createSubNamespaceTransaction(namespaceName, parentNamespaceName));
-  }
+	/**
+	 * Creates and announce a sub namespace transaction. Waits for the transaction to complete.
+	 *
+	 * @param account             Signer account.
+	 * @param namespaceName       Namesapce name.
+	 * @param parentNamespaceName Parent namespace name.
+	 * @return Signed transaction.
+	 */
+	public RegisterNamespaceTransaction createSubNamespaceAndWait(
+			final Account account, final String namespaceName, final String parentNamespaceName) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransactionAndWait(
+						account, () -> createSubNamespaceTransaction(namespaceName, parentNamespaceName));
+	}
 
-  /**
-   * Gets the linked mosaic id from namespace.
-   *
-   * @param namespaceId Namespace id.
-   * @return Mosaic id.
-   */
-  public MosaicId getLinkedMosaicId(final NamespaceId namespaceId) {
-    return ExceptionUtils.propagate(
-        () ->
-            new NamespaceDao(testContext.getCatapultContext())
-                .getLinkedMosaicId(namespaceId)
-                .toFuture()
-                .get());
-  }
+	/**
+	 * Gets the linked mosaic id from namespace.
+	 *
+	 * @param namespaceId Namespace id.
+	 * @return Mosaic id.
+	 */
+	public MosaicId getLinkedMosaicId(final NamespaceId namespaceId) {
+		return ExceptionUtils.propagate(
+				() ->
+						new NamespaceDao(testContext.getCatapultContext())
+								.getLinkedMosaicId(namespaceId)
+								.toFuture()
+								.get());
+	}
 
-  /**
-   * Gets the namespace info.
-   *
-   * @param namespaceId Namespace id.
-   * @return Namespace info.
-   */
-  public NamespaceInfo getNamesapceInfo(final NamespaceId namespaceId) {
-    return ExceptionUtils.propagate(
-        () ->
-            new NamespaceDao(testContext.getCatapultContext())
-                .getNamespace(namespaceId)
-                .toFuture()
-                .get());
-  }
+	/**
+	 * Gets the namespace info.
+	 *
+	 * @param namespaceId Namespace id.
+	 * @return Namespace info.
+	 */
+	public NamespaceInfo getNamesapceInfo(final NamespaceId namespaceId) {
+		return ExceptionUtils.propagate(
+				() ->
+						new NamespaceDao(testContext.getCatapultContext())
+								.getNamespace(namespaceId)
+								.toFuture()
+								.get());
+	}
 
-  /**
-   * Tries to get the namespace info.
-   *
-   * @param namespaceId Namespace id.
-   * @return Namespace info if successful.
-   */
-  public Optional<NamespaceInfo> tryGetNamesapceInfo(final NamespaceId namespaceId) {
-    try {
-      return Optional.of(getNamesapceInfo(namespaceId));
-    } catch (final Exception e) {
-      System.out.println(e.getMessage());
-    }
-    return Optional.empty();
-  }
+	/**
+	 * Tries to get the namespace info.
+	 *
+	 * @param namespaceId Namespace id.
+	 * @return Namespace info if successful.
+	 */
+	public Optional<NamespaceInfo> tryGetNamesapceInfo(final NamespaceId namespaceId) {
+		try {
+			return Optional.of(getNamesapceInfo(namespaceId));
+		}
+		catch (final Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return Optional.empty();
+	}
 
-  /**
-   * Creates a link address alias transaction and announce.
-   *
-   * @param account Signer account.
-   * @param namespaceId Namepace id.
-   * @param address Account address to link.
-   * @return Signed transaction.
-   */
-  public SignedTransaction createLinkAddressAliasAndAnnonce(
-      final Account account, final NamespaceId namespaceId, final Address address) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransaction(
-            account, () -> createAddressAliasTransaction(AliasAction.Link, namespaceId, address));
-  }
+	/**
+	 * Creates a link address alias transaction and announce.
+	 *
+	 * @param account     Signer account.
+	 * @param namespaceId Namepace id.
+	 * @param address     Account address to link.
+	 * @return Signed transaction.
+	 */
+	public SignedTransaction createLinkAddressAliasAndAnnonce(
+			final Account account, final NamespaceId namespaceId, final Address address) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransaction(
+						account, () -> createAddressAliasTransaction(AliasAction.Link, namespaceId, address));
+	}
 
-  /**
-   * Creates an unlink address alias transaction and announce.
-   *
-   * @param account Signer account.
-   * @param namespaceId Namepace id.
-   * @param address Account address to link.
-   * @return Signed transaction.
-   */
-  public SignedTransaction createUnlinkAddressAliasAndAnnonce(
-      final Account account, final NamespaceId namespaceId, final Address address) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransaction(
-            account, () -> createAddressAliasTransaction(AliasAction.Unlink, namespaceId, address));
-  }
+	/**
+	 * Creates an unlink address alias transaction and announce.
+	 *
+	 * @param account     Signer account.
+	 * @param namespaceId Namepace id.
+	 * @param address     Account address to link.
+	 * @return Signed transaction.
+	 */
+	public SignedTransaction createUnlinkAddressAliasAndAnnonce(
+			final Account account, final NamespaceId namespaceId, final Address address) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransaction(
+						account, () -> createAddressAliasTransaction(AliasAction.Unlink, namespaceId, address));
+	}
 
-  /**
-   * Creates an unlink address alias transaction and announce. Wait for the transaction to complete.
-   *
-   * @param account Signer account.
-   * @param namespaceId Namepace id.
-   * @param address Account address to link.
-   * @return Signed transaction.
-   */
-  public AddressAliasTransaction submitUnlinkAddressAliasAndWait(
-      final Account account, final NamespaceId namespaceId, final Address address) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransactionAndWait(
-            account, () -> createAddressAliasTransaction(AliasAction.Unlink, namespaceId, address));
-  }
+	/**
+	 * Creates an unlink address alias transaction and announce. Wait for the transaction to complete.
+	 *
+	 * @param account     Signer account.
+	 * @param namespaceId Namepace id.
+	 * @param address     Account address to link.
+	 * @return Signed transaction.
+	 */
+	public AddressAliasTransaction submitUnlinkAddressAliasAndWait(
+			final Account account, final NamespaceId namespaceId, final Address address) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransactionAndWait(
+						account, () -> createAddressAliasTransaction(AliasAction.Unlink, namespaceId, address));
+	}
 
-  /**
-   * Creates a link address alias transaction and announce. Wait for the transaction to complete.
-   *
-   * @param account Signer account.
-   * @param namespaceId Namepace id.
-   * @param address Account address to link.
-   * @return Signed transaction.
-   */
-  public AddressAliasTransaction submitLinkAddressAliasAndWait(
-      final Account account, final NamespaceId namespaceId, final Address address) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransactionAndWait(
-            account, () -> createAddressAliasTransaction(AliasAction.Link, namespaceId, address));
-  }
+	/**
+	 * Creates a link address alias transaction and announce. Wait for the transaction to complete.
+	 *
+	 * @param account     Signer account.
+	 * @param namespaceId Namepace id.
+	 * @param address     Account address to link.
+	 * @return Signed transaction.
+	 */
+	public AddressAliasTransaction submitLinkAddressAliasAndWait(
+			final Account account, final NamespaceId namespaceId, final Address address) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransactionAndWait(
+						account, () -> createAddressAliasTransaction(AliasAction.Link, namespaceId, address));
+	}
 
-  /**
-   * Creates a link mosaic alias transaction and announce.
-   *
-   * @param account Owner account.
-   * @param namespaceId Namespace id.
-   * @param mosaicId Mosaic id.
-   * @return Signed transaction.
-   */
-  public SignedTransaction createLinkMosaicAliasAndAnnonce(
-      final Account account, final NamespaceId namespaceId, final MosaicId mosaicId) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransaction(
-            account, () -> createMosaicAliasTransaction(AliasAction.Link, namespaceId, mosaicId));
-  }
+	/**
+	 * Creates a link mosaic alias transaction and announce.
+	 *
+	 * @param account     Owner account.
+	 * @param namespaceId Namespace id.
+	 * @param mosaicId    Mosaic id.
+	 * @return Signed transaction.
+	 */
+	public SignedTransaction createLinkMosaicAliasAndAnnonce(
+			final Account account, final NamespaceId namespaceId, final MosaicId mosaicId) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransaction(
+						account, () -> createMosaicAliasTransaction(AliasAction.Link, namespaceId, mosaicId));
+	}
 
-  /**
-   * Creates an unlink mosaic alias transaction and announce.
-   *
-   * @param account Owner account.
-   * @param namespaceId Namespace id.
-   * @param mosaicId Mosaic id.
-   * @return Signed transaction.
-   */
-  public SignedTransaction createUnlinkMosaicAliasAndAnnonce(
-      final Account account, final NamespaceId namespaceId, final MosaicId mosaicId) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransaction(
-            account, () -> createMosaicAliasTransaction(AliasAction.Unlink, namespaceId, mosaicId));
-  }
+	/**
+	 * Creates an unlink mosaic alias transaction and announce.
+	 *
+	 * @param account     Owner account.
+	 * @param namespaceId Namespace id.
+	 * @param mosaicId    Mosaic id.
+	 * @return Signed transaction.
+	 */
+	public SignedTransaction createUnlinkMosaicAliasAndAnnonce(
+			final Account account, final NamespaceId namespaceId, final MosaicId mosaicId) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransaction(
+						account, () -> createMosaicAliasTransaction(AliasAction.Unlink, namespaceId, mosaicId));
+	}
 
-  /**
-   * Creates a link mosaic alias transaction and announce. Wait for the transaction to complete.
-   *
-   * @param account Owner account.
-   * @param namespaceId Namespace id.
-   * @param mosaicId Mosaic id.
-   * @return Signed transaction.
-   */
-  public MosaicAliasTransaction submitLinkMosaicAliasAndWait(
-      final Account account, final NamespaceId namespaceId, final MosaicId mosaicId) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransactionAndWait(
-            account, () -> createMosaicAliasTransaction(AliasAction.Link, namespaceId, mosaicId));
-  }
+	/**
+	 * Creates a link mosaic alias transaction and announce. Wait for the transaction to complete.
+	 *
+	 * @param account     Owner account.
+	 * @param namespaceId Namespace id.
+	 * @param mosaicId    Mosaic id.
+	 * @return Signed transaction.
+	 */
+	public MosaicAliasTransaction submitLinkMosaicAliasAndWait(
+			final Account account, final NamespaceId namespaceId, final MosaicId mosaicId) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransactionAndWait(
+						account, () -> createMosaicAliasTransaction(AliasAction.Link, namespaceId, mosaicId));
+	}
 
-  /**
-   * Creates an unlink mosaic alias transaction and announce. Wait for the transaction to complete.
-   *
-   * @param account Owner account.
-   * @param namespaceId Namespace id.
-   * @param mosaicId Mosaic id.
-   * @return Signed transaction.
-   */
-  public MosaicAliasTransaction submitUnlinkMosaicAliasAndWait(
-      final Account account, final NamespaceId namespaceId, final MosaicId mosaicId) {
-    return new TransactionHelper(testContext)
-        .signAndAnnounceTransactionAndWait(
-            account, () -> createMosaicAliasTransaction(AliasAction.Unlink, namespaceId, mosaicId));
-  }
+	/**
+	 * Creates an unlink mosaic alias transaction and announce. Wait for the transaction to complete.
+	 *
+	 * @param account     Owner account.
+	 * @param namespaceId Namespace id.
+	 * @param mosaicId    Mosaic id.
+	 * @return Signed transaction.
+	 */
+	public MosaicAliasTransaction submitUnlinkMosaicAliasAndWait(
+			final Account account, final NamespaceId namespaceId, final MosaicId mosaicId) {
+		return new TransactionHelper(testContext)
+				.signAndAnnounceTransactionAndWait(
+						account, () -> createMosaicAliasTransaction(AliasAction.Unlink, namespaceId, mosaicId));
+	}
 }

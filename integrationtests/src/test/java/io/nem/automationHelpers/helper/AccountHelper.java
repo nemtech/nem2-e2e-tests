@@ -34,60 +34,62 @@ import io.nem.sdk.model.transaction.PlainMessage;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-/** Account helper. */
+/**
+ * Account helper.
+ */
 public class AccountHelper {
-  private final TestContext testContext;
+	private final TestContext testContext;
 
-  /**
-   * Constructor.
-   *
-   * @param testContext Test context.
-   */
-  public AccountHelper(final TestContext testContext) {
-    this.testContext = testContext;
-  }
+	/**
+	 * Constructor.
+	 *
+	 * @param testContext Test context.
+	 */
+	public AccountHelper(final TestContext testContext) {
+		this.testContext = testContext;
+	}
 
-  /**
-   * Gets account info.
-   *
-   * @param address Account's address.
-   * @return Account info.
-   */
-  public AccountInfo getAccountInfo(final Address address) {
-    return ExceptionUtils.propagate(
-        () ->
-            new AccountsDao(testContext.getCatapultContext())
-                .getAccountInfo(address)
-                .toFuture()
-                .get());
-  }
+	/**
+	 * Gets account info.
+	 *
+	 * @param address Account's address.
+	 * @return Account info.
+	 */
+	public AccountInfo getAccountInfo(final Address address) {
+		return ExceptionUtils.propagate(
+				() ->
+						new AccountsDao(testContext.getCatapultContext())
+								.getAccountInfo(address)
+								.toFuture()
+								.get());
+	}
 
-  /**
-   * Creates an account with asset.
-   *
-   * @param mosaicId Mosaic id.
-   * @param amount Amount of asset.
-   * @return Account.
-   */
-  public Account createAccountWithAsset(final MosaicId mosaicId, final BigInteger amount) {
-    return createAccountWithAsset(new Mosaic(mosaicId, amount));
-  }
+	/**
+	 * Creates an account with asset.
+	 *
+	 * @param mosaicId Mosaic id.
+	 * @param amount   Amount of asset.
+	 * @return Account.
+	 */
+	public Account createAccountWithAsset(final MosaicId mosaicId, final BigInteger amount) {
+		return createAccountWithAsset(new Mosaic(mosaicId, amount));
+	}
 
-  /**
-   * Creates an account with asset.
-   *
-   * @param mosaic Mosaic.
-   * @return Account.
-   */
-  public Account createAccountWithAsset(final Mosaic mosaic) {
-    final NetworkType networkType = new NetworkHelper(testContext).getNetworkType();
-    final Account account = Account.generateNewAccount(networkType);
-    final TransferHelper transferHelper = new TransferHelper(testContext);
-    transferHelper.submitTransferAndWait(
-        testContext.getDefaultSignerAccount(),
-        account.getAddress(),
-        Arrays.asList(mosaic),
-        PlainMessage.Empty);
-    return account;
-  }
+	/**
+	 * Creates an account with asset.
+	 *
+	 * @param mosaic Mosaic.
+	 * @return Account.
+	 */
+	public Account createAccountWithAsset(final Mosaic mosaic) {
+		final NetworkType networkType = new NetworkHelper(testContext).getNetworkType();
+		final Account account = Account.generateNewAccount(networkType);
+		final TransferHelper transferHelper = new TransferHelper(testContext);
+		transferHelper.submitTransferAndWait(
+				testContext.getDefaultSignerAccount(),
+				account.getAddress(),
+				Arrays.asList(mosaic),
+				PlainMessage.Empty);
+		return account;
+	}
 }

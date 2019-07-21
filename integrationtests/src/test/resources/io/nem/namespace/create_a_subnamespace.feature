@@ -7,7 +7,7 @@ Feature: Create a subnamespace
     Given the native currency asset is "cat.currency"
     And creating a subnamespace costs 100 cat.currency
     And the mean block generation time is 15 seconds
-    And the maximum level of nested spaces is 3
+    And the maximum level of nested namespaces is 3
     And the subnamespace name can have up to 64 characters
     And Alice has 10000000 "cat.currency" in her account
 

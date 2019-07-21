@@ -43,130 +43,132 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 
-/** Transaction specific tests. */
+/**
+ * Transaction specific tests.
+ */
 public class SendTransaction extends BaseTest {
-  final TransferHelper transferHelper;
-  final NetworkHelper networkHelper;
-  final TransactionHelper transactionHelper;
+	final TransferHelper transferHelper;
+	final NetworkHelper networkHelper;
+	final TransactionHelper transactionHelper;
 
-  /**
-   * Constructor.
-   *
-   * @param testContext Test context.
-   */
-  public SendTransaction(final TestContext testContext) {
-    super(testContext);
-    transferHelper = new TransferHelper(testContext);
-    networkHelper = new NetworkHelper(testContext);
-    transactionHelper = new TransactionHelper(testContext);
-  }
+	/**
+	 * Constructor.
+	 *
+	 * @param testContext Test context.
+	 */
+	public SendTransaction(final TestContext testContext) {
+		super(testContext);
+		transferHelper = new TransferHelper(testContext);
+		networkHelper = new NetworkHelper(testContext);
+		transactionHelper = new TransactionHelper(testContext);
+	}
 
-  private TransferTransaction createTransaction(
-      final Deadline deadline, final BigInteger maxFee, final NetworkType networkType) {
-    final Address recipientAddress = Account.generateNewAccount(networkType).getAddress();
-    return transferHelper.createTransferTransaction(
-        deadline,
-        maxFee,
-        recipientAddress,
-        new ArrayList<>(),
-        PlainMessage.create("Test message"),
-        networkType);
-  }
+	private TransferTransaction createTransaction(
+			final Deadline deadline, final BigInteger maxFee, final NetworkType networkType) {
+		final Address recipientAddress = Account.generateNewAccount(networkType).getAddress();
+		return transferHelper.createTransferTransaction(
+				deadline,
+				maxFee,
+				recipientAddress,
+				new ArrayList<>(),
+				PlainMessage.create("Test message"),
+				networkType);
+	}
 
-  private NetworkType getIncorrectNetworkType() {
-    final NetworkType correctNetworkType = networkHelper.getNetworkType();
-    for (NetworkType networkType : NetworkType.values()) {
-      if (networkType != correctNetworkType) {
-        return networkType;
-      }
-    }
-    throw new IllegalStateException("There is only one Network type define.");
-  }
+	private NetworkType getIncorrectNetworkType() {
+		final NetworkType correctNetworkType = networkHelper.getNetworkType();
+		for (NetworkType networkType : NetworkType.values()) {
+			if (networkType != correctNetworkType) {
+				return networkType;
+			}
+		}
+		throw new IllegalStateException("There is only one Network type define.");
+	}
 
-  private void announcesTransactionWithInvalid(
-      final String senderName,
-      final Deadline deadline,
-      final BigInteger maxFee,
-      final NetworkType networkType) {
-    final Account sender = getUser(senderName);
-    final TransferTransaction transferTransaction =
-        createTransaction(deadline, maxFee, networkType);
-    transactionHelper.signAndAnnounceTransaction(transferTransaction, sender);
-  }
+	private void announcesTransactionWithInvalid(
+			final String senderName,
+			final Deadline deadline,
+			final BigInteger maxFee,
+			final NetworkType networkType) {
+		final Account sender = getUser(senderName);
+		final TransferTransaction transferTransaction =
+				createTransaction(deadline, maxFee, networkType);
+		transactionHelper.signAndAnnounceTransaction(transferTransaction, sender);
+	}
 
-  @When("^(\\w+) tries to announces the transaction with a deadline of (-?\\d+) hours?$")
-  public void announcesTransactionWithInvalidDeadline(final String userName, final int timeout) {
-    final Deadline deadline = Deadline.create(timeout, ChronoUnit.HOURS);
-    announcesTransactionWithInvalid(
-        userName, deadline, TransactionHelper.getDefaultMaxFee(), networkHelper.getNetworkType());
-  }
+	@When("^(\\w+) tries to announces the transaction with a deadline of (-?\\d+) hours?$")
+	public void announcesTransactionWithInvalidDeadline(final String userName, final int timeout) {
+		final Deadline deadline = Deadline.create(timeout, ChronoUnit.HOURS);
+		announcesTransactionWithInvalid(
+				userName, deadline, TransactionHelper.getDefaultMaxFee(), networkHelper.getNetworkType());
+	}
 
-  @When("^(\\w+) announce valid transaction which expires in unconfirmed status$")
-  public void announcesTransactionExpiredUnconfirmed(final String userName) {
-    final int timeInSeconds = 3;
-    final Deadline deadline = Deadline.create(timeInSeconds, ChronoUnit.SECONDS);
-    announcesTransactionWithInvalid(
-        userName, deadline, TransactionHelper.getDefaultMaxFee(), networkHelper.getNetworkType());
-    ExceptionUtils.propagateVoid(() -> Thread.sleep((timeInSeconds + 3) * 1000));
-  }
+	@When("^(\\w+) announce valid transaction which expires in unconfirmed status$")
+	public void announcesTransactionExpiredUnconfirmed(final String userName) {
+		final int timeInSeconds = 3;
+		final Deadline deadline = Deadline.create(timeInSeconds, ChronoUnit.SECONDS);
+		announcesTransactionWithInvalid(
+				userName, deadline, TransactionHelper.getDefaultMaxFee(), networkHelper.getNetworkType());
+		ExceptionUtils.propagateVoid(() -> Thread.sleep((timeInSeconds + 3) * 1000));
+	}
 
-  @When("^(\\w+) announces the transaction with invalid signature$")
-  public void announcesTransactionInvalidSignature(final String userName) {
-    final Account sender = getUser(userName);
-    final Account signingAccount = Account.generateNewAccount(networkHelper.getNetworkType());
-    final TransferTransaction transferTransaction =
-        createTransaction(
-            TransactionHelper.getDefaultDeadline(),
-            TransactionHelper.getDefaultMaxFee(),
-            networkHelper.getNetworkType());
-    final SignedTransaction signedInvalidTransaction =
-        transactionHelper.signTransaction(
-            transferTransaction,
-            signingAccount,
-            getTestContext().getConfigFileReader().getGenerationHash().replace('0', '1'));
-    transactionHelper.announceTransaction(signedInvalidTransaction);
-    final SignedTransaction signedTransaction =
-            transactionHelper.signTransaction(transferTransaction, signingAccount);
-    getTestContext().setSignedTransaction(signedTransaction);
-  }
+	@When("^(\\w+) announces the transaction with invalid signature$")
+	public void announcesTransactionInvalidSignature(final String userName) {
+		final Account sender = getUser(userName);
+		final Account signingAccount = Account.generateNewAccount(networkHelper.getNetworkType());
+		final TransferTransaction transferTransaction =
+				createTransaction(
+						TransactionHelper.getDefaultDeadline(),
+						TransactionHelper.getDefaultMaxFee(),
+						networkHelper.getNetworkType());
+		final SignedTransaction signedInvalidTransaction =
+				transactionHelper.signTransaction(
+						transferTransaction,
+						signingAccount,
+						getTestContext().getConfigFileReader().getGenerationHash().replace('0', '1'));
+		transactionHelper.announceTransaction(signedInvalidTransaction);
+		final SignedTransaction signedTransaction =
+				transactionHelper.signTransaction(transferTransaction, signingAccount);
+		getTestContext().setSignedTransaction(signedTransaction);
+	}
 
-  @When("^(\\w+) announces same the transaction$")
-  public void announceLastTransaction(final String userName) {
-    final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
-    final TransactionRepository transactionRepository =
-        new TransactionDao(getTestContext().getCatapultContext());
-    transactionRepository.announce(signedTransaction);
-  }
+	@When("^(\\w+) announces same the transaction$")
+	public void announceLastTransaction(final String userName) {
+		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
+		final TransactionRepository transactionRepository =
+				new TransactionDao(getTestContext().getCatapultContext());
+		transactionRepository.announce(signedTransaction);
+	}
 
-  @When("^(\\w+) announces the transaction to the incorrect network$")
-  public void announceTransactionIncorrectNetwork(final String userName) {
-    final NetworkType networkType = getIncorrectNetworkType();
-    announcesTransactionWithInvalid(
-        userName,
-        TransactionHelper.getDefaultDeadline(),
-        TransactionHelper.getDefaultMaxFee(),
-        networkType);
-  }
+	@When("^(\\w+) announces the transaction to the incorrect network$")
+	public void announceTransactionIncorrectNetwork(final String userName) {
+		final NetworkType networkType = getIncorrectNetworkType();
+		announcesTransactionWithInvalid(
+				userName,
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				networkType);
+	}
 
-  @Then("^she should receive the error \"(\\w+)\"$")
-  public void verifyTransactionError(final String error) {
-    final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
-    final int maxTries = 15;
-    final int waitTimeInMilliseconds = 1000;
-    final TransactionStatus status =
-            new RetryCommand<TransactionStatus>(maxTries, waitTimeInMilliseconds, Optional.empty())
-                    .run(
-                            (final RetryCommand<TransactionStatus> retryCommand) -> {
-                              final TransactionStatus current =  new TransactionHelper(getTestContext())
-                                      .getTransactionStatus(signedTransaction.getHash());
-                              if (current.getStatus().toUpperCase().startsWith("FAILURE_")){
-                                return current;
-                              }
-                              throw new RuntimeException("Test as not fail yet - " + current.toString());
-                            });
-    assertEquals(
-            "Transaction " + signedTransaction.toString() + " did not fail.",
-            error.toUpperCase(),
-            status.getStatus().toUpperCase());
-  }
+	@Then("^she should receive the error \"(\\w+)\"$")
+	public void verifyTransactionError(final String error) {
+		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
+		final int maxTries = 15;
+		final int waitTimeInMilliseconds = 1000;
+		final TransactionStatus status =
+				new RetryCommand<TransactionStatus>(maxTries, waitTimeInMilliseconds, Optional.empty())
+						.run(
+								(final RetryCommand<TransactionStatus> retryCommand) -> {
+									final TransactionStatus current = new TransactionHelper(getTestContext())
+											.getTransactionStatus(signedTransaction.getHash());
+									if (current.getStatus().toUpperCase().startsWith("FAILURE_")) {
+										return current;
+									}
+									throw new RuntimeException("Test as not fail yet - " + current.toString());
+								});
+		assertEquals(
+				"Transaction " + signedTransaction.toString() + " did not fail.",
+				error.toUpperCase(),
+				status.getStatus().toUpperCase());
+	}
 }

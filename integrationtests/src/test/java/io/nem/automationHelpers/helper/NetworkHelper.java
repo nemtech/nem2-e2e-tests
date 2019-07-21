@@ -25,26 +25,28 @@ import io.nem.core.utils.ExceptionUtils;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.dao.NetworkDao;
 import io.nem.sdk.model.blockchain.NetworkType;
 
-/** Network Helper */
+/**
+ * Network Helper
+ */
 public class NetworkHelper {
-  private final TestContext testContext;
+	private final TestContext testContext;
 
-  /**
-   * Constructor.
-   *
-   * @param testContext Test context.
-   */
-  public NetworkHelper(final TestContext testContext) {
-    this.testContext = testContext;
-  }
+	/**
+	 * Constructor.
+	 *
+	 * @param testContext Test context.
+	 */
+	public NetworkHelper(final TestContext testContext) {
+		this.testContext = testContext;
+	}
 
-  /**
-   * Gets the network type from the server.
-   *
-   * @return Network type.
-   */
-  public NetworkType getNetworkType() {
-    return ExceptionUtils.propagate(
-        () -> new NetworkDao(testContext.getCatapultContext()).getNetworkType().toFuture().get());
-  }
+	/**
+	 * Gets the network type from the server.
+	 *
+	 * @return Network type.
+	 */
+	public NetworkType getNetworkType() {
+		return ExceptionUtils.propagate(
+				() -> new NetworkDao(testContext.getCatapultContext()).getNetworkType().toFuture().get());
+	}
 }

@@ -32,238 +32,240 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-/** Mosaic helper. */
+/**
+ * Mosaic helper.
+ */
 public class MosaicHelper {
-  private static MosaicId networkCurrencyMosaicId;
-  private final TestContext testContext;
+	private static MosaicId networkCurrencyMosaicId;
+	private final TestContext testContext;
 
-  /**
-   * Constructor.
-   *
-   * @param testContext Test context.
-   */
-  public MosaicHelper(final TestContext testContext) {
-    this.testContext = testContext;
-  }
+	/**
+	 * Constructor.
+	 *
+	 * @param testContext Test context.
+	 */
+	public MosaicHelper(final TestContext testContext) {
+		this.testContext = testContext;
+	}
 
-  private MosaicDefinitionTransaction createExpiringMosaicDefinitionTransaction(
-      final MosaicNonce mosaicNonce,
-      final MosaicId mosaicId,
-      final boolean supplyMutable,
-      final boolean transferable,
-      final int divisibility,
-      final BigInteger duration) {
-    return MosaicDefinitionTransaction.create(
-        TransactionHelper.getDefaultDeadline(),
-        TransactionHelper.getDefaultMaxFee(),
-        mosaicNonce,
-        mosaicId,
-        MosaicProperties.create(supplyMutable, transferable, divisibility, duration),
-        new NetworkHelper(testContext).getNetworkType());
-  }
+	private MosaicDefinitionTransaction createExpiringMosaicDefinitionTransaction(
+			final MosaicNonce mosaicNonce,
+			final MosaicId mosaicId,
+			final boolean supplyMutable,
+			final boolean transferable,
+			final int divisibility,
+			final BigInteger duration) {
+		return MosaicDefinitionTransaction.create(
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				mosaicNonce,
+				mosaicId,
+				MosaicProperties.create(supplyMutable, transferable, divisibility, duration),
+				new NetworkHelper(testContext).getNetworkType());
+	}
 
-  private MosaicDefinitionTransaction createExpiringMosaicDefinitionTransaction(
-          final Account account,
-          final boolean supplyMutable,
-          final boolean transferable,
-          final int divisibility,
-          final BigInteger duration) {
-    final MosaicNonce nonce = MosaicNonce.createRandom();
-    return createExpiringMosaicDefinitionTransaction(
-            nonce,
-            MosaicId.createFromNonce(nonce, account.getPublicAccount()),
-            supplyMutable, transferable, divisibility, duration);
-  }
+	private MosaicDefinitionTransaction createExpiringMosaicDefinitionTransaction(
+			final Account account,
+			final boolean supplyMutable,
+			final boolean transferable,
+			final int divisibility,
+			final BigInteger duration) {
+		final MosaicNonce nonce = MosaicNonce.createRandom();
+		return createExpiringMosaicDefinitionTransaction(
+				nonce,
+				MosaicId.createFromNonce(nonce, account.getPublicAccount()),
+				supplyMutable, transferable, divisibility, duration);
+	}
 
-  private MosaicDefinitionTransaction createMosaicDefinitionTransaction(
-      final Account account,
-      final boolean supplyMutable,
-      final boolean transferable,
-      final int divisibility) {
-    final MosaicNonce nonce = MosaicNonce.createRandom();
-    return MosaicDefinitionTransaction.create(
-        TransactionHelper.getDefaultDeadline(),
-        TransactionHelper.getDefaultMaxFee(),
-        nonce,
-        MosaicId.createFromNonce(nonce, account.getPublicAccount()),
-        MosaicProperties.create(supplyMutable, transferable, divisibility),
-        new NetworkHelper(testContext).getNetworkType());
-  }
+	private MosaicDefinitionTransaction createMosaicDefinitionTransaction(
+			final Account account,
+			final boolean supplyMutable,
+			final boolean transferable,
+			final int divisibility) {
+		final MosaicNonce nonce = MosaicNonce.createRandom();
+		return MosaicDefinitionTransaction.create(
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				nonce,
+				MosaicId.createFromNonce(nonce, account.getPublicAccount()),
+				MosaicProperties.create(supplyMutable, transferable, divisibility),
+				new NetworkHelper(testContext).getNetworkType());
+	}
 
-  private MosaicSupplyChangeTransaction createMosaicSupplyChangeTransaction(
-      final Deadline deadline,
-      final BigInteger maxFee,
-      final MosaicId mosaicId,
-      final MosaicSupplyType supplyType,
-      final BigInteger delta) {
-    return MosaicSupplyChangeTransaction.create(
-        deadline,
-        maxFee,
-        mosaicId,
-        supplyType,
-        delta,
-        new NetworkHelper(testContext).getNetworkType());
-  }
+	private MosaicSupplyChangeTransaction createMosaicSupplyChangeTransaction(
+			final Deadline deadline,
+			final BigInteger maxFee,
+			final MosaicId mosaicId,
+			final MosaicSupplyType supplyType,
+			final BigInteger delta) {
+		return MosaicSupplyChangeTransaction.create(
+				deadline,
+				maxFee,
+				mosaicId,
+				supplyType,
+				delta,
+				new NetworkHelper(testContext).getNetworkType());
+	}
 
 
-  private MosaicSupplyChangeTransaction createMosaicSupplyChangeTransaction(
-          final MosaicId mosaicId, MosaicSupplyType supplyType, BigInteger delta) {
-    return createMosaicSupplyChangeTransaction(
-            TransactionHelper.getDefaultDeadline(),
-            TransactionHelper.getDefaultMaxFee(),
-            mosaicId,
-            supplyType,
-            delta);
-  }
+	private MosaicSupplyChangeTransaction createMosaicSupplyChangeTransaction(
+			final MosaicId mosaicId, MosaicSupplyType supplyType, BigInteger delta) {
+		return createMosaicSupplyChangeTransaction(
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				mosaicId,
+				supplyType,
+				delta);
+	}
 
-  /**
-   * Gets the network currency mosaic id.
-   *
-   * @return Mosaic id.
-   */
-  public MosaicId getNetworkCurrencyMosaicId() {
-    if (networkCurrencyMosaicId == null) {
-      networkCurrencyMosaicId =
-          new NamespaceHelper(testContext).getLinkedMosaicId(NetworkCurrencyMosaic.NAMESPACEID);
-    }
-    return networkCurrencyMosaicId;
-  }
+	/**
+	 * Gets the network currency mosaic id.
+	 *
+	 * @return Mosaic id.
+	 */
+	public MosaicId getNetworkCurrencyMosaicId() {
+		if (networkCurrencyMosaicId == null) {
+			networkCurrencyMosaicId =
+					new NamespaceHelper(testContext).getLinkedMosaicId(NetworkCurrencyMosaic.NAMESPACEID);
+		}
+		return networkCurrencyMosaicId;
+	}
 
-  /**
-   * Creates a mosaic supply change transaction and announce it to the network.
-   *
-   * @param account User account.
-   * @param supplyMutable Supply mutable.
-   * @param transferable Transferable.
-   * @param divisibility Divisibility.
-   * @return Signed transaction.
-   */
-  public SignedTransaction createMosaicDefinitionTransactionAndAnnounce(
-      final Account account,
-      final boolean supplyMutable,
-      final boolean transferable,
-      final int divisibility) {
-    final TransactionHelper transactionHelper = new TransactionHelper(testContext);
-    return transactionHelper.signAndAnnounceTransaction(
-        account,
-        () ->
-            createMosaicDefinitionTransaction(account, supplyMutable, transferable, divisibility));
-  }
+	/**
+	 * Creates a mosaic supply change transaction and announce it to the network.
+	 *
+	 * @param account       User account.
+	 * @param supplyMutable Supply mutable.
+	 * @param transferable  Transferable.
+	 * @param divisibility  Divisibility.
+	 * @return Signed transaction.
+	 */
+	public SignedTransaction createMosaicDefinitionTransactionAndAnnounce(
+			final Account account,
+			final boolean supplyMutable,
+			final boolean transferable,
+			final int divisibility) {
+		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
+		return transactionHelper.signAndAnnounceTransaction(
+				account,
+				() ->
+						createMosaicDefinitionTransaction(account, supplyMutable, transferable, divisibility));
+	}
 
-  /**
-   * Creates a mosaic supply change transaction and announce it to the network.
-   *
-   * @param account User account.
-   * @param supplyMutable Supply mutable.
-   * @param transferable Transferable.
-   * @param divisibility Divisibility.
-   * @param duration Duration.
-   * @return Signed transaction.
-   */
-  public SignedTransaction createExpiringMosaicDefinitionTransactionAndAnnounce(
-      final Account account,
-      final boolean supplyMutable,
-      final boolean transferable,
-      final int divisibility,
-      final BigInteger duration) {
-    final TransactionHelper transactionHelper = new TransactionHelper(testContext);
-    return transactionHelper.signAndAnnounceTransaction(
-        account,
-        () ->
-            createExpiringMosaicDefinitionTransaction(
-                account, supplyMutable, transferable, divisibility, duration));
-  }
+	/**
+	 * Creates a mosaic supply change transaction and announce it to the network.
+	 *
+	 * @param account       User account.
+	 * @param supplyMutable Supply mutable.
+	 * @param transferable  Transferable.
+	 * @param divisibility  Divisibility.
+	 * @param duration      Duration.
+	 * @return Signed transaction.
+	 */
+	public SignedTransaction createExpiringMosaicDefinitionTransactionAndAnnounce(
+			final Account account,
+			final boolean supplyMutable,
+			final boolean transferable,
+			final int divisibility,
+			final BigInteger duration) {
+		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
+		return transactionHelper.signAndAnnounceTransaction(
+				account,
+				() ->
+						createExpiringMosaicDefinitionTransaction(
+								account, supplyMutable, transferable, divisibility, duration));
+	}
 
-  /**
-   * Creates a mosaic supply change transaction and announce it to the network.
-   *
-   * @param account User account.
-   * @param mosaicId Mosaic id.
-   * @param supplyType Supply type.
-   * @param delta Delta change.
-   * @return Signed transaction.
-   */
-  public SignedTransaction createMosaicSupplyChangeAndAnnounce(
-      final Account account,
-      final MosaicId mosaicId,
-      final MosaicSupplyType supplyType,
-      final BigInteger delta) {
-    final MosaicSupplyChangeTransaction mosaicSupplyChangeTransaction =
-        createMosaicSupplyChangeTransaction(mosaicId, supplyType, delta);
-    final TransactionHelper transactionHelper = new TransactionHelper(testContext);
-    return transactionHelper.signAndAnnounceTransaction(mosaicSupplyChangeTransaction, account);
-  }
+	/**
+	 * Creates a mosaic supply change transaction and announce it to the network.
+	 *
+	 * @param account    User account.
+	 * @param mosaicId   Mosaic id.
+	 * @param supplyType Supply type.
+	 * @param delta      Delta change.
+	 * @return Signed transaction.
+	 */
+	public SignedTransaction createMosaicSupplyChangeAndAnnounce(
+			final Account account,
+			final MosaicId mosaicId,
+			final MosaicSupplyType supplyType,
+			final BigInteger delta) {
+		final MosaicSupplyChangeTransaction mosaicSupplyChangeTransaction =
+				createMosaicSupplyChangeTransaction(mosaicId, supplyType, delta);
+		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
+		return transactionHelper.signAndAnnounceTransaction(mosaicSupplyChangeTransaction, account);
+	}
 
-  /**
-   * Creates a mosaic supply change transaction and announce it to the network and wait for
-   * confirmed status.
-   *
-   * @param account User account.
-   * @param mosaicId Mosaic id.
-   * @param supplyType Supply type.
-   * @param delta Delta change.
-   * @return Mosaic supply change transaction.
-   */
-  public MosaicSupplyChangeTransaction submitMosaicSupplyChangeAndWait(
-      final Account account,
-      final MosaicId mosaicId,
-      final MosaicSupplyType supplyType,
-      final BigInteger delta) {
-    final SignedTransaction signedTransaction =
-        createMosaicSupplyChangeAndAnnounce(account, mosaicId, supplyType, delta);
-    testContext.setSignedTransaction(signedTransaction);
-    final TransactionHelper transactionHelper = new TransactionHelper(testContext);
-    return (MosaicSupplyChangeTransaction)
-        transactionHelper.getTransaction(signedTransaction.getHash());
-  }
+	/**
+	 * Creates a mosaic supply change transaction and announce it to the network and wait for
+	 * confirmed status.
+	 *
+	 * @param account    User account.
+	 * @param mosaicId   Mosaic id.
+	 * @param supplyType Supply type.
+	 * @param delta      Delta change.
+	 * @return Mosaic supply change transaction.
+	 */
+	public MosaicSupplyChangeTransaction submitMosaicSupplyChangeAndWait(
+			final Account account,
+			final MosaicId mosaicId,
+			final MosaicSupplyType supplyType,
+			final BigInteger delta) {
+		final SignedTransaction signedTransaction =
+				createMosaicSupplyChangeAndAnnounce(account, mosaicId, supplyType, delta);
+		testContext.setSignedTransaction(signedTransaction);
+		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
+		return (MosaicSupplyChangeTransaction)
+				transactionHelper.getTransaction(signedTransaction.getHash());
+	}
 
-  /**
-   * Creates an asset with initial supply.
-   *
-   * @param account Account creating the asset.
-   * @param supplyMutable Is supply mutable.
-   * @param transferable Is transferable.
-   * @param divisibility Divisibilily.
-   * @param initialSupply Initial amount.
-   * @return Mosaic info.
-   */
-  public MosaicInfo createMosaic(
-      final Account account,
-      final boolean supplyMutable,
-      final boolean transferable,
-      final int divisibility,
-      final BigInteger initialSupply) {
-    final MosaicDefinitionTransaction mosaicDefinitionTransaction =
-        createMosaicDefinitionTransaction(account, supplyMutable, transferable, divisibility);
-    final MosaicSupplyChangeTransaction mosaicSupplyChangeTransaction =
-        createMosaicSupplyChangeTransaction(
-            mosaicDefinitionTransaction.getMosaicId(), MosaicSupplyType.INCREASE, initialSupply);
-    final Supplier<AggregateTransaction> aggregateTransactionSupplier =
-        () ->
-            AggregateTransaction.createComplete(
-                TransactionHelper.getDefaultDeadline(),
-                TransactionHelper.getDefaultMaxFee(),
-                Arrays.asList(
-                    mosaicDefinitionTransaction.toAggregate(account.getPublicAccount()),
-                    mosaicSupplyChangeTransaction.toAggregate(account.getPublicAccount())),
-                new NetworkHelper(testContext).getNetworkType());
-    final TransactionHelper transactionHelper = new TransactionHelper(testContext);
-    transactionHelper.signAndAnnounceTransactionAndWait(account, aggregateTransactionSupplier);
-    return getMosaic(mosaicDefinitionTransaction.getMosaicId());
-  }
+	/**
+	 * Creates an asset with initial supply.
+	 *
+	 * @param account       Account creating the asset.
+	 * @param supplyMutable Is supply mutable.
+	 * @param transferable  Is transferable.
+	 * @param divisibility  Divisibilily.
+	 * @param initialSupply Initial amount.
+	 * @return Mosaic info.
+	 */
+	public MosaicInfo createMosaic(
+			final Account account,
+			final boolean supplyMutable,
+			final boolean transferable,
+			final int divisibility,
+			final BigInteger initialSupply) {
+		final MosaicDefinitionTransaction mosaicDefinitionTransaction =
+				createMosaicDefinitionTransaction(account, supplyMutable, transferable, divisibility);
+		final MosaicSupplyChangeTransaction mosaicSupplyChangeTransaction =
+				createMosaicSupplyChangeTransaction(
+						mosaicDefinitionTransaction.getMosaicId(), MosaicSupplyType.INCREASE, initialSupply);
+		final Supplier<AggregateTransaction> aggregateTransactionSupplier =
+				() ->
+						AggregateTransaction.createComplete(
+								TransactionHelper.getDefaultDeadline(),
+								TransactionHelper.getDefaultMaxFee(),
+								Arrays.asList(
+										mosaicDefinitionTransaction.toAggregate(account.getPublicAccount()),
+										mosaicSupplyChangeTransaction.toAggregate(account.getPublicAccount())),
+								new NetworkHelper(testContext).getNetworkType());
+		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
+		transactionHelper.signAndAnnounceTransactionAndWait(account, aggregateTransactionSupplier);
+		return getMosaic(mosaicDefinitionTransaction.getMosaicId());
+	}
 
-  /**
-   * Gets the info for a mosaic id.
-   *
-   * @param mosaicId Mosaic id.
-   * @return Mosaic info.
-   */
-  public MosaicInfo getMosaic(MosaicId mosaicId) {
-    return ExceptionUtils.propagate(
-        () -> {
-          final MosaicRepository mosaicRepository =
-              new MosaicsDao(testContext.getCatapultContext());
-          return mosaicRepository.getMosaic(mosaicId).toFuture().get();
-        });
-  }
+	/**
+	 * Gets the info for a mosaic id.
+	 *
+	 * @param mosaicId Mosaic id.
+	 * @return Mosaic info.
+	 */
+	public MosaicInfo getMosaic(MosaicId mosaicId) {
+		return ExceptionUtils.propagate(
+				() -> {
+					final MosaicRepository mosaicRepository =
+							new MosaicsDao(testContext.getCatapultContext());
+					return mosaicRepository.getMosaic(mosaicId).toFuture().get();
+				});
+	}
 }

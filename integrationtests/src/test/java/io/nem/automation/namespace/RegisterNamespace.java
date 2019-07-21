@@ -40,96 +40,98 @@ import java.math.BigInteger;
 
 import static org.junit.Assert.assertEquals;
 
-/** Register namespace tests. */
+/**
+ * Register namespace tests.
+ */
 public class RegisterNamespace extends BaseTest {
-  final NamespaceHelper namespaceHelper;
+	final NamespaceHelper namespaceHelper;
 
-  public RegisterNamespace(final TestContext testContext) {
-    super(testContext);
-    namespaceHelper = new NamespaceHelper(testContext);
-  }
+	public RegisterNamespace(final TestContext testContext) {
+		super(testContext);
+		namespaceHelper = new NamespaceHelper(testContext);
+	}
 
-  private void saveInitialAccountInfo(final Account account) {
-    final AccountInfo accountInfo =
-        new AccountHelper(getTestContext()).getAccountInfo(account.getAddress());
-    getTestContext().getScenarioContext().setContext(ACCOUNT_INFO_KEY, accountInfo);
-  }
+	private void saveInitialAccountInfo(final Account account) {
+		final AccountInfo accountInfo =
+				new AccountHelper(getTestContext()).getAccountInfo(account.getAddress());
+		getTestContext().getScenarioContext().setContext(ACCOUNT_INFO_KEY, accountInfo);
+	}
 
-  void registerNamespaceForUser(
-      final Account account, final String name, final BigInteger duration) {
-    saveInitialAccountInfo(account);
-    namespaceHelper.createRootNamespaceAndAnnonce(account, name, duration);
-  }
+	void registerNamespaceForUser(
+			final Account account, final String name, final BigInteger duration) {
+		saveInitialAccountInfo(account);
+		namespaceHelper.createRootNamespaceAndAnnonce(account, name, duration);
+	}
 
-  void registerNamespaceForUserAndWait(
-      final Account account, final String name, final BigInteger duration) {
-    saveInitialAccountInfo(account);
-    final RegisterNamespaceTransaction registerNamespaceTransaction =
-        namespaceHelper.createRootNamespaceAndWait(account, name, duration);
-	  final NamespaceInfo namespaceInfo =
-        new NamespaceHelper(getTestContext())
-            .getNamesapceInfo(registerNamespaceTransaction.getNamespaceId());
-    getTestContext().getScenarioContext().setContext(NAMESPACE_INFO_KEY, namespaceInfo);
-    getTestContext().addTransaction(registerNamespaceTransaction);
-  }
+	void registerNamespaceForUserAndWait(
+			final Account account, final String name, final BigInteger duration) {
+		saveInitialAccountInfo(account);
+		final RegisterNamespaceTransaction registerNamespaceTransaction =
+				namespaceHelper.createRootNamespaceAndWait(account, name, duration);
+		final NamespaceInfo namespaceInfo =
+				new NamespaceHelper(getTestContext())
+						.getNamesapceInfo(registerNamespaceTransaction.getNamespaceId());
+		getTestContext().getScenarioContext().setContext(NAMESPACE_INFO_KEY, namespaceInfo);
+		getTestContext().addTransaction(registerNamespaceTransaction);
+	}
 
-  void verifyNamespaceInfo(final NamespaceId namespaceId, final BigInteger duration) {
-    final NamespaceInfo namespaceInfo =
-        new NamespaceHelper(getTestContext()).getNamesapceInfo(namespaceId);
-    final String errorMessage = "Namespace info check failed for id: " + namespaceId.getIdAsLong();
-    assertEquals(errorMessage, namespaceId.getIdAsLong(), namespaceInfo.getId().getIdAsLong());
-    final AccountInfo accountInfo =
-        getTestContext().getScenarioContext().getContext(ACCOUNT_INFO_KEY);
-    assertEquals(
-        errorMessage,
-        accountInfo.getAddress().plain(),
-        namespaceInfo.getOwner().getAddress().plain());
-    assertEquals(
-        errorMessage,
-        duration.longValue(),
-        namespaceInfo.getEndHeight().longValue() - namespaceInfo.getStartHeight().longValue());
-    assertEquals(errorMessage, NamespaceType.RootNamespace, namespaceInfo.getType());
-    assertEquals(errorMessage, 1, namespaceInfo.getDepth().intValue());
-    assertEquals(errorMessage, 0, namespaceInfo.parentNamespaceId().getIdAsLong());
-    assertEquals(errorMessage, false, namespaceInfo.isSubnamespace());
-  }
+	void verifyNamespaceInfo(final NamespaceId namespaceId, final BigInteger duration) {
+		final NamespaceInfo namespaceInfo =
+				new NamespaceHelper(getTestContext()).getNamesapceInfo(namespaceId);
+		final String errorMessage = "Namespace info check failed for id: " + namespaceId.getIdAsLong();
+		assertEquals(errorMessage, namespaceId.getIdAsLong(), namespaceInfo.getId().getIdAsLong());
+		final AccountInfo accountInfo =
+				getTestContext().getScenarioContext().getContext(ACCOUNT_INFO_KEY);
+		assertEquals(
+				errorMessage,
+				accountInfo.getAddress().plain(),
+				namespaceInfo.getOwner().getAddress().plain());
+		assertEquals(
+				errorMessage,
+				duration.longValue(),
+				namespaceInfo.getEndHeight().longValue() - namespaceInfo.getStartHeight().longValue());
+		assertEquals(errorMessage, NamespaceType.RootNamespace, namespaceInfo.getType());
+		assertEquals(errorMessage, 1, namespaceInfo.getDepth().intValue());
+		assertEquals(errorMessage, 0, namespaceInfo.parentNamespaceId().getIdAsLong());
+		assertEquals(errorMessage, false, namespaceInfo.isSubnamespace());
+	}
 
-  @And("^she should become the owner of the new namespace (\\w+) for least (\\w+) block$")
-  public void verifyNamespaceOwnerShip(final String name, final BigInteger duration) {
-    verifyNamespaceInfo(new NamespaceId(name), duration);
-  }
+	@And("^she should become the owner of the new namespace (\\w+) for least (\\w+) block$")
+	public void verifyNamespaceOwnerShip(final String name, final BigInteger duration) {
+		verifyNamespaceInfo(new NamespaceId(name), duration);
+	}
 
-  @Then("she should receive a confirmation message")
-  public void verifyConfirmationMessage() {
-    // TODO: when I do ZMQ
-  }
+	@Then("she should receive a confirmation message")
+	public void verifyConfirmationMessage() {
+		// TODO: when I do ZMQ
+	}
 
-  @When("^(\\w+) tries to registers a namespace named \"(.*)\" for (-?\\d+) blocks?$")
-  public void registerNamespaceWithInvalidValues(
-      final String username, final String name, final BigInteger duration) {
-    final Account userAccount = getUser(username);
-    registerNamespaceForUser(userAccount, name, duration);
-  }
+	@When("^(\\w+) tries to registers a namespace named \"(.*)\" for (-?\\d+) blocks?$")
+	public void registerNamespaceWithInvalidValues(
+			final String username, final String name, final BigInteger duration) {
+		final Account userAccount = getUser(username);
+		registerNamespaceForUser(userAccount, name, duration);
+	}
 
-  @Given("^(\\w+) registered the namespace named \"(\\w+)\" for (\\d+) blocks?$")
-  @When("^(\\w+) registers a namespace named \"(\\w+)\" for (\\d+) blocks?$")
-  public void registerNamespaceValid(
-      final String username, final String name, final BigInteger duration) {
-    final Account userAccount = getUser(username);
-    registerNamespaceForUserAndWait(userAccount, name, duration);
-  }
+	@Given("^(\\w+) registered the namespace named \"(\\w+)\" for (\\d+) blocks?$")
+	@When("^(\\w+) registers a namespace named \"(\\w+)\" for (\\d+) blocks?$")
+	public void registerNamespaceValid(
+			final String username, final String name, final BigInteger duration) {
+		final Account userAccount = getUser(username);
+		registerNamespaceForUserAndWait(userAccount, name, duration);
+	}
 
-  @Given("^(\\w+) has has no \"cat.currency\"$")
-  public void accountWithNotNetworkCurrentcy(final String user) {
-    final Account userAccount = getUser(user);
-  }
+	@Given("^(\\w+) has has no \"cat.currency\"$")
+	public void accountWithNotNetworkCurrentcy(final String user) {
+		final Account userAccount = getUser(user);
+	}
 
-  @Given("^(\\w+) registered the namespace \"(\\w+)\"$")
-  public void registerNamespace(final String username, final String name) {
-    final Account userAccount = getUser(username);
-    final BigInteger duration = BigInteger.valueOf(20);
-    final String randomName = CommonHelper.getRandomNamespaceName(name);
-    getTestContext().getScenarioContext().setContext(name, randomName);
-    registerNamespaceForUserAndWait(userAccount, randomName, duration);
-  }
+	@Given("^(\\w+) registered the namespace \"(\\w+)\"$")
+	public void registerNamespace(final String username, final String name) {
+		final Account userAccount = getUser(username);
+		final BigInteger duration = BigInteger.valueOf(20);
+		final String randomName = CommonHelper.getRandomNamespaceName(name);
+		getTestContext().getScenarioContext().setContext(name, randomName);
+		registerNamespaceForUserAndWait(userAccount, randomName, duration);
+	}
 }

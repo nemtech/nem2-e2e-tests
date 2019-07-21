@@ -22,38 +22,45 @@ package io.nem.automation.common;
 
 import java.util.HashMap;
 
-/** Scenario name map. */
+/**
+ * Scenario name map.
+ */
 public class ScenarioNameMap {
-  private static final HashMap<Integer, String> HASH_MAP = new HashMap<>();
-  private static final ScenarioNameMap SCENARIO_NAME_MAP = new ScenarioNameMap();
+	private static final HashMap<Integer, String> HASH_MAP = new HashMap<>();
+	private static final ScenarioNameMap SCENARIO_NAME_MAP = new ScenarioNameMap();
 
-  /** Constructor. */
-  private ScenarioNameMap() {}
+	/**
+	 * Constructor.
+	 */
+	private ScenarioNameMap() {
+	}
 
-  /** @return */
-  public static ScenarioNameMap getInstance() {
-    return SCENARIO_NAME_MAP;
-  }
+	/**
+	 * @return
+	 */
+	public static ScenarioNameMap getInstance() {
+		return SCENARIO_NAME_MAP;
+	}
 
-  /**
-   * Adds a scenario to the map.
-   *
-   * @param scenarioName Scenario name.
-   */
-  public void addScenario(final String scenarioName) {
-    Thread currentThread = Thread.currentThread();
-    int threadID = currentThread.hashCode();
-    HASH_MAP.put(threadID, scenarioName);
-  }
+	/**
+	 * Adds a scenario to the map.
+	 *
+	 * @param scenarioName Scenario name.
+	 */
+	public void addScenario(final String scenarioName) {
+		Thread currentThread = Thread.currentThread();
+		int threadID = currentThread.hashCode();
+		HASH_MAP.put(threadID, scenarioName);
+	}
 
-  /**
-   * Gets a scenario.
-   *
-   * @return Scenario name.
-   */
-  public String getScenario() {
-    Thread currentThread = Thread.currentThread();
-    int threadID = currentThread.hashCode();
-    return HASH_MAP.get(threadID);
-  }
+	/**
+	 * Gets a scenario.
+	 *
+	 * @return Scenario name.
+	 */
+	public String getScenario() {
+		Thread currentThread = Thread.currentThread();
+		int threadID = currentThread.hashCode();
+		return HASH_MAP.get(threadID);
+	}
 }

@@ -18,40 +18,36 @@
  * along with Catapult.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.nem.automationHelpers.helper;
+package io.nem.automation.asset;
 
-import io.nem.automationHelpers.common.TestContext;
-import io.nem.core.utils.ExceptionUtils;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.dao.BlockchainDao;
+public enum AssetSupplyType {
+	MUTABLE("mutable"),
+	IMMUTABLE("immutable");
 
-import java.math.BigInteger;
-
-/**
- * Block chain helper.
- */
-public class BlockChainHelper {
-	private final TestContext testContext;
+	final String value;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param testContext Test context.
+	 * @param value Enum value.
 	 */
-	public BlockChainHelper(final TestContext testContext) {
-		this.testContext = testContext;
+	AssetSupplyType(final String value) {
+		this.value = value;
 	}
 
 	/**
-	 * Gets the block chain height.
+	 * Gets enum value.
 	 *
-	 * @return Block chain height.
+	 * @param value Raw value of the enum.
+	 * @return Enum value.
 	 */
-	public BigInteger getBlockchainHeight() {
-		return ExceptionUtils.propagate(
-				() ->
-						new BlockchainDao(testContext.getCatapultContext())
-								.getBlockchainHeight()
-								.toFuture()
-								.get());
+	public static AssetSupplyType rawValueOf(final String value) {
+		for (AssetSupplyType current : AssetSupplyType.values()) {
+			if (current.value.equalsIgnoreCase(value)) {
+				return current;
+			}
+		}
+		throw new IllegalArgumentException(
+				value + " was not a backing value for AssetSupplyType.");
 	}
 }

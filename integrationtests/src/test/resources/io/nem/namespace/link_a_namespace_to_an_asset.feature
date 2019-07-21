@@ -1,31 +1,48 @@
 
+
 Feature: Link a namespace to an asset
   As Alice,
   I want to link a namespace to an asset,
   So that it is memorable and easily recognizable
 
   @bvt
-  Scenario: An account links/unlinks a namespace to/from an asset
+  Scenario: An account is able to send an asset using a namespace alias
     Given Alice registered the namespace "token"
     And Alice registered the asset "X"
     When Alice links the namespace "token" to the asset "X"
     Then she should receive a confirmation message
     And Alice can send "token" instead of asset "X" to Bob
-    When Alice unlinks the namespace "token" from the asset "X"
-    Then she should receive a confirmation message
-    When Alice tries to send "token" instead of asset "X" to Bob
+
+  @bvt
+  Scenario: An account tries to send an asset using namespace alias to an assest after unlinking it
+    Given Alice registered the namespace "asset"
+    And Alice registered the asset "T"
+    And Alice links the namespace "asset" to the asset "T"
+    When Alice unlinks the namespace "asset" from the asset "T"
+    And Alice tries to send "token" instead of asset "X" to Bob
     Then she should receive the error "Failure_Core_Insufficient_Balance"
 
   @bvt
-  Scenario: An account links/unlinks a subnamespace to/from an asset
+  Scenario: An account is able to send an asset using a subnamespace alias
     Given Alice registered the subnamespace "alice.token"
     And Alice registered the asset "X"
     When Alice links the namespace "alice.token" to the asset "X"
     Then she should receive a confirmation message
     And Alice can send "alice.token" instead of asset "X" to Bob
-    When Alice unlinks the namespace "alice.token" from the asset "X"
-    Then she should receive a confirmation message
-    When Alice tries to send "alice.token" instead of asset "X" to Bob
+
+  @bvt
+  Scenario: An account tries to send an asset using namespace alias to an assest after unlinking it
+    Given Alice registered the subnamespace "alice.asset"
+    And Alice registered the asset "T"
+    And Alice links the namespace "alice.asset" to the asset "T"
+    When Alice unlinks the namespace "alice.asset" from the asset "T"
+    And Alice tries to send "alice.asset" instead of asset "T" to Bob
+    Then she should receive the error "Failure_Core_Insufficient_Balance"
+
+  @bvt
+  Scenario: An account tries to send an asset using invalid namespace alias
+    Given Alice registered the namespace "unknownasset"
+    When Alice tries to send "unknownasset" instead of asset "T" to Bob
     Then she should receive the error "Failure_Core_Insufficient_Balance"
 
   Scenario: An account tries to link a namespace already in use (asset) to an asset
@@ -82,7 +99,7 @@ Feature: Link a namespace to an asset
     When Bob tries to unlink the namespace "token" from the asset "Y"
     Then she should receive the error "Failure_Namespace_Alias_Owner_Conflict"
 
-  Scenario: An account tries to link a namespace she does not own to an asset
+  Scenario: An account tries to link a namespace it does not own to an asset
     Given Bob registered the namespace "bob"
     And Alice registered the asset "X"
     When Alice tries to link the namespace "bob" to the asset "X"

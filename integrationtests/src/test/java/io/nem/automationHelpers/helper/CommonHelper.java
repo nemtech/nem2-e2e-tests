@@ -35,116 +35,118 @@ import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 
-/** Common helper. */
+/**
+ * Common helper.
+ */
 public class CommonHelper {
-  private static final Map<String, Account> USER_ACCOUNTS = new HashMap();
+	private static final Map<String, Account> USER_ACCOUNTS = new HashMap();
 
-  /** Static initialize. */
-  static {
-    /* Alice is the main user with all currency. */
-    final TestContext testContext = new TestContext();
-    USER_ACCOUNTS.put(BaseTest.AUTOMATION_USER_ALICE, testContext.getDefaultSignerAccount());
-  }
+	/** Static initialize. */
+	static {
+		/* Alice is the main user with all currency. */
+		final TestContext testContext = new TestContext();
+		USER_ACCOUNTS.put(BaseTest.AUTOMATION_USER_ALICE, testContext.getDefaultSignerAccount());
+	}
 
-  /**
-   * Gets a random boolean value.
-   *
-   * @return Randon boolean value.
-   */
-  public static boolean getRandomNextBoolean() {
-    return new Random(System.currentTimeMillis()).nextBoolean();
-  }
+	/**
+	 * Gets a random boolean value.
+	 *
+	 * @return Randon boolean value.
+	 */
+	public static boolean getRandomNextBoolean() {
+		return new Random(System.currentTimeMillis()).nextBoolean();
+	}
 
-  /**
-   * Gets a random integer in a given range.
-   *
-   * @param start Start integer.
-   * @param end End integer(Inclusive)
-   * @return Integer in the given range.
-   */
-  public static int getRandomValueInRange(final int start, final int end) {
-    if (start >= end) {
-      throw new IllegalArgumentException("end must be greater than start");
-    }
-    Random r = new Random(System.currentTimeMillis());
-    return r.nextInt((end - start) + 1) + start;
-  }
+	/**
+	 * Gets a random integer in a given range.
+	 *
+	 * @param start Start integer.
+	 * @param end   End integer(Inclusive)
+	 * @return Integer in the given range.
+	 */
+	public static int getRandomValueInRange(final int start, final int end) {
+		if (start >= end) {
+			throw new IllegalArgumentException("end must be greater than start");
+		}
+		Random r = new Random(System.currentTimeMillis());
+		return r.nextInt((end - start) + 1) + start;
+	}
 
-  /**
-   * Gets a random divisibility number.
-   *
-   * @return Divisibility integer.
-   */
-  public static int getRandomDivisibility() {
-    return CommonHelper.getRandomValueInRange(0, 6);
-  }
+	/**
+	 * Gets a random divisibility number.
+	 *
+	 * @return Divisibility integer.
+	 */
+	public static int getRandomDivisibility() {
+		return CommonHelper.getRandomValueInRange(0, 6);
+	}
 
-  /**
-   * Adds a user to the test user list.
-   *
-   * @param name Name of the user.
-   * @param account Account.
-   */
-  public static void AddUser(final String name, final Account account) {
-    if (!USER_ACCOUNTS.containsKey(name)) {
-      USER_ACCOUNTS.put(name, account);
-    }
-  }
+	/**
+	 * Adds a user to the test user list.
+	 *
+	 * @param name    Name of the user.
+	 * @param account Account.
+	 */
+	public static void AddUser(final String name, final Account account) {
+		if (!USER_ACCOUNTS.containsKey(name)) {
+			USER_ACCOUNTS.put(name, account);
+		}
+	}
 
-  /**
-   * Gets an account.
-   *
-   * @param name Name of the account.
-   * @param networkType Network type.
-   * @return User account.
-   */
-  public static Account getAccount(final String name, final NetworkType networkType) {
-    if (!USER_ACCOUNTS.containsKey(name)) {
-      USER_ACCOUNTS.put(name, Account.generateNewAccount(networkType));
-    }
-    return USER_ACCOUNTS.get(name);
-  }
+	/**
+	 * Gets an account.
+	 *
+	 * @param name        Name of the account.
+	 * @param networkType Network type.
+	 * @return User account.
+	 */
+	public static Account getAccount(final String name, final NetworkType networkType) {
+		if (!USER_ACCOUNTS.containsKey(name)) {
+			USER_ACCOUNTS.put(name, Account.generateNewAccount(networkType));
+		}
+		return USER_ACCOUNTS.get(name);
+	}
 
-  /**
-   * Gets a random name for namespace.
-   *
-   * @param namePrefix Namespace name prefix.
-   * @return Random Namespace name.
-   */
-  public static String getRandomNamespaceName(final String namePrefix) {
-    return namePrefix + getRandomValueInRange(0, 100000000);
-  }
+	/**
+	 * Gets a random name for namespace.
+	 *
+	 * @param namePrefix Namespace name prefix.
+	 * @return Random Namespace name.
+	 */
+	public static String getRandomNamespaceName(final String namePrefix) {
+		return namePrefix + getRandomValueInRange(0, 100000000);
+	}
 
-  /**
-   * Verifies
-   *
-   * @param testContext Test context.
-   * @param intialAccountInfo Initial account balance.
-   * @param mosaicId Mosiac id.
-   * @param expectedAmountChange Excepted amount changed.
-   */
-  public static void verifyAccountBalance(
-      final TestContext testContext,
-      final AccountInfo intialAccountInfo,
-      final MosaicId mosaicId,
-      final long expectedAmountChange) {
-    final AccountInfo newAccountInfo =
-        new AccountHelper(testContext).getAccountInfo(intialAccountInfo.getAddress());
-    final Optional<Mosaic> mosaicBefore =
-        intialAccountInfo.getMosaics().stream()
-            .filter(mosaic -> mosaic.getId().getIdAsLong() == mosaicId.getIdAsLong())
-            .findAny();
-    final Mosaic mosaicAfter =
-        newAccountInfo.getMosaics().stream()
-            .filter(mosaic -> mosaic.getId().getIdAsLong() == mosaicId.getIdAsLong())
-            .findAny()
-            .get();
-    if (mosaicBefore.isPresent()) {
-      assertEquals(
-          mosaicBefore.get().getAmount().longValue() + expectedAmountChange,
-          mosaicAfter.getAmount().longValue());
-    } else {
-      assertEquals(expectedAmountChange, mosaicAfter.getAmount().longValue());
-    }
-  }
+	/**
+	 * Verifies
+	 *
+	 * @param testContext          Test context.
+	 * @param intialAccountInfo    Initial account balance.
+	 * @param mosaicId             Mosiac id.
+	 * @param expectedAmountChange Excepted amount changed.
+	 */
+	public static void verifyAccountBalance(
+			final TestContext testContext,
+			final AccountInfo intialAccountInfo,
+			final MosaicId mosaicId,
+			final long expectedAmountChange) {
+		final AccountInfo newAccountInfo =
+				new AccountHelper(testContext).getAccountInfo(intialAccountInfo.getAddress());
+		final Optional<Mosaic> mosaicBefore =
+				intialAccountInfo.getMosaics().stream()
+						.filter(mosaic -> mosaic.getId().getIdAsLong() == mosaicId.getIdAsLong())
+						.findAny();
+		final Mosaic mosaicAfter =
+				newAccountInfo.getMosaics().stream()
+						.filter(mosaic -> mosaic.getId().getIdAsLong() == mosaicId.getIdAsLong())
+						.findAny()
+						.get();
+		if (mosaicBefore.isPresent()) {
+			assertEquals(
+					mosaicBefore.get().getAmount().longValue() + expectedAmountChange,
+					mosaicAfter.getAmount().longValue());
+		} else {
+			assertEquals(expectedAmountChange, mosaicAfter.getAmount().longValue());
+		}
+	}
 }

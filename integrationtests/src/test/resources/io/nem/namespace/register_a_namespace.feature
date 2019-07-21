@@ -67,9 +67,9 @@ Feature: Register a namespace
     Then she should receive the error "Failure_Namespace_Owner_Conflict"
     And her "cat.currency" balance should remain intact
 
-  Scenario: An account tries to register a namespace which is already registered by another account during the redemption period
+  Scenario: An account tries to register a namespace which is already registered by another account during the grace period
     Given Bob registers a namespace named "bob" for 2 blocks
-    And the namespace is now under redemption period
+    And the namespace is now under grace period
     When Alice tries to registers a namespace named "bob" for 1 block
     Then she should receive the error "Failure_Namespace_Owner_Conflict"
     And her "cat.currency" balance should remain intact

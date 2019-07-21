@@ -42,11 +42,11 @@ Background: Create assets for transfer.
     And Alice balance should remain intact
 
     Examples:
-      | amount | asset | error                             |
-      | -1     | X     | Failure_Core_Insufficient_Balance |
-      | 1      | O     | Failure_Core_Insufficient_Balance |
-      | 1      | Z     | Failure_Core_Insufficient_Balance |
-      | 105    | Y     | Failure_Core_Insufficient_Balance |
+      | amount | asset   | error                             |
+      | -1     | X       | Failure_Core_Insufficient_Balance |
+      | 1      | O       | Failure_Core_Insufficient_Balance |
+      | 1      | unknown | Failure_Core_Insufficient_Balance |
+      | 105    | Y       | Failure_Core_Insufficient_Balance |
 
   @bvt
   Scenario: An account sends multiple assets to another account
@@ -69,3 +69,27 @@ Background: Create assets for transfer.
       | 1      | U      | Failure_Core_Insufficient_Balance     |
       | 1      | Y      | Failure_Transfer_Out_Of_Order_Mosaics |
 
+  @bvt
+  Scenario: An account sends a non-transferable asset to the account that registered the asset
+    Given Alice registers a non transferable asset which she transfer 10 asset to Sue
+    When Sue transfer 1 asset to Alice
+    Then 1 asset transfered successfully
+
+  @bvt
+  Scenario: An account tries to send a non-transferable asset to another account
+    Given Alice registers a non transferable asset which she transfer 10 asset to Sue
+    When Sue transfer 1 asset to Bob
+    Then she should receive the error "Failure_Mosaic_Non_Transferable"
+
+  @bvt
+  Scenario: An account transfer a transferable asset to another account
+    Given Alice registers a transferable asset which she transfer asset to Bob
+    When Bob transfer 10 asset to Sue
+    Then 10 asset transfered successfully
+
+  @bvt
+  Scenario: An account tries to send an expired asset
+  Given Alice has registered expiring asset for 2 blocks
+  And the asset is now expired
+  When Alice transfer 1 asset to Bob
+  Then she should receive the error "Failure_Core_Insufficient_Balance"

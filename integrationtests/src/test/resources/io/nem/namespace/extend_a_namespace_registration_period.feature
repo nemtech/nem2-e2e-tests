@@ -8,7 +8,7 @@ Feature: Extend a namespace registration period
     And the mean block generation time is 15 seconds
     And the maximum registration period is 1 year
     And Alice has 10000000 "cat.currency" in her account
-    And the redemption period of a namespace is 1 day
+    And the grace period of a namespace is 1 day
   
   @bvt
   Scenario Outline: An account extends a namespace registration period
@@ -23,17 +23,17 @@ Feature: Extend a namespace registration period
       | 1        | 1    |
       | 2        | 2    |
 
-  Scenario: An account tries to extend a namespace registration period and this is under redemption period
+  Scenario: An account tries to extend a namespace registration period and this is under grace period
     Given Alice registered the namespace named "aliceexp" for 1 block
-    And   the namespace is now under redemption period
+    And   the namespace is now under grace period
     When Alice extends the registration of the namespace named "aliceexp" for 2 block
     Then she should receive a confirmation message
     And the namespace registration period should be extended for at least 2 blocks
     And her "cat.currency" balance should decrease in 2 units
 
-  Scenario: An account tries to extend a namespace registration period, this is under redemption but the account didn't created it
+  Scenario: An account tries to extend a namespace registration period, this is under gracebut the account didn't created it
     Given Bob registered the namespace named "bobnew" for 1 block
-    And   the namespace is now under redemption period
+    And the namespace is now under grace period
     When Alice tries to extends the registration of the namespace named "bobnew" for 1 block
     Then she should receive the error "Failure_Namespace_Owner_Conflict"
     And her "cat.currency" balance should remain intact

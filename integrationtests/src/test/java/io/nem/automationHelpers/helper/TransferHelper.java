@@ -34,162 +34,164 @@ import io.nem.sdk.model.transaction.TransferTransaction;
 import java.math.BigInteger;
 import java.util.List;
 
-/** Transfer helper. */
+/**
+ * Transfer helper.
+ */
 public class TransferHelper {
-  private final TestContext testContext;
-  private final TransactionHelper transactionHelper;
+	private final TestContext testContext;
+	private final TransactionHelper transactionHelper;
 
-  /**
-   * Constructor.
-   *
-   * @param testContext Test context.
-   */
-  public TransferHelper(final TestContext testContext) {
-    this.testContext = testContext;
-    this.transactionHelper = new TransactionHelper(testContext);
-  }
+	/**
+	 * Constructor.
+	 *
+	 * @param testContext Test context.
+	 */
+	public TransferHelper(final TestContext testContext) {
+		this.testContext = testContext;
+		this.transactionHelper = new TransactionHelper(testContext);
+	}
 
-  private TransferTransaction createTransferTransaction(
-      final Deadline deadline,
-      final BigInteger fee,
-      final Address recipientAddress,
-      final List<Mosaic> mosaics,
-      final Message message) {
-    return createTransferTransaction(
-        deadline,
-        fee,
-        recipientAddress,
-        mosaics,
-        message,
-        new NetworkHelper(testContext).getNetworkType());
-  }
+	private TransferTransaction createTransferTransaction(
+			final Deadline deadline,
+			final BigInteger maxFee,
+			final Address recipientAddress,
+			final List<Mosaic> mosaics,
+			final Message message) {
+		return createTransferTransaction(
+				deadline,
+				maxFee,
+				recipientAddress,
+				mosaics,
+				message,
+				new NetworkHelper(testContext).getNetworkType());
+	}
 
-  private TransferTransaction createTransferTransaction(
-      final Address recipientAddress, final List<Mosaic> mosaics, final Message message) {
-    return createTransferTransaction(
-        TransactionHelper.getDefaultDeadline(),
-        TransactionHelper.getDefaultMaxFee(),
-        recipientAddress,
-        mosaics,
-        message);
-  }
+	private TransferTransaction createTransferTransaction(
+			final Address recipientAddress, final List<Mosaic> mosaics, final Message message) {
+		return createTransferTransaction(
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				recipientAddress,
+				mosaics,
+				message);
+	}
 
-  private TransferTransaction createTransferTransaction(
-      final Deadline deadline,
-      final BigInteger fee,
-      final NamespaceId namespaceId,
-      final List<Mosaic> mosaics,
-      Message message) {
-    return TransferTransaction.create(
-        deadline,
-        fee,
-        namespaceId,
-        mosaics,
-        message,
-        new NetworkHelper(testContext).getNetworkType());
-  }
+	private TransferTransaction createTransferTransaction(
+			final Deadline deadline,
+			final BigInteger maxFee,
+			final NamespaceId namespaceId,
+			final List<Mosaic> mosaics,
+			Message message) {
+		return TransferTransaction.create(
+				deadline,
+				maxFee,
+				namespaceId,
+				mosaics,
+				message,
+				new NetworkHelper(testContext).getNetworkType());
+	}
 
-  private TransferTransaction createTransferTransaction(
-      final NamespaceId namespaceId, final List<Mosaic> mosaics, final Message message) {
-    return createTransferTransaction(
-        TransactionHelper.getDefaultDeadline(),
-        TransactionHelper.getDefaultMaxFee(),
-        namespaceId,
-        mosaics,
-        message);
-  }
+	private TransferTransaction createTransferTransaction(
+			final NamespaceId namespaceId, final List<Mosaic> mosaics, final Message message) {
+		return createTransferTransaction(
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				namespaceId,
+				mosaics,
+				message);
+	}
 
-  /**
-   * Gets transfer transaction.
-   *
-   * @param deadline Deadline for the transaction.
-   * @param maxFee Max fee.
-   * @param recipientAddress Recipient address.
-   * @param mosaics Mosaics to send.
-   * @param message Message to send.
-   * @param networkType Network type.
-   * @return Transfer transaction.
-   */
-  public TransferTransaction createTransferTransaction(
-      final Deadline deadline,
-      final BigInteger maxFee,
-      final Address recipientAddress,
-      final List<Mosaic> mosaics,
-      final Message message,
-      final NetworkType networkType) {
-    return TransferTransaction.create(
-        deadline, maxFee, recipientAddress, mosaics, message, networkType);
-  }
+	/**
+	 * Gets transfer transaction.
+	 *
+	 * @param deadline         Deadline for the transaction.
+	 * @param maxFee           Max fee.
+	 * @param recipientAddress Recipient address.
+	 * @param mosaics          Mosaics to send.
+	 * @param message          Message to send.
+	 * @param networkType      Network type.
+	 * @return Transfer transaction.
+	 */
+	public TransferTransaction createTransferTransaction(
+			final Deadline deadline,
+			final BigInteger maxFee,
+			final Address recipientAddress,
+			final List<Mosaic> mosaics,
+			final Message message,
+			final NetworkType networkType) {
+		return TransferTransaction.create(
+				deadline, maxFee, recipientAddress, mosaics, message, networkType);
+	}
 
-  /**
-   * Creates a transfer transaction and announce.
-   *
-   * @param sender Sender account.
-   * @param recipient Recipient address.
-   * @param mosaics Mosaics to send.
-   * @param message Message to send.
-   * @return Signed transaction.
-   */
-  public SignedTransaction createTransferAndAnnounce(
-      final Account sender,
-      final Address recipient,
-      final List<Mosaic> mosaics,
-      final Message message) {
-    return transactionHelper.signAndAnnounceTransaction(
-        sender, () -> createTransferTransaction(recipient, mosaics, message));
-  }
+	/**
+	 * Creates a transfer transaction and announce.
+	 *
+	 * @param sender    Sender account.
+	 * @param recipient Recipient address.
+	 * @param mosaics   Mosaics to send.
+	 * @param message   Message to send.
+	 * @return Signed transaction.
+	 */
+	public SignedTransaction createTransferAndAnnounce(
+			final Account sender,
+			final Address recipient,
+			final List<Mosaic> mosaics,
+			final Message message) {
+		return transactionHelper.signAndAnnounceTransaction(
+				sender, () -> createTransferTransaction(recipient, mosaics, message));
+	}
 
-  /**
-   * Creates a transfer transaction and announce.
-   *
-   * @param sender Sender account.
-   * @param recipient Recipient alias.
-   * @param mosaics Mosaics to send.
-   * @param message Message to send.
-   * @return Signed transaction.
-   */
-  public SignedTransaction createTransferAndAnnounce(
-      final Account sender,
-      final NamespaceId recipient,
-      final List<Mosaic> mosaics,
-      final Message message) {
-    return transactionHelper.signAndAnnounceTransaction(
-        sender, () -> createTransferTransaction(recipient, mosaics, message));
-  }
+	/**
+	 * Creates a transfer transaction and announce.
+	 *
+	 * @param sender    Sender account.
+	 * @param recipient Recipient alias.
+	 * @param mosaics   Mosaics to send.
+	 * @param message   Message to send.
+	 * @return Signed transaction.
+	 */
+	public SignedTransaction createTransferAndAnnounce(
+			final Account sender,
+			final NamespaceId recipient,
+			final List<Mosaic> mosaics,
+			final Message message) {
+		return transactionHelper.signAndAnnounceTransaction(
+				sender, () -> createTransferTransaction(recipient, mosaics, message));
+	}
 
-  /**
-   * Creates a transfer transaction and announce.
-   *
-   * @param sender Sender account.
-   * @param recipient Recipient address.
-   * @param mosaics Mosaics to send.
-   * @param message Message to send.
-   * @return Transfer transaction.
-   */
-  public TransferTransaction submitTransferAndWait(
-      final Account sender,
-      final Address recipient,
-      final List<Mosaic> mosaics,
-      final Message message) {
-    return transactionHelper.signAndAnnounceTransactionAndWait(
-        sender, () -> createTransferTransaction(recipient, mosaics, message));
-  }
+	/**
+	 * Creates a transfer transaction and announce.
+	 *
+	 * @param sender    Sender account.
+	 * @param recipient Recipient address.
+	 * @param mosaics   Mosaics to send.
+	 * @param message   Message to send.
+	 * @return Transfer transaction.
+	 */
+	public TransferTransaction submitTransferAndWait(
+			final Account sender,
+			final Address recipient,
+			final List<Mosaic> mosaics,
+			final Message message) {
+		return transactionHelper.signAndAnnounceTransactionAndWait(
+				sender, () -> createTransferTransaction(recipient, mosaics, message));
+	}
 
-  /**
-   * Creates a transfer transaction and announce.
-   *
-   * @param sender Sender account.
-   * @param recipient Recipient alias.
-   * @param mosaics Mosaics to send.
-   * @param message Message to send.
-   * @return Transfer transaction.
-   */
-  public TransferTransaction submitTransferAndWait(
-      final Account sender,
-      final NamespaceId recipient,
-      final List<Mosaic> mosaics,
-      final Message message) {
-    return transactionHelper.signAndAnnounceTransactionAndWait(
-        sender, () -> createTransferTransaction(recipient, mosaics, message));
-  }
+	/**
+	 * Creates a transfer transaction and announce.
+	 *
+	 * @param sender    Sender account.
+	 * @param recipient Recipient alias.
+	 * @param mosaics   Mosaics to send.
+	 * @param message   Message to send.
+	 * @return Transfer transaction.
+	 */
+	public TransferTransaction submitTransferAndWait(
+			final Account sender,
+			final NamespaceId recipient,
+			final List<Mosaic> mosaics,
+			final Message message) {
+		return transactionHelper.signAndAnnounceTransactionAndWait(
+				sender, () -> createTransferTransaction(recipient, mosaics, message));
+	}
 }
