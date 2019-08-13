@@ -194,7 +194,7 @@ public class CreateEscrowContract extends BaseTest {
 			final Mosaic mosaicAfter = getMosaic(senderAccountInfoAfter, mosaicId).get();
 			assertEquals(
 					mosaic.getAmount().longValue(),
-					initialMosaic.getAmount().longValue() - mosaicAfter.getAmount().longValue());
+					mosaicAfter.getAmount().longValue() - initialMosaic.getAmount().longValue());
 		}
 	}
 
