@@ -61,13 +61,13 @@ Feature: Link a namespace to an address
   Scenario: An account tries to link a namespace that it does not own to an address
     Given Bob registered the namespace "bob"
     When Alice tries to link the namespace "bob" to the address of Alice
-    Then she should receive the error "Failure_Namespace_Alias_Owner_Conflict"
+    Then she should receive the error "Failure_Namespace_Owner_Conflict"
 
   Scenario: An account tries to unlink a namespace she does not own from an address
     Given Bob registered the namespace "bob"
     And Bob links the namespace "bob" to the address of Bob
     When Alice tries to unlink the namespace "bob" from the address of Bob
-    Then she should receive the error "Failure_Namespace_Alias_Owner_Conflict"
+    Then she should receive the error "Failure_Namespace_Owner_Conflict"
 
   Scenario: An account tries to unlink an address link that does not exist
     Given Alice registered the namespace "alice"
@@ -84,4 +84,4 @@ Feature: Link a namespace to an address
   Scenario: An account tries to link a namespace to an address that does not exist in the network
     Given Alice registered the namespace "alice"
     When Alice tries to link the namespace "alice" to the address of AliceUnknown
-    Then she should receive the error "Failure_Namespace_Alias_Invalid_Address"
+    Then she should receive the error "Failure_Namespace_Alias_Unlink_Data_Inconsistency"

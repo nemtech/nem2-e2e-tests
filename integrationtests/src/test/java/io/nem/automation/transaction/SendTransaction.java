@@ -29,8 +29,6 @@ import io.nem.automationHelpers.helper.TransactionHelper;
 import io.nem.automationHelpers.helper.TransferHelper;
 import io.nem.core.utils.ExceptionUtils;
 import io.nem.core.utils.RetryCommand;
-import io.nem.sdk.infrastructure.common.TransactionRepository;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.dao.TransactionDao;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.account.Address;
 import io.nem.sdk.model.blockchain.NetworkType;
@@ -135,9 +133,7 @@ public class SendTransaction extends BaseTest {
 	@When("^(\\w+) announces same the transaction$")
 	public void announceLastTransaction(final String userName) {
 		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
-		final TransactionRepository transactionRepository =
-				new TransactionDao(getTestContext().getCatapultContext());
-		transactionRepository.announce(signedTransaction);
+		transactionHelper.announceTransaction(signedTransaction);
 	}
 
 	@When("^(\\w+) announces the transaction to the incorrect network$")
@@ -150,8 +146,8 @@ public class SendTransaction extends BaseTest {
 				networkType);
 	}
 
-	@Then("^she should receive the error \"(\\w+)\"$")
-	public void verifyTransactionError(final String error) {
+	@Then("^(.*) should receive the error \"(\\w+)\"$")
+	public void verifyTransactionError(final String userName, final String error) {
 		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
 		final int maxTries = 15;
 		final int waitTimeInMilliseconds = 1000;

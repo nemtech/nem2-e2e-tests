@@ -21,19 +21,23 @@
 package io.nem.automation.common;
 
 import io.nem.automationHelpers.common.TestContext;
-import io.nem.automationHelpers.helper.AccountHelper;
-import io.nem.automationHelpers.helper.CommonHelper;
-import io.nem.automationHelpers.helper.MosaicHelper;
-import io.nem.automationHelpers.helper.TransferHelper;
+import io.nem.automationHelpers.helper.*;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.account.AccountInfo;
 import io.nem.sdk.model.account.Address;
 import io.nem.sdk.model.mosaic.*;
 import io.nem.sdk.model.namespace.NamespaceId;
+import io.nem.sdk.model.namespace.NamespaceInfo;
 import io.nem.sdk.model.transaction.Message;
+import io.nem.sdk.model.transaction.SignedTransaction;
+import io.nem.sdk.model.transaction.Transaction;
+import io.nem.sdk.model.transaction.UInt64Id;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Base for all the test suit.
@@ -41,15 +45,18 @@ import java.util.List;
 public abstract class BaseTest {
 	/* User Alice is root account which has everything. */
 	public static final String AUTOMATION_USER_ALICE = "Alice";
-	protected static final String ACCOUNT_INFO_KEY = "accountInfo";
-	protected static final String MOSAIC_INFO_KEY = "mosaicInfo";
-	protected static final String NAMESPACE_INFO_KEY = "namespaceInfo";
 	/* User Bob has some network currency */
 	protected static final String AUTOMATION_USER_BOB = "Bob";
 	/* User Sue has no network currency */
 	protected static final String AUTOMATION_USER_SUE = "Sue";
+	protected static final Map<String, Account> CORE_USER_ACCOUNTS = new HashMap();
+	protected static final String ACCOUNT_INFO_KEY = "accountInfo";
+	protected static final String MOSAIC_INFO_KEY = "mosaicInfo";
+	protected static final String NAMESPACE_INFO_KEY = "namespaceInfo";
+	protected static final String MOSAIC_EUROS_KEY = "euros";
 	private static boolean initialized = false;
-
+	protected final String COSIGNATORIES_LIST = "cosignatories";
+	protected final String MULTISIG_ACCOUNT_INFO = "multisigAccount";
 	private TestContext testContext;
 
 	/**
@@ -57,25 +64,42 @@ public abstract class BaseTest {
 	 *
 	 * @param testContext Test context.
 	 */
-	protected BaseTest(TestContext testContext) {
+	protected BaseTest(final TestContext testContext) {
 		this.testContext = testContext;
+		initialized(testContext);
+	}
+
+
+	public static void initialized(final TestContext testContext) {
 		if (!initialized) {
+			final Account aliceAccount = testContext.getDefaultSignerAccount();
+			CORE_USER_ACCOUNTS.put(BaseTest.AUTOMATION_USER_ALICE, aliceAccount);
 			final AccountHelper accountHelper = new AccountHelper(testContext);
 			final Account accountBob =
 					accountHelper.createAccountWithAsset(
 							NetworkCurrencyMosaic.createRelative(BigInteger.valueOf(100)));
-			CommonHelper.AddUser(AUTOMATION_USER_BOB, accountBob);
-			final MosaicInfo mosaicInfo =
-					new MosaicHelper(testContext)
-							.createMosaic(
-									testContext.getDefaultSignerAccount(),
-									true,
-									true,
-									0,
-									BigInteger.valueOf(100));
+			CORE_USER_ACCOUNTS.put(AUTOMATION_USER_BOB, accountBob);
+			final NamespaceHelper namespaceHelper = new NamespaceHelper(testContext);
+			final NamespaceId eurosNamespaceId = new NamespaceId(MOSAIC_EUROS_KEY);
+			final Optional<NamespaceInfo> optionalNamespaceInfo = namespaceHelper.getNamesapceInfoNoThrow(eurosNamespaceId);
+			MosaicId mosaicId;
+			if (!optionalNamespaceInfo.isPresent()) {
+				final MosaicInfo mosaicInfo = new MosaicHelper(testContext)
+						.createMosaic(
+								testContext.getDefaultSignerAccount(),
+								true,
+								true,
+								0,
+								BigInteger.valueOf(1000));
+				mosaicId = mosaicInfo.getMosaicId();
+				namespaceHelper.createRootNamespaceAndWait(aliceAccount, MOSAIC_EUROS_KEY, BigInteger.valueOf(1000));
+				namespaceHelper.submitLinkMosaicAliasAndWait(aliceAccount, eurosNamespaceId, mosaicId);
+			} else {
+				mosaicId = namespaceHelper.getLinkedMosaicId(eurosNamespaceId);
+			}
 			final Account accountSue =
-					accountHelper.createAccountWithAsset(mosaicInfo.getMosaicId(), BigInteger.valueOf(80));
-			CommonHelper.AddUser(AUTOMATION_USER_SUE, accountSue);
+					accountHelper.createAccountWithAsset(mosaicId, BigInteger.valueOf(100));
+			CORE_USER_ACCOUNTS.put(AUTOMATION_USER_SUE, accountSue);
 			initialized = true;
 		}
 	}
@@ -98,6 +122,33 @@ public abstract class BaseTest {
 	protected Account getUser(final String username) {
 		return CommonHelper.getAccount(
 				username, getTestContext().getConfigFileReader().getNetworkType());
+	}
+
+	/**
+	 * Gets a test account with some cat currency.
+	 *
+	 * @param username User name.
+	 * @return Account.
+	 */
+	protected Account getUserWithCurrency(final String username) {
+		if (CommonHelper.accountExist(username)) {
+			return CommonHelper.getAccount(
+					username, getTestContext().getConfigFileReader().getNetworkType());
+		}
+		final Mosaic mosaic = NetworkCurrencyMosaic.createRelative(BigInteger.valueOf(100));
+		final Account account = new AccountHelper(testContext).createAccountWithAsset(mosaic);
+		addUser(username, account);
+		return account;
+	}
+
+	/**
+	 * Add a test account.
+	 *
+	 * @param username User name.
+	 * @param account  Account to add.
+	 */
+	protected void addUser(final String username, final Account account) {
+		CommonHelper.addUser(username, account);
 	}
 
 	/**
@@ -192,5 +243,47 @@ public abstract class BaseTest {
 	 */
 	protected NamespaceId resolveNamespaceIdFromName(final String name) {
 		return new NamespaceId(resolveNamespaceName(name));
+	}
+
+	/**
+	 * Remove header from a data table.
+	 *
+	 * @param headerName Header name.
+	 * @param list       Data table.
+	 * @return Updated data table.
+	 */
+	protected Map<String, String> removeHeader(final String headerName, final Map<String, String> list) {
+		final HashMap hashMap = new HashMap();
+		list.forEach((name, operation) -> {
+			if (!name.equalsIgnoreCase(headerName)) {
+				hashMap.put(name, operation);
+			}
+		});
+		return hashMap;
+	}
+
+	/**
+	 * Gets mosaic info for an account.
+	 *
+	 * @param accountInfo Account info.
+	 * @param mosaicId    Mosaic id.
+	 * @return Mosaic if found.
+	 */
+	protected Optional<Mosaic> getMosaic(final AccountInfo accountInfo, final UInt64Id mosaicId) {
+		return accountInfo.getMosaics().stream()
+				.filter(mosaic -> mosaic.getId().getIdAsLong() == mosaicId.getIdAsLong())
+				.findFirst();
+	}
+
+	/**
+	 * Waits for the last signed transaction to complete.
+	 *
+	 * @param <T> Transaction type to return.
+	 * @return Transaction.
+	 */
+	protected <T extends Transaction> T waitForLastTransactionToComplete() {
+		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
+		final TransactionHelper transactionHelper = new TransactionHelper(getTestContext());
+		return transactionHelper.waitForTransactionToComplete(signedTransaction);
 	}
 }

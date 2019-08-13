@@ -145,7 +145,7 @@ public class ExampleSteps {
 		assertEquals(
 				testContext.getConfigFileReader().getCatCurrencyId().longValue(),
 				accountInfo.getMosaics().get(0).getId().getId().longValue());
-		assertEquals((long) transferAmount, accountInfo.getMosaics().get(0).getAmount().longValue());
+		assertEquals(transferAmount, accountInfo.getMosaics().get(0).getAmount().longValue());
 
 		// Verify the signer/sender account got update
 		AccountInfo signerAccountInfoBefore =

@@ -43,11 +43,23 @@ public class Log {
 		return new Log(name);
 	}
 
-	private void LogInfo(final String message, final Object... values) {
+	/**
+	 * Logs information.
+	 *
+	 * @param message Message
+	 * @param values  Values.
+	 */
+	public void LogInfo(final String message, final Object... values) {
 		logger.info(message, values);
 	}
 
-	private void LogError(final String message, final Object... values) {
+	/**
+	 * Logs error.
+	 *
+	 * @param message Message
+	 * @param values  Values.
+	 */
+	public void LogError(final String message, final Object... values) {
 		logger.error(message, values);
 	}
 
@@ -66,7 +78,7 @@ public class Log {
 	 * @param name   Scenario name.
 	 * @param status Scenario status.
 	 */
-	public void scenarioEnd(final String name, final int status) {
+	public void senscarioEnd(final String name, final int status) {
 		if (status == 0) {
 			LogInfo("Scenario {0} completed successfully.", name);
 		} else {

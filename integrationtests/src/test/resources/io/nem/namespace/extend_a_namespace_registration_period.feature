@@ -20,25 +20,25 @@ Feature: Extend a namespace registration period
 
     Examples:
       | duration | cost |
-      | 1        | 1    |
-      | 2        | 2    |
+      | 10       | 10   |
+      | 20       | 20   |
 
   Scenario: An account tries to extend a namespace registration period and this is under grace period
-    Given Alice registered the namespace named "aliceexp" for 1 block
+    Given Alice registered the namespace named "aliceexp" for 6 block
     And   the namespace is now under grace period
-    When Alice extends the registration of the namespace named "aliceexp" for 2 block
+    When Alice extends the registration of the namespace named "aliceexp" for 6 block
     Then she should receive a confirmation message
-    And the namespace registration period should be extended for at least 2 blocks
-    And her "cat.currency" balance should decrease in 2 units
+    And the namespace registration period should be extended for at least 6 blocks
+    And her "cat.currency" balance should decrease in 6 units
 
   Scenario: An account tries to extend a namespace registration period, this is under gracebut the account didn't created it
-    Given Bob registered the namespace named "bobnew" for 1 block
+    Given Bob registered the namespace named "bobnew" for 5 block
     And the namespace is now under grace period
-    When Alice tries to extends the registration of the namespace named "bobnew" for 1 block
+    When Alice tries to extends the registration of the namespace named "bobnew" for 6 block
     Then she should receive the error "Failure_Namespace_Owner_Conflict"
     And her "cat.currency" balance should remain intact
 
   Scenario: An account tries to extend a namespace registration period but does not have enough funds
-    Given Bob registered the namespace named "bob" for 2 block
+    Given Bob registered the namespace named "bob" for 5 block
     When  Bob tries to extends the registration of the namespace named "bob" for 1000 blocks
     Then  she should receive the error "Failure_Core_Insufficient_Balance"

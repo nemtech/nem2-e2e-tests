@@ -24,16 +24,18 @@ import io.nem.automationHelpers.common.TestContext;
 import io.nem.core.utils.ExceptionUtils;
 import io.nem.core.utils.RetryCommand;
 import io.nem.sdk.infrastructure.common.TransactionRepository;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.dao.AccountsDao;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.dao.TransactionDao;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.PartialTransactionsCollection;
 import io.nem.sdk.model.account.Account;
-import io.nem.sdk.model.transaction.Deadline;
-import io.nem.sdk.model.transaction.SignedTransaction;
-import io.nem.sdk.model.transaction.Transaction;
-import io.nem.sdk.model.transaction.TransactionStatus;
+import io.nem.sdk.model.account.PublicAccount;
+import io.nem.sdk.model.transaction.*;
 
 import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -79,7 +81,10 @@ public class TransactionHelper {
 	 */
 	public SignedTransaction signTransaction(
 			final Transaction transaction, final Account account, final String generationHash) {
-		return account.sign(transaction, generationHash);
+		final SignedTransaction signedTransaction = account.sign(transaction, generationHash);
+		testContext.addTransaction(transaction);
+		testContext.setSignedTransaction(signedTransaction);
+		return signedTransaction;
 	}
 
 	/**
@@ -147,6 +152,71 @@ public class TransactionHelper {
 	}
 
 	/**
+	 * Waits for a transaction to complete.
+	 *
+	 * @param signedTransaction Signed transaction to wait for.
+	 * @param <T>               Transaction type.
+	 * @return Transaction of type T.
+	 */
+	public <T extends Transaction> T waitForTransactionToComplete(
+			final SignedTransaction signedTransaction) {
+		return waitForTransaction(signedTransaction, (final String hash) -> getTransaction(hash));
+	}
+
+	/**
+	 * Waits for a transaction to show in the pt cache.
+	 *
+	 * @param signedTransaction Signed transaction to wait for.
+	 * @param <T>               Transaction type.
+	 * @return Transaction of type T.
+	 */
+	public AggregateTransaction waitForBondedTransaction(
+			final SignedTransaction signedTransaction) {
+		return waitForTransaction(signedTransaction, (final String hash) -> getBondedTransaction(hash));
+	}
+
+	/**
+	 * Waits for a specific transaction.
+	 *
+	 * @param signedTransaction Signed transaction to wait for.
+	 * @param getTransaction    Function to get the transaction.
+	 * @param <T>               Transaction type.
+	 * @return Transaction if found.
+	 */
+	public <T extends Transaction> T waitForTransaction(final SignedTransaction signedTransaction,
+														final Function<String, T> getTransaction) {
+		final int retries = 2;
+		final int waitTimeInMilliseconds = 500;
+		testContext.getLogger().LogInfo("Start waiting for tx hash: ", signedTransaction.toString());
+		return new RetryCommand<T>(retries, waitTimeInMilliseconds, Optional.empty())
+				.run(
+						(final RetryCommand<T> retryCommand) -> {
+							try {
+								return getTransaction.apply(signedTransaction.getHash());
+							}
+							catch (final IllegalArgumentException e) {
+								testContext.getLogger().LogException(e);
+								final TransactionStatus transactionStatus =
+										getTransactionStatusNoThrow(signedTransaction.getHash());
+								if (!transactionStatus.getStatus().equalsIgnoreCase("SUCCESS")) {
+									testContext.getLogger().LogInfo("Status is success for hash: " + signedTransaction.toString());
+									// Transaction was not found.
+									retryCommand.cancelRetry();
+								}
+								throw new RuntimeException(
+										"txStatus: "
+												+ transactionStatus.getStatus()
+												+ " statusGroup: "
+												+ transactionStatus.getGroup()
+												+ " "
+												+ signedTransaction.toString(),
+										e);
+							}
+						});
+	}
+
+
+	/**
 	 * Announce a signed transaction.
 	 *
 	 * @param signedTransaction Signed transaction.
@@ -154,8 +224,40 @@ public class TransactionHelper {
 	public void announceTransaction(final SignedTransaction signedTransaction) {
 		final TransactionRepository transactionRepository =
 				new TransactionDao(testContext.getCatapultContext());
+		testContext.getLogger().LogInfo("Announce tx : " + signedTransaction.toString());
 		ExceptionUtils.propagate(
 				() -> transactionRepository.announce(signedTransaction).toFuture().get());
+	}
+
+	/**
+	 * Announce an aggregate bonded transaction.
+	 *
+	 * @param signedTransaction Signed transaction.
+	 */
+	public void announceAggregateBonded(final SignedTransaction signedTransaction) {
+		final TransactionRepository transactionRepository =
+				new TransactionDao(testContext.getCatapultContext());
+		testContext.getLogger().LogInfo("Announce bonded tx : " + signedTransaction.toString());
+		ExceptionUtils.propagate(
+				() -> transactionRepository.announceAggregateBonded(signedTransaction).toFuture().get());
+	}
+
+	/**
+	 * Announce a cosignature signed transaction.
+	 *
+	 * @param signedTransaction Signed transaction.
+	 */
+	public void announceAggregateBondedCosignature(
+			final CosignatureSignedTransaction signedTransaction) {
+		final TransactionRepository transactionRepository =
+				new TransactionDao(testContext.getCatapultContext());
+		testContext.getLogger().LogInfo("Announce aggregate bonded cosignature tx : " + signedTransaction.toString());
+		ExceptionUtils.propagate(
+				() ->
+						transactionRepository
+								.announceAggregateBondedCosignature(signedTransaction)
+								.toFuture()
+								.get());
 	}
 
 	/**
@@ -169,8 +271,6 @@ public class TransactionHelper {
 			final Transaction transaction, final Account signer) {
 		final SignedTransaction signedTransaction = signTransaction(transaction, signer);
 		announceTransaction(signedTransaction);
-		testContext.addTransaction(transaction);
-		testContext.setSignedTransaction(signedTransaction);
 		return signedTransaction;
 	}
 
@@ -198,30 +298,37 @@ public class TransactionHelper {
 			final Account signer, final Supplier<T> transactionSupplier) {
 		final SignedTransaction signedTransaction =
 				signAndAnnounceTransaction(signer, transactionSupplier);
-		final int retries = 2;
-		final int waittimeInmilliseconds = 500;
-		return new RetryCommand<T>(retries, waittimeInmilliseconds, Optional.empty())
-				.run(
-						(final RetryCommand<T> retryCommand) -> {
-							try {
-								return getTransaction(signedTransaction.getHash());
-							}
-							catch (final Exception e) {
-								final TransactionStatus transactionStatus =
-										getTransactionStatusNoThrow(signedTransaction.getHash());
-								if (!transactionStatus.getStatus().equalsIgnoreCase("SUCCESS")) {
-									// Transaction was not found.
-									retryCommand.cancelRetry();
-								}
-								throw new RuntimeException(
-										"txStatus: "
-												+ transactionStatus.getStatus()
-												+ " statusGroup: "
-												+ transactionStatus.getGroup()
-												+ " "
-												+ signedTransaction.toString(),
-										e);
-							}
-						});
+		return waitForTransactionToComplete(signedTransaction);
+	}
+
+	/**
+	 * Gets aggregate bonded transactions for an account.
+	 *
+	 * @param publicAccount Public account.
+	 * @return List of aggregate transaction.
+	 */
+	public List<AggregateTransaction> getAggregateBondedTransactions(
+			final PublicAccount publicAccount) {
+		return ExceptionUtils.propagate(
+				() ->
+						new AccountsDao(testContext.getCatapultContext())
+								.aggregateBondedTransactions(publicAccount)
+								.toFuture()
+								.get());
+	}
+
+	/**
+	 * Gets a bonded transaction from the pt cache.
+	 *
+	 * @param hash Transaction hash.
+	 * @return Aggregate transaction.
+	 */
+	public AggregateTransaction getBondedTransaction(final String hash) {
+		final Optional<Transaction> optionalTransaction =
+				new PartialTransactionsCollection(testContext.getCatapultContext()).findByHash(hash);
+		if (optionalTransaction.isPresent()) {
+			return (AggregateTransaction) optionalTransaction.get();
+		}
+		throw new IllegalArgumentException("Transaction hash " + hash + " not found.");
 	}
 }

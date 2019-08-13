@@ -87,8 +87,8 @@ public class CommonHelper {
 	 * @param name    Name of the user.
 	 * @param account Account.
 	 */
-	public static void AddUser(final String name, final Account account) {
-		if (!USER_ACCOUNTS.containsKey(name)) {
+	public static void addUser(final String name, final Account account) {
+		if (!accountExist(name)) {
 			USER_ACCOUNTS.put(name, account);
 		}
 	}
@@ -101,10 +101,35 @@ public class CommonHelper {
 	 * @return User account.
 	 */
 	public static Account getAccount(final String name, final NetworkType networkType) {
-		if (!USER_ACCOUNTS.containsKey(name)) {
-			USER_ACCOUNTS.put(name, Account.generateNewAccount(networkType));
+		if (!accountExist(name)) {
+			addUser(name, Account.generateNewAccount(networkType));
 		}
 		return USER_ACCOUNTS.get(name);
+	}
+
+	/**
+	 * Adds a user to the test user list.
+	 *
+	 * @param users Map of user names and accounts.
+	 */
+	public static void addAllUser(final Map<String, Account> users) {
+		USER_ACCOUNTS.putAll(users);
+	}
+
+	/**
+	 * Clear test user list.
+	 */
+	public static void clearUsers() {
+		USER_ACCOUNTS.clear();
+	}
+
+	/**
+	 * Account exist.
+	 *
+	 * @param name Name of the user.
+	 */
+	public static boolean accountExist(final String name) {
+		return USER_ACCOUNTS.containsKey(name);
 	}
 
 	/**

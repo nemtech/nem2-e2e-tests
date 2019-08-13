@@ -38,12 +38,13 @@ import java.util.Optional;
  */
 public class TestContext {
 	private static BlockInfo firstBlock;
-	private ConfigFileReader configFileReader;
-	private CatapultContext catapultContext;
-	private Account defaultSignerAccount;
-	private ScenarioContext scenarioContext;
-	private List<Transaction> transactions;
+	final private ConfigFileReader configFileReader;
+	final private CatapultContext catapultContext;
+	final private Account defaultSignerAccount;
+	final private ScenarioContext scenarioContext;
+	final private List<Transaction> transactions;
 	private SignedTransaction signedTransaction;
+	private Log logger;
 
 	/**
 	 * Constructor.
@@ -160,5 +161,26 @@ public class TestContext {
 	 */
 	public void setSignedTransaction(SignedTransaction signedTransaction) {
 		this.signedTransaction = signedTransaction;
+	}
+
+	/**
+	 * Sets the scenario name for the logger.
+	 *
+	 * @param scenarioName Scenario Name.
+	 */
+	public void setLoggerScenario(final String scenarioName) {
+		this.logger = Log.getLogger(scenarioName);
+	}
+
+	/**
+	 * Gets the current logger.
+	 *
+	 * @return Current logger or the default.
+	 */
+	public Log getLogger() {
+		if (null == logger) {
+			logger = Log.getLogger("TestAutomation");
+		}
+		return logger;
 	}
 }

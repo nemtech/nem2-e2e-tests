@@ -50,7 +50,7 @@ Feature: Create a subnamespace
     And her "cat.currency" balance should remain intact
 
   Scenario: An account tries to create a subnamespace with parent namespace expired
-    Given Alice registered the namespace named "alice" for 1 block
+    Given Alice registered the namespace named "alice" for 6 block
     When Alice tries to creates a subnamespace named "alice.subnamespace"
     Then she should receive the error "Failure_Namespace_Expired"
     And her "cat.currency" balance should remain intact

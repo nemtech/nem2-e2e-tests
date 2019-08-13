@@ -21,18 +21,24 @@
 package io.nem.automation.common;
 
 import cucumber.api.Scenario;
+import cucumber.api.java.After;
+import cucumber.api.java.Before;
 import cucumber.runtime.ScenarioImpl;
 import io.nem.automationHelpers.common.Log;
-import org.junit.After;
-import org.junit.Before;
+import io.nem.automationHelpers.common.TestContext;
+import io.nem.automationHelpers.helper.CommonHelper;
+
+import static io.nem.automation.common.BaseTest.CORE_USER_ACCOUNTS;
 
 /**
  * Hooks for all tests
  */
-public abstract class Hooks {
+public class Hooks {
+	private final TestContext testContext;
 	private ScenarioNameMap scenarioNameMap;
 
-	private Hooks() {
+	public Hooks(final TestContext testContext) {
+		this.testContext = testContext;
 		scenarioNameMap = ScenarioNameMap.getInstance();
 	}
 
@@ -45,7 +51,13 @@ public abstract class Hooks {
 	public void beforeScenario(final Scenario scenario) {
 		final String scenarioName = scenario.getName();
 		scenarioNameMap.addScenario(scenarioName);
-		Log.getLogger(scenarioName).scenarioStart(scenarioName);
+		final Log logger = Log.getLogger(scenarioName);
+		logger.scenarioStart(scenarioName);
+
+		BaseTest.initialized(testContext);
+		// Clear the test users
+		CommonHelper.clearUsers();
+		CommonHelper.addAllUser(CORE_USER_ACCOUNTS);
 	}
 
 	/**
@@ -57,7 +69,7 @@ public abstract class Hooks {
 	public void afterScenario(final Scenario scenario) {
 		final String scenarioName = scenario.getName();
 		final Log logger = Log.getLogger(scenarioName);
-		logger.scenarioEnd(scenarioName, scenario.getStatus().ordinal());
+		logger.senscarioEnd(scenarioName, scenario.getStatus().ordinal());
 		if (scenario.isFailed()) {
 			ScenarioImpl impl = (ScenarioImpl) scenario;
 			logger.LogException(impl.getError());

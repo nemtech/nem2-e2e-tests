@@ -31,8 +31,8 @@ Feature: Register a namespace
 
     Examples:
       | name  | duration | cost |
-      | test1 | 1        | 1    |
-      | test3 | 3        | 3    |
+      | test1 | 5        | 5    |
+      | test3 | 6        | 6    |
 
   Scenario Outline: An account tries to register a namespace with an invalid duration
     When Alice tries to registers a namespace named "alice" for <duration> block
@@ -46,7 +46,7 @@ Feature: Register a namespace
       | 40000000000 | Failure_Namespace_Invalid_Duration            |
 
   Scenario Outline: An account tries to register a namespace with an invalid name
-    When Alice tries to registers a namespace named "<name>" for 1 block
+    When Alice tries to registers a namespace named "<name>" for 6 block
     Then she should receive the error "Failure_Namespace_Invalid_Name"
     And her "cat.currency" balance should remain intact
 
@@ -57,24 +57,24 @@ Feature: Register a namespace
       | Upper                                                             |
 
   Scenario: An account tries to register a namespace with a reserved name
-    When Alice tries to registers a namespace named "xem" for 1 block
+    When Alice tries to registers a namespace named "xem" for 6 block
     Then she should receive the error "Failure_Namespace_Root_Name_Reserved"
     And her "cat.currency" balance should remain intact
 
   Scenario: An account tries to register a namespace which is already registered by another account
     Given Bob registers a namespace named "bob" for 5 blocks
-    When Alice tries to registers a namespace named "bob" for 1 block
+    When Alice tries to registers a namespace named "bob" for 6 block
     Then she should receive the error "Failure_Namespace_Owner_Conflict"
     And her "cat.currency" balance should remain intact
 
   Scenario: An account tries to register a namespace which is already registered by another account during the grace period
-    Given Bob registers a namespace named "bob" for 2 blocks
+    Given Bob registers a namespace named "bob" for 6 blocks
     And the namespace is now under grace period
-    When Alice tries to registers a namespace named "bob" for 1 block
+    When Alice tries to registers a namespace named "bob" for 6 block
     Then she should receive the error "Failure_Namespace_Owner_Conflict"
     And her "cat.currency" balance should remain intact
   
   Scenario: An account tries to register a namespace but does not have enough funds
     Given Sue has has no "cat.currency"
-    When Sue tries to registers a namespace named "sue" for 1 block
+    When Sue tries to registers a namespace named "sue" for 6 block
     Then she should receive the error "Failure_Core_Insufficient_Balance"

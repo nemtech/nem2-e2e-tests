@@ -90,27 +90,27 @@ Feature: Link a namespace to an asset
     Given Alice registered the namespace "token"
     And Alice registered the asset "Y"
     When Bob tries to link the namespace "token" to the asset "Y"
-    Then she should receive the error "Failure_Namespace_Alias_Owner_Conflict"
+    Then she should receive the error "Failure_Namespace_Owner_Conflict"
 
   Scenario: An account tries to unlink a namespace from an asset that it does not own
     Given Alice registered the namespace "token"
     And Alice registered the asset "Y"
     And Alice links the namespace "token" to the asset "Y"
     When Bob tries to unlink the namespace "token" from the asset "Y"
-    Then she should receive the error "Failure_Namespace_Alias_Owner_Conflict"
+    Then she should receive the error "Failure_Namespace_Owner_Conflict"
 
   Scenario: An account tries to link a namespace it does not own to an asset
     Given Bob registered the namespace "bob"
     And Alice registered the asset "X"
     When Alice tries to link the namespace "bob" to the asset "X"
-    Then she should receive the error "Failure_Namespace_Alias_Owner_Conflict"
+    Then she should receive the error "Failure_Namespace_Owner_Conflict"
 
   Scenario: An account tries to unlink a namespace she does not own from an asset
     Given  Alice registered the namespace "alice"
     And Alice registered the asset "Y"
     And Alice links the namespace "alice" to the asset "Y"
     When Bob tries to unlink the namespace "alice" from the asset "Y"
-    Then she should receive the error "Failure_Namespace_Alias_Owner_Conflict"
+    Then she should receive the error "Failure_Namespace_Owner_Conflict"
 
   Scenario: An account tries to unlink an asset link that does not exist
     Given Alice registered the namespace "token"
@@ -123,4 +123,4 @@ Feature: Link a namespace to an asset
     And Alice registered the asset "D"
     And Alice links the namespace "token" to the asset "D"
     When Alice tries to unlink the namespace "token" from the address of Alice
-    Then she should receive the error "Failure_Namespace_Alias_Unlink_Type_Inconsistency"
+    Then she should receive the error "Failure_Namespace_Alias_Owner_Conflict"

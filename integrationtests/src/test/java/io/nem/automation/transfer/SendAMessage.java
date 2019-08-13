@@ -74,7 +74,7 @@ public class SendAMessage extends BaseTest {
 	public void VerifyTransfer(final String recipient, final String message) {
 		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
 		final TransferTransaction transferTransaction =
-				new TransactionHelper(getTestContext()).getTransaction(signedTransaction.getHash());
+				new TransactionHelper(getTestContext()).waitForTransactionToComplete(signedTransaction);
 		assertEquals(message, transferTransaction.getMessage().getPayload());
 	}
 }

@@ -190,10 +190,10 @@ public class MosaicHelper {
 			final MosaicId mosaicId,
 			final MosaicSupplyType supplyType,
 			final BigInteger delta) {
-		final MosaicSupplyChangeTransaction mosaicSupplyChangeTransaction =
-				createMosaicSupplyChangeTransaction(mosaicId, supplyType, delta);
 		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
-		return transactionHelper.signAndAnnounceTransaction(mosaicSupplyChangeTransaction, account);
+		return transactionHelper.signAndAnnounceTransaction(
+				account,
+				() -> createMosaicSupplyChangeTransaction(mosaicId, supplyType, delta));
 	}
 
 	/**
@@ -211,12 +211,10 @@ public class MosaicHelper {
 			final MosaicId mosaicId,
 			final MosaicSupplyType supplyType,
 			final BigInteger delta) {
-		final SignedTransaction signedTransaction =
-				createMosaicSupplyChangeAndAnnounce(account, mosaicId, supplyType, delta);
-		testContext.setSignedTransaction(signedTransaction);
 		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
-		return (MosaicSupplyChangeTransaction)
-				transactionHelper.getTransaction(signedTransaction.getHash());
+		return transactionHelper.signAndAnnounceTransactionAndWait(
+				account,
+				() -> createMosaicSupplyChangeTransaction(mosaicId, supplyType, delta));
 	}
 
 	/**
@@ -242,13 +240,10 @@ public class MosaicHelper {
 						mosaicDefinitionTransaction.getMosaicId(), MosaicSupplyType.INCREASE, initialSupply);
 		final Supplier<AggregateTransaction> aggregateTransactionSupplier =
 				() ->
-						AggregateTransaction.createComplete(
-								TransactionHelper.getDefaultDeadline(),
-								TransactionHelper.getDefaultMaxFee(),
+						new AggregateHelper(testContext).createAggregateCompleteTransaction(
 								Arrays.asList(
 										mosaicDefinitionTransaction.toAggregate(account.getPublicAccount()),
-										mosaicSupplyChangeTransaction.toAggregate(account.getPublicAccount())),
-								new NetworkHelper(testContext).getNetworkType());
+										mosaicSupplyChangeTransaction.toAggregate(account.getPublicAccount())));
 		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
 		transactionHelper.signAndAnnounceTransactionAndWait(account, aggregateTransactionSupplier);
 		return getMosaic(mosaicDefinitionTransaction.getMosaicId());

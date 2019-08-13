@@ -67,16 +67,6 @@ public class TransferHelper {
 	}
 
 	private TransferTransaction createTransferTransaction(
-			final Address recipientAddress, final List<Mosaic> mosaics, final Message message) {
-		return createTransferTransaction(
-				TransactionHelper.getDefaultDeadline(),
-				TransactionHelper.getDefaultMaxFee(),
-				recipientAddress,
-				mosaics,
-				message);
-	}
-
-	private TransferTransaction createTransferTransaction(
 			final Deadline deadline,
 			final BigInteger maxFee,
 			final NamespaceId namespaceId,
@@ -97,6 +87,23 @@ public class TransferHelper {
 				TransactionHelper.getDefaultDeadline(),
 				TransactionHelper.getDefaultMaxFee(),
 				namespaceId,
+				mosaics,
+				message);
+	}
+
+	/**
+	 * Creates a transfer transaction.
+	 * @param recipientAddress Recipient address.
+	 * @param mosaics List of mosaics to send.
+	 * @param message Message.
+	 * @return Transfer transaction.
+	 */
+	public TransferTransaction createTransferTransaction(
+			final Address recipientAddress, final List<Mosaic> mosaics, final Message message) {
+		return createTransferTransaction(
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				recipientAddress,
 				mosaics,
 				message);
 	}

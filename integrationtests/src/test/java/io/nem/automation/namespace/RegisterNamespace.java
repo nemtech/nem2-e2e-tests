@@ -101,8 +101,13 @@ public class RegisterNamespace extends BaseTest {
 		verifyNamespaceInfo(new NamespaceId(name), duration);
 	}
 
-	@Then("she should receive a confirmation message")
-	public void verifyConfirmationMessage() {
+	@Then("^(\\w+) should receive a confirmation message$")
+	public void verifyConfirmationMessage(final String userName) {
+		// TODO: when I do ZMQ
+	}
+
+	@Then("^every sender participant should receive a notification to accept the contract$")
+	public void sendersGetsNotification() {
 		// TODO: when I do ZMQ
 	}
 

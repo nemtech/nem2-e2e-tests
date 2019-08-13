@@ -58,12 +58,6 @@ public class SendAsset extends BaseTest {
 		transferHelper = new TransferHelper(testContext);
 	}
 
-	private Optional<Mosaic> getMosaic(final AccountInfo accountInfo, final MosaicId mosaicId) {
-		return accountInfo.getMosaics().stream()
-				.filter(mosaic -> mosaic.getId().getIdAsLong() == mosaicId.getIdAsLong())
-				.findFirst();
-	}
-
 	@When("^(\\w+) sends (\\d+) asset \"(\\w+)\" to (\\w+)$")
 	public void transferAsset(
 			final String sender,

@@ -26,6 +26,7 @@ import io.nem.sdk.infrastructure.directconnect.dataaccess.dao.AccountsDao;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.account.AccountInfo;
 import io.nem.sdk.model.account.Address;
+import io.nem.sdk.model.account.MultisigAccountInfo;
 import io.nem.sdk.model.blockchain.NetworkType;
 import io.nem.sdk.model.mosaic.Mosaic;
 import io.nem.sdk.model.mosaic.MosaicId;
@@ -91,5 +92,16 @@ public class AccountHelper {
 				Arrays.asList(mosaic),
 				PlainMessage.Empty);
 		return account;
+	}
+
+	/**
+	 * Gets multisig account by address.
+	 *
+	 * @param address Account address.
+	 * @return Multisig account info.
+	 */
+	public MultisigAccountInfo getMultisigAccount(final Address address) {
+		final AccountsDao accountsDao = new AccountsDao(testContext.getCatapultContext());
+		return ExceptionUtils.propagate(() -> accountsDao.getMultisigAccountInfo(address).toFuture().get());
 	}
 }

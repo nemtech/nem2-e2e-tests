@@ -58,15 +58,6 @@ public class NamespaceHelper {
 				deadline, maxFee, namespaceName, duration, new NetworkHelper(testContext).getNetworkType());
 	}
 
-	private RegisterNamespaceTransaction createRootNamespaceTransaction(
-			final String namespaceName, final BigInteger duration) {
-		return createRootNamespaceTransaction(
-				TransactionHelper.getDefaultDeadline(),
-				TransactionHelper.getDefaultMaxFee(),
-				namespaceName,
-				duration);
-	}
-
 	private RegisterNamespaceTransaction createSubNamespaceTransaction(
 			final Deadline deadline,
 			final BigInteger maxFee,
@@ -137,6 +128,21 @@ public class NamespaceHelper {
 				aliasAction,
 				namespaceId,
 				mosaicId);
+	}
+
+	/**
+	 * Creates a root namespace transaction.
+	 * @param namespaceName Root namespace name.
+	 * @param duration Duration of the namespace.
+	 * @return Register namespace transaction.
+	 */
+	public RegisterNamespaceTransaction createRootNamespaceTransaction(
+			final String namespaceName, final BigInteger duration) {
+		return createRootNamespaceTransaction(
+				TransactionHelper.getDefaultDeadline(),
+				TransactionHelper.getDefaultMaxFee(),
+				namespaceName,
+				duration);
 	}
 
 	/**
@@ -227,6 +233,26 @@ public class NamespaceHelper {
 								.getNamespace(namespaceId)
 								.toFuture()
 								.get());
+	}
+
+	/**
+	 * Gets the namespace info.
+	 *
+	 * @param namespaceId Namespace id.
+	 * @return Namespace info if present.
+	 */
+	public Optional<NamespaceInfo> getNamesapceInfoNoThrow(final NamespaceId namespaceId) {
+		try {
+			final NamespaceInfo namespaceInfo = new NamespaceDao(testContext.getCatapultContext())
+					.getNamespace(namespaceId)
+					.toFuture()
+					.get();
+			return Optional.of(namespaceInfo);
+		}
+		catch (Exception e) {
+			testContext.getLogger().LogException(e);
+			return Optional.empty();
+		}
 	}
 
 	/**

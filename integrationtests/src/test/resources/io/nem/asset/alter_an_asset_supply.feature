@@ -45,6 +45,6 @@ Feature: Alter an asset supply
     Then she should receive the error "Failure_Mosaic_Supply_Immutable"
 
   Scenario: An account tries to alter the supply of an expired asset
-    Given Alice has registered expiring asset for 1 block
+    Given Alice has registered expiring asset for 6 block
     When Alice tries to increase the asset supply in 2 units
     Then she should receive the error "Failure_Mosaic_Expired"

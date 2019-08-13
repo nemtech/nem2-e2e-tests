@@ -36,7 +36,6 @@ import io.nem.sdk.model.transaction.SignedTransaction;
 import io.nem.sdk.model.transaction.TransactionType;
 
 import java.math.BigInteger;
-import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
@@ -69,7 +68,7 @@ public class AssetRegistration extends BaseTest {
 		createMosaicDefinition.get();
 	}
 
-	private void verifyAsset(final Account account, final Optional<BigInteger> duration) {
+	private void verifyAsset(final Account account, final BigInteger duration) {
 		final MosaicDefinitionTransaction mosaicDefinitionTransaction =
 				getTestContext()
 						.<MosaicDefinitionTransaction>findTransaction(TransactionType.MOSAIC_DEFINITION)
@@ -98,12 +97,8 @@ public class AssetRegistration extends BaseTest {
 				mosaicInfo.getMosaicId().getIdAsLong());
 		assertEquals(errorMessage, 0, mosaicInfo.getSupply().longValue());
 		assertTrue(errorMessage, mosaicInfo.getHeight().longValue() > 1);
-
-		assertEquals(errorMessage, mosaicInfo.getDuration().isPresent(), duration.isPresent());
-		if (mosaicInfo.getDuration().isPresent()) {
-			assertEquals(
-					errorMessage, duration.get().longValue(), mosaicInfo.getDuration().get().longValue());
-		}
+		assertEquals(
+				errorMessage, duration.longValue(), mosaicInfo.getDuration().longValue());
 	}
 
 	private void verifyAccountBalance(final AccountInfo initialAccountInfo, final long amountChange) {
@@ -153,9 +148,9 @@ public class AssetRegistration extends BaseTest {
 	}
 
 	@Then("^(\\w+) should become the owner of the new asset for at least (\\d+) blocks$")
-	public void verifyAssetOwnerShip(final String username, final int duration) {
+	public void verifyAssetOwnerShip(final String username, final BigInteger duration) {
 		final Account userAccount = getUser(username);
-		verifyAsset(userAccount, Optional.of(BigInteger.valueOf(duration)));
+		verifyAsset(userAccount, duration);
 	}
 
 	@And("(\\w+) \"cat.currency\" balance should decrease in (\\d+) units")
@@ -182,7 +177,7 @@ public class AssetRegistration extends BaseTest {
 	@Then("^(\\w+) should become the owner of the new asset$")
 	public void verifyAssetOwnerShip(final String username) {
 		final Account userAccount = getUser(username);
-		verifyAsset(userAccount, Optional.empty());
+		verifyAsset(userAccount, BigInteger.ZERO);
 	}
 
 	@When("^(\\w+) registers an asset for (\\d+) in blocks with (-?\\d+) divisibility$")
@@ -318,7 +313,7 @@ public class AssetRegistration extends BaseTest {
 								account, supplyMutable, transferable, divisibility, duration));
 		SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
 		final MosaicDefinitionTransaction mosaicDefinitionTransaction =
-				new TransactionHelper(getTestContext()).getTransaction(signedTransaction.getHash());
+				new TransactionHelper(getTestContext()).waitForTransactionToComplete(signedTransaction);
 		final MosaicInfo mosaicInfo =
 				new MosaicHelper(getTestContext()).getMosaic(mosaicDefinitionTransaction.getMosaicId());
 		getTestContext().getScenarioContext().setContext(MOSAIC_INFO_KEY, mosaicInfo);
@@ -342,11 +337,11 @@ public class AssetRegistration extends BaseTest {
 		final MosaicInfo mosaicInfo =
 				getTestContext().getScenarioContext().getContext(MOSAIC_INFO_KEY);
 		final BlockChainHelper blockchainDao = new BlockChainHelper(getTestContext());
-		if (!mosaicInfo.getDuration().isPresent()) {
+		if (0 == mosaicInfo.getDuration().longValue()) {
 			final String errorMessage = "Mosaicid " + mosaicInfo.getMosaicId() + " does not expire.";
 			throw new IllegalStateException(errorMessage);
 		}
-		final long endHeight =  mosaicInfo.getHeight().longValue() + mosaicInfo.getDuration().get().longValue();
+		final long endHeight = mosaicInfo.getHeight().longValue() + mosaicInfo.getDuration().longValue();
 		while (blockchainDao.getBlockchainHeight().longValue() <= endHeight) {
 			ExceptionUtils.propagateVoid(() -> Thread.sleep(1000));
 		}
