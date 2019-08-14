@@ -58,7 +58,6 @@ Feature: Create an escrow contract
       | type           | sender   | recipient  | data             |
       | send-an-asset  | Computer | Alice      | 5 cat.currency   |
       | send-an-asset  | Tom      | Sue        | 2 cat.currency   |
-    And "Computer" accepts the contract
     And "Browser" accepts the contract
     And "App" accepts the contract
     When Phone publishes the contract
@@ -86,7 +85,7 @@ Feature: Create an escrow contract
       | send-an-asset  | Alice    | Bob       | 10 cat.currency  |
       | send-an-asset  | Sue      | Alice     | 200 unknown      |
     When Alice publishes the bonded contract
-    And "Bob" accepts the transaction
+    And "Sue" accepts the transaction
     Then she should receive the error "Failure_Core_Insufficient_Balance"
     And Alice balance should remain intact
     And Sue balance should remain intact
@@ -113,9 +112,9 @@ Feature: Create an escrow contract
       | type                             | sender | data                      |
       | register-a-namespace             | Alice  | alice                     |
       | create-a-multisignature-contract | Bob    | 1-of-1, cosignatory:alice |
-    And Alice tries to lock 10 "cat.currency" to guarantee that the contract will conclude 1 block
+    And Alice locks 10 "cat.currency" to guarantee that the contract will conclude 1 block
     When she publishes the contract
-    Then she should receive the error "Failure_LockHash_Inactive_Hash"
+    Then she should receive the error "Failure_Hash_Lock_Inactive_Hash"
 
   Scenario: An account tries to create an escrow contract but the lock already exists
     Given Alice defined the following bonded escrow contract:
@@ -124,14 +123,14 @@ Feature: Create an escrow contract
       | send-an-asset  | Bob      | Sue       | 2 cat.currency   |
     And Alice locks 10 "cat.currency" to guarantee that the contract will conclude 5 blocks
     And Alice tries to lock 10 "cat.currency" to guarantee that the contract will conclude 1 blocks
-    Then she should receive the error "Failure_LockHash_Hash_Exists"
+    Then she should receive the error "Failure_Hash_Lock_Hash_Exists"
 
     Given Alice defined the following bonded escrow contract:
       | type           | sender   | recipient | data             |
       | send-an-asset  | Alice    | Bob       | 1 cat.currency   |
       | send-an-asset  | Bob      | Sue       | 2 cat.currency   |
     When she publishes no funds bonded contract
-    Then she should receive the error "Failure_LockHash_Hash_Does_Not_Exist"
+    Then she should receive the error "Failure_Hash_Lock_Hash_Does_Not_Exist"
 
   Scenario: An account tries to create an escrow but locks another mosaic that is not cat.currency
     Given Alice defined the following bonded escrow contract:
@@ -224,4 +223,4 @@ Feature: Create an escrow contract
     And "Phone" accepts the contract
     And "Browser" accepts the contract
     When she publishes the contract
-    Then she should receive the error "Failure_Aggregate_Ineligible_Cosigners"
+    Then she should receive the error "Failure_Aggregate_Missing_Cosigners"

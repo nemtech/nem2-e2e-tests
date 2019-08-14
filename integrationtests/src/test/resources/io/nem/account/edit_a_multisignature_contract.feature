@@ -93,7 +93,7 @@ Feature: Edit a multisignature contract
     Given Alice created a 1 of 1 multisignature contract called "tom" with 1 required for removal with cosignatories:
       | cosignatory |
       | computer    |
-    When "computer" update the cosignatories of the multisignature:
+    When "computer" remove the last cosignatory of the multisignature:
       | cosignatory | operation |
       | computer    | remove    |
     And computer publishes the contract
@@ -137,6 +137,17 @@ Feature: Edit a multisignature contract
       | 2                | 0              | Failure_Multisig_Modify_Min_Setting_Larger_Than_Num_Cosignatories |
       | 1                | 2              | Failure_Multisig_Modify_Min_Setting_Larger_Than_Num_Cosignatories |
 
+  Scenario: The last cosignatory tries to remove himself from the multisignature contract without
+    Given Alice created a 1 of 1 multisignature contract called "tom" with 1 required for removal with cosignatories:
+      | cosignatory |
+      | computer    |
+    When "computer" update the cosignatories of the multisignature:
+      | cosignatory | operation |
+      | computer    | remove    |
+    And computer publishes the contract
+    Then Alice should receive a confirmation message
+    Then she should receive the error "Failure_Multisig_Modify_Min_Setting_Out_Of_Range"
+
   Scenario: A cosignatory tries adding twice another cosignatory to the multisignature contract
     Given Alice created a 1 of 2 multisignature contract called "tom" with 1 required for removal with cosignatories:
       | cosignatory |
@@ -163,11 +174,11 @@ Feature: Edit a multisignature contract
       | phone8      |
       | phone9      |
       | phone10     |
-    When "computer" update the cosignatories of the multisignature:
+    When "phone1" update the cosignatories of the multisignature:
       | cosignatory | operation |
-      | phone1      | add       |
+      | phone11     | add       |
     And computer publishes the bonded contract
-    And "phone1" accepts the transaction
+    And "phone11" accepts the transaction
     Then "Alice" should receive the error "Failure_Multisig_Modify_Max_Cosigners"
 
   Scenario: A cosignatory tries to add the multisignature contract as a cosignatory
@@ -190,10 +201,10 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | app         |
       | browser     |
-    When "phone" update the cosignatories of the multisignature:
+    When "browser" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | tom         | add       |
-    And phone publishes the bonded contract
+    And browser publishes the bonded contract
     Then "Alice" should receive the error "Failure_Multisig_Modify_Loop"
 
   Scenario: A cosignatory tries to delete multiple cosignatories

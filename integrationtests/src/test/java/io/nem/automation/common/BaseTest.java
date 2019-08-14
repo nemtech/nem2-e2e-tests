@@ -69,7 +69,15 @@ public abstract class BaseTest {
 		initialized(testContext);
 	}
 
+	private void storeUserinContext(final String name, final Account account) {
+		testContext.getScenarioContext().setContext(account.getAddress().plain(), account);
+	}
 
+	/**
+	 * Initialize the test users and asset.
+	 *
+	 * @param testContext Test context.
+	 */
 	public static void initialized(final TestContext testContext) {
 		if (!initialized) {
 			final Account aliceAccount = testContext.getDefaultSignerAccount();
@@ -83,20 +91,20 @@ public abstract class BaseTest {
 			final NamespaceId eurosNamespaceId = new NamespaceId(MOSAIC_EUROS_KEY);
 			final Optional<NamespaceInfo> optionalNamespaceInfo = namespaceHelper.getNamesapceInfoNoThrow(eurosNamespaceId);
 			MosaicId mosaicId;
-			if (!optionalNamespaceInfo.isPresent()) {
-				final MosaicInfo mosaicInfo = new MosaicHelper(testContext)
-						.createMosaic(
-								testContext.getDefaultSignerAccount(),
-								true,
-								true,
-								0,
-								BigInteger.valueOf(1000));
-				mosaicId = mosaicInfo.getMosaicId();
-				namespaceHelper.createRootNamespaceAndWait(aliceAccount, MOSAIC_EUROS_KEY, BigInteger.valueOf(1000));
-				namespaceHelper.submitLinkMosaicAliasAndWait(aliceAccount, eurosNamespaceId, mosaicId);
-			} else {
+			if (optionalNamespaceInfo.isPresent()) {
 				mosaicId = namespaceHelper.getLinkedMosaicId(eurosNamespaceId);
+				namespaceHelper.submitUnlinkMosaicAliasAndWait(aliceAccount, eurosNamespaceId, mosaicId);
 			}
+			namespaceHelper.createRootNamespaceAndWait(aliceAccount, MOSAIC_EUROS_KEY, BigInteger.valueOf(1000));
+			final MosaicInfo mosaicInfo = new MosaicHelper(testContext)
+					.createMosaic(
+							testContext.getDefaultSignerAccount(),
+							true,
+							true,
+							0,
+							BigInteger.valueOf(1000));
+			mosaicId = mosaicInfo.getMosaicId();
+			namespaceHelper.submitLinkMosaicAliasAndWait(aliceAccount, eurosNamespaceId, mosaicId);
 			final Account accountSue =
 					accountHelper.createAccountWithAsset(mosaicId, BigInteger.valueOf(100));
 			CORE_USER_ACCOUNTS.put(AUTOMATION_USER_SUE, accountSue);
@@ -120,8 +128,10 @@ public abstract class BaseTest {
 	 * @return Account.
 	 */
 	protected Account getUser(final String username) {
-		return CommonHelper.getAccount(
+		final Account account = CommonHelper.getAccount(
 				username, getTestContext().getConfigFileReader().getNetworkType());
+		storeUserinContext(username, account);
+		return account;
 	}
 
 	/**
@@ -138,6 +148,7 @@ public abstract class BaseTest {
 		final Mosaic mosaic = NetworkCurrencyMosaic.createRelative(BigInteger.valueOf(100));
 		final Account account = new AccountHelper(testContext).createAccountWithAsset(mosaic);
 		addUser(username, account);
+		storeUserinContext(username, account);
 		return account;
 	}
 

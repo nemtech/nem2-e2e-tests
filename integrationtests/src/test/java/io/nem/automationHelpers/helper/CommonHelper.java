@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.Callable;
 
 import static org.junit.Assert.assertEquals;
 
@@ -172,6 +173,23 @@ public class CommonHelper {
 					mosaicAfter.getAmount().longValue());
 		} else {
 			assertEquals(expectedAmountChange, mosaicAfter.getAmount().longValue());
+		}
+	}
+
+	/**
+	 * Execute a callable and return the results.
+	 *
+	 * @param testContext Test context.
+	 * @param callable Callable to execute.
+	 * @param <T> Return type.
+	 * @return Return result of the callable else Optional.empty.
+	 */
+	public static <T> Optional<T> executeCallablenNoThrow(final TestContext testContext, final Callable<T> callable) {
+		try {
+			return Optional.of(callable.call());
+		} catch (Exception e) {
+			//testContext.getLogger().LogException(e);
+			return Optional.empty();
 		}
 	}
 }

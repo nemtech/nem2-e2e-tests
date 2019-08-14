@@ -34,6 +34,7 @@ import io.nem.sdk.model.transaction.PlainMessage;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Account helper.
@@ -103,5 +104,15 @@ public class AccountHelper {
 	public MultisigAccountInfo getMultisigAccount(final Address address) {
 		final AccountsDao accountsDao = new AccountsDao(testContext.getCatapultContext());
 		return ExceptionUtils.propagate(() -> accountsDao.getMultisigAccountInfo(address).toFuture().get());
+	}
+
+	/**
+	 * Gets multisig account by address.
+	 *
+	 * @param address Account address.
+	 * @return Multisig account info.
+	 */
+	public Optional<MultisigAccountInfo> getMultisigAccountNoThrow(final Address address) {
+		return CommonHelper.executeCallablenNoThrow(testContext, () -> getMultisigAccount(address));
 	}
 }

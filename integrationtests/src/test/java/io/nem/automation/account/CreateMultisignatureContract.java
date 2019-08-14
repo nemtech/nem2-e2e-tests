@@ -39,12 +39,11 @@ import io.nem.sdk.model.mosaic.NetworkCurrencyMosaic;
 import io.nem.sdk.model.transaction.*;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -64,6 +63,22 @@ public class CreateMultisignatureContract extends BaseTest {
 		multisigAccountHelper = new MultisigAccountHelper(testContext);
 	}
 
+	private List<Account> getCosignersForAccount(final Account account) {
+		Optional<MultisigAccountInfo> multisigAccountInfoOptional =
+				new AccountHelper(getTestContext()).getMultisigAccountNoThrow(account.getAddress());
+		List<Account> cosigners = new Vector<>();
+		if (multisigAccountInfoOptional.isPresent()) {
+			cosigners = multisigAccountInfoOptional.get().getCosignatories().parallelStream().map(publicAccount ->  {
+				final Account cosignerAccount = getTestContext().getScenarioContext().getContext(publicAccount.getAddress().plain());
+				return getCosignersForAccount(cosignerAccount);
+			}).flatMap(Collection::stream).collect(Collectors.toList());
+		}
+		if (cosigners.isEmpty()) {
+			cosigners.add(account);
+		}
+		return cosigners;
+	}
+
 	private void createMultisigAccount(
 			final String userName,
 			final byte minimumApproval,
@@ -73,17 +88,17 @@ public class CreateMultisignatureContract extends BaseTest {
 			final List<String> cosignatories) {
 		final Account signerAccount = getUser(userName);
 		final Account multiSigAccount = getUserWithCurrency(multisigAccountName);
+		getTestContext().getLogger().LogError("MultiSig account " + multisigAccountName + " public key:" + multiSigAccount.getPublicKey());
+		final List<Account> cosignerAccounts = new Vector<>(cosignatories.size());
 		final List<MultisigCosignatoryModification> multisigCosignatoryModifications =
-				new ArrayList<>();
-		final List<Account> cosignerAccounts = new ArrayList<>(cosignatories.size());
-		for (final String name : cosignatories) {
+				cosignatories.parallelStream().map(name -> {
 			final Account account = getUserWithCurrency(name);
-			final MultisigCosignatoryModification multisigCosignatoryModification =
-					new MultisigCosignatoryModification(
+			getTestContext().getLogger().LogError("Cosigner account " + name + " public key:" + account.getPublicKey());
+			final List<Account> cosigners = getCosignersForAccount(account);
+			cosignerAccounts.addAll(cosigners);
+			return new MultisigCosignatoryModification(
 							MultisigCosignatoryModificationType.ADD, account.getPublicAccount());
-			multisigCosignatoryModifications.add(multisigCosignatoryModification);
-			cosignerAccounts.add(account);
-		}
+		}).collect(Collectors.toList());
 		final ModifyMultisigAccountTransaction modifyMultisigAccountTransaction =
 				multisigAccountHelper.createModifyMultisigAccountTransaction(
 						minimumApproval, minimumRemoval, multisigCosignatoryModifications);
@@ -237,6 +252,7 @@ public class CreateMultisignatureContract extends BaseTest {
 				cosignatories.subList(1, cosignatories.size()));
 		publishBondedTransaction(userName);
 		cosignMultiSignatureAccount();
+		waitForLastTransactionToComplete();
 	}
 
 	@Given("^(\\w+) is cosignatory of (\\d+) multisignature contracts$")
@@ -267,6 +283,7 @@ public class CreateMultisignatureContract extends BaseTest {
 
 	@Then("^the multisignature contract should become a (\\d+) level multisignature contract$")
 	public void verifyContractLevel(final int level) {
+		waitForLastTransactionToComplete();
 		final Account multisigAccount =
 				getTestContext().getScenarioContext().getContext(MULTISIG_ACCOUNT_INFO);
 		assertEquals("Multisig account level did not match.", level, getMultisigAccountLevel(multisigAccount.getPublicAccount()));

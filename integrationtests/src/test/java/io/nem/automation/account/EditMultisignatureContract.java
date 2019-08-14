@@ -29,11 +29,12 @@ import io.nem.automationHelpers.helper.AggregateHelper;
 import io.nem.automationHelpers.helper.MultisigAccountHelper;
 import io.nem.automationHelpers.helper.TransactionHelper;
 import io.nem.sdk.model.account.Account;
+import io.nem.sdk.model.account.MultisigAccountInfo;
 import io.nem.sdk.model.transaction.*;
 
 import java.util.*;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Edit multisignature contract.
@@ -114,6 +115,13 @@ public class EditMultisignatureContract extends BaseTest {
 		createModifyMultisigAccount(userName, minimumApproval, minimumRemoval, removeHeader("cosignatory", operationList));
 	}
 
+	@When("^\"(\\w+)\" remove the last cosignatory of the multisignature:$")
+	public void removeLastCosigner(final String userName, final Map<String, String> operationList) {
+		final byte minimumApproval = -1;
+		final byte minimumRemoval = -1;
+		createModifyMultisigAccount(userName, minimumApproval, minimumRemoval, removeHeader("cosignatory", operationList));
+	}
+
 	@And("^\"(\\w+)\" accepts the transaction$")
 	public void cosignTransaction(final String cosigner) {
 		final Account account = getUser(cosigner);
@@ -128,13 +136,9 @@ public class EditMultisignatureContract extends BaseTest {
 	public void verifyNotMultisigAccount(final String userName) {
 		waitForLastTransactionToComplete();
 		final Account account = getUser(userName);
-		try {
-			new AccountHelper(getTestContext()).getMultisigAccount(account.getAddress());
-		}
-		catch (Exception e) {
-			return;
-		}
-		fail("Account " + account.getAddress().pretty() + " is still multisig.");
+		final Optional<MultisigAccountInfo> multisigAccountInfoOptional =
+				new AccountHelper(getTestContext()).getMultisigAccountNoThrow(account.getAddress());
+		assertFalse("Account " + account.getAddress().pretty() + " is still multisig.", multisigAccountInfoOptional.isPresent());
 	}
 
 	@When("^(\\w+) publishes a contract to change approval by (-?\\d+) units and removal by (-?\\d+) units$")
