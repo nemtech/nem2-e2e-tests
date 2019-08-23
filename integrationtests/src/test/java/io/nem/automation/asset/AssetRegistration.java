@@ -145,6 +145,7 @@ public class AssetRegistration extends BaseTest {
 								transferable,
 								divisibility,
 								BigInteger.valueOf(duration)));
+		waitForLastTransactionToComplete();
 	}
 
 	@Then("^(\\w+) should become the owner of the new asset for at least (\\d+) blocks$")
@@ -172,6 +173,7 @@ public class AssetRegistration extends BaseTest {
 								CommonHelper.getRandomNextBoolean(),
 								CommonHelper.getRandomNextBoolean(),
 								CommonHelper.getRandomDivisibility()));
+		waitForLastTransactionToComplete();
 	}
 
 	@Then("^(\\w+) should become the owner of the new asset$")

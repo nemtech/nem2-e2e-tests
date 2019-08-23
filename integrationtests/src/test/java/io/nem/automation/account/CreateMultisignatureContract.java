@@ -154,7 +154,7 @@ public class CreateMultisignatureContract extends BaseTest {
 				cosignatories.subList(1, cosignatories.size()));
 	}
 
-	@When("^(\\w+) publishes the bonded contract")
+	@When("^(\\w+) published the bonded contract")
 	public void publishBondedTransaction(final String userName) {
 		final Account account = getUser(AUTOMATION_USER_ALICE);
 		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
@@ -175,7 +175,7 @@ public class CreateMultisignatureContract extends BaseTest {
 		transactionHelper.announceTransaction(signedTransaction);
 	}
 
-	@And("^cosignatories sign the transaction$")
+	@And("^all the required cosignatories sign the transaction$")
 	public void cosignMultiSignatureAccount() {
 		final List<Account> cosignatories =
 				getTestContext().getScenarioContext().getContext(COSIGNATORIES_LIST);

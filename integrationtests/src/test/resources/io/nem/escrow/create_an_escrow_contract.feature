@@ -1,4 +1,3 @@
-@Testing
 Feature: Create an escrow contract
   As Alice,
   I want to create an escrow contract between different participants,
@@ -18,7 +17,7 @@ Feature: Create an escrow contract
       | type           | sender   | recipient | data             |
       | send-an-asset  | Alice    | Bob       | 10 cat.currency  |
       | send-an-asset  | Sue      | Alice     | 2 euros          |
-    When Alice publishes the bonded contract
+    When Alice published the bonded contract
     Then every sender participant should receive a notification to accept the contract
 
   Scenario: An account creates an escrow contract signed by all the participants
@@ -84,7 +83,7 @@ Feature: Create an escrow contract
       | type           | sender   | recipient | data             |
       | send-an-asset  | Alice    | Bob       | 10 cat.currency  |
       | send-an-asset  | Sue      | Alice     | 200 unknown      |
-    When Alice publishes the bonded contract
+    When Alice published the bonded contract
     And "Sue" accepts the transaction
     Then she should receive the error "Failure_Core_Insufficient_Balance"
     And Alice balance should remain intact
@@ -175,7 +174,7 @@ Feature: Create an escrow contract
       | send-an-asset  | Alice    | Bob       | 1 cat.currency   |
       | send-an-asset  | Bob      | Sue       | 2 cat.currency   |
     When Dan tries to lock 10 "cat.currency" to guarantee that the contract will conclude 6 blocks
-    Then she should receive the error "Failure_Hash_Lock_Invalid_Mosaic_Amount"
+    Then she should receive the error "Failure_Core_Insufficient_Balance"
 
   Scenario: An account creates an escrow already signed but also cosign
     Given Alice defined the following escrow contract:

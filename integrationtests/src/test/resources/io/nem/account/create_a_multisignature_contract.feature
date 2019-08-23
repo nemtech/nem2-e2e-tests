@@ -12,8 +12,8 @@ Feature: Create a multisignature contract
       | cosignatory |
       | phone       |
       | computer    |
-    When Alice publishes the bonded contract
-    And cosignatories sign the transaction
+    When Alice published the bonded contract
+    And all the required cosignatories sign the transaction
     Then she should receive a confirmation message
     And her account is convert to multisig
 
@@ -27,8 +27,8 @@ Feature: Create a multisignature contract
       | cosignatory |
       | phone       |
       | computer    |
-    When Alice publishes the bonded contract
-    And cosignatories sign the transaction
+    When Alice published the bonded contract
+    And all the required cosignatories sign the transaction
     Then she should receive the error "<error>"
 
     Examples:
@@ -45,7 +45,7 @@ Feature: Create a multisignature contract
       | cosignatory |
       | phone       |
       | phone       |
-    When Alice publishes the bonded contract
+    When Alice published the bonded contract
     And "phone" accepts the transaction
     Then she should receive the error "Failure_Multisig_Modify_Redundant_Modifications"
 
@@ -63,8 +63,8 @@ Feature: Create a multisignature contract
       | phone9      |
       | phone10     |
       | phone11     |
-    When Alice publishes the bonded contract
-    And cosignatories sign the transaction
+    When Alice published the bonded contract
+    And all the required cosignatories sign the transaction
     Then she should receive the error "Failure_Multisig_Modify_Max_Cosigners"
 
   Scenario: An account tries to add as a cosignatory an account which is already cosignatory of 5 multisignature contracts
@@ -73,15 +73,15 @@ Feature: Create a multisignature contract
       | cosignatory |
       | Bob         |    
       | phone       |
-    And Alice publishes the bonded contract
-    And cosignatories sign the transaction
+    And Alice published the bonded contract
+    And all the required cosignatories sign the transaction
     Then she should receive the error "Failure_Multisig_Modify_Max_Cosigned_Accounts"
 
   Scenario: An account tries to create a multisignature contract adding itself as a cosignatory
     Given Alice defined a 1 of 1 multisignature contract called "tom" with 1 required for removal with cosignatories:
       | cosignatory |
       | tom         |
-    When Alice publishes the bonded contract
+    When Alice published the bonded contract
     Then she should receive the error "Failure_Multisig_Modify_Loop"
 
   Scenario: An account tries to create a multisignature contract, adding a multisig cosignatory where the account is a cosignatory.
@@ -93,8 +93,8 @@ Feature: Create a multisignature contract
       | cosignatory |
       | deposit     |
       | phone       | 
-    And Alice publishes the bonded contract
-    And cosignatories sign the transaction
+    And Alice published the bonded contract
+    And all the required cosignatories sign the transaction
     Then she should receive the error "Failure_Multisig_Modify_Loop"
 
   Scenario: An account tries to turn twice an account to multisignature contract
@@ -106,7 +106,7 @@ Feature: Create a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    And Alice publishes the bonded contract
+    And Alice published the bonded contract
     Then she should receive the error "Failure_Multisig_Operation_Not_Permitted_By_Account"
 
   Scenario: An account creates a multi-level multisignature contract
@@ -118,8 +118,8 @@ Feature: Create a multisignature contract
       | cosignatory |
       | level       |
       | phone       | 
-    And Alice publishes the bonded contract
-    And cosignatories sign the transaction
+    And Alice published the bonded contract
+    And all the required cosignatories sign the transaction
     Then the multisignature contract should become a 2 level multisignature contract
 
   Scenario: An account tries to exceed three levels of nested multisignature contracts
@@ -139,6 +139,6 @@ Feature: Create a multisignature contract
       | cosignatory |
       | level3      |
       | phone3      |
-    And Alice publishes the bonded contract
-    And cosignatories sign the transaction
+    And Alice published the bonded contract
+    And all the required cosignatories sign the transaction
     Then she should receive the error "Failure_Multisig_Modify_Max_Multisig_Depth"

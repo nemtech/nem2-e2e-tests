@@ -35,7 +35,9 @@ Following table describes the status attributions for each of the icons that wil
 | :-: |:-: |
 | consensus update PoS+ | :stop_sign:  |
 | enhanced delegated harvesting | :stop_sign: |
-| metadata key-value| :o: |
+| metadata key-value | :o: |
+| restriction account| :o: |
+| restriction mosaic | :o: |
 
 ### Dragon: [Protocol v0.4.?.?](https://github.com/nemtech/catapult-server/milestone/5)
 
@@ -55,7 +57,6 @@ Following table describes the status attributions for each of the icons that wil
 | mosaic/namespace split | :white_check_mark: |
 | aliases | :white_check_mark: |
 | receipts | :o: |
-| restriction account | :o: |
 | escrow | :white_check_mark: |
 | fees | :o: |
 | delegated harvesting | :stop_sign: |

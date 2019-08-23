@@ -16,7 +16,7 @@ Feature: Edit a multisignature contract
     When "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | tablet      | add       |
-    And computer publishes the bonded contract
+    And computer published the bonded contract
     And "tablet" accepts the transaction
     Then Alice should receive a confirmation message
     And the multisignature contract should be updated
@@ -29,7 +29,7 @@ Feature: Edit a multisignature contract
     When "Alice" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | tablet      | add       |
-    And Alice publishes the bonded contract
+    And Alice published the bonded contract
     And "tablet" accepts the transaction
     And "computer" accepts the transaction
     Then Alice should receive a confirmation message
@@ -57,7 +57,7 @@ Feature: Edit a multisignature contract
       | cosignatory | operation |
       | phone       | remove    |
       | tablet      | add       |
-    And computer publishes the bonded contract
+    And computer published the bonded contract
     And "tablet" accepts the transaction
     Then Alice should receive a confirmation message
     And the multisignature contract should be updated
@@ -71,7 +71,7 @@ Feature: Edit a multisignature contract
       | cosignatory | operation |
       | phone       | remove    |
       | tablet      | add       |
-    And computer publishes the bonded contract
+    And computer published the bonded contract
     And "phone" accepts the transaction
     And "tablet" accepts the transaction
     Then Alice should receive a confirmation message
@@ -109,7 +109,7 @@ Feature: Edit a multisignature contract
       | phone2      |
       | tablet      |
     When phone publishes a contract to change approval by <approval-delta> units and removal by <removal-delta> units
-    And phone publishes the bonded contract
+    And phone published the bonded contract
     And "computer" accepts the transaction
     Then the multisignature contract should be updated
 
@@ -157,7 +157,7 @@ Feature: Edit a multisignature contract
       | cosignatory | operation |
       | computer    | remove    |
       | phone       | add       |
-    And phone publishes the bonded contract
+    And phone published the bonded contract
     And "phone" accepts the transaction
     Then she should receive the error "Failure_Multisig_Modify_Already_A_Cosigner"
 
@@ -177,7 +177,7 @@ Feature: Edit a multisignature contract
     When "phone1" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | phone11     | add       |
-    And computer publishes the bonded contract
+    And computer published the bonded contract
     And "phone11" accepts the transaction
     Then "Alice" should receive the error "Failure_Multisig_Modify_Max_Cosigners"
 
@@ -189,7 +189,7 @@ Feature: Edit a multisignature contract
     When "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | tom         | add       |
-    And computer publishes the bonded contract
+    And computer published the bonded contract
     Then "Alice" should receive the error "Failure_Multisig_Modify_Loop"
 
   Scenario: A cosignatory tries to add another cosignatory where the multisignature contract is a cosignatory.
@@ -204,7 +204,7 @@ Feature: Edit a multisignature contract
     When "browser" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | tom         | add       |
-    And browser publishes the bonded contract
+    And browser published the bonded contract
     Then "Alice" should receive the error "Failure_Multisig_Modify_Loop"
 
   Scenario: A cosignatory tries to delete multiple cosignatories
@@ -239,7 +239,7 @@ Feature: Edit a multisignature contract
       | cosignatory | operation |
       | tablet      | add       |
       | tablet      | remove    |
-    And computer publishes the bonded contract
+    And computer published the bonded contract
     And "tablet" accepts the transaction
     Then Alice should receive the error "Failure_Multisig_Modify_Account_In_Both_Sets"
 
