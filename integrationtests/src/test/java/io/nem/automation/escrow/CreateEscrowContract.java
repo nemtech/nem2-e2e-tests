@@ -241,7 +241,8 @@ public class CreateEscrowContract extends BaseTest {
 		}
 	}
 
-	@And("^\"(\\w+)\" accepts the contract$")
+	@And("^\"(\\w+)\" accepted the contract$")
+	@When("^\"(\\w+)\" accepts the contract$")
 	public void acceptContract(final String userName) {
 		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
 		if (TransactionType.AGGREGATE_COMPLETE == signedTransaction.getType()) {

@@ -13,11 +13,11 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When "computer" update the cosignatories of the multisignature:
+    And "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | tablet      | add       |
     And computer published the bonded contract
-    And "tablet" accepts the transaction
+    When "tablet" accepts the transaction
     Then Alice should receive a confirmation message
     And the multisignature contract should be updated
 
@@ -26,12 +26,12 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When "Alice" update the cosignatories of the multisignature:
+    And "Alice" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | tablet      | add       |
     And Alice published the bonded contract
-    And "tablet" accepts the transaction
-    And "computer" accepts the transaction
+    And "tablet" accepted the transaction
+    When "computer" accepts the transaction
     Then Alice should receive a confirmation message
     And the multisignature contract should be updated
 
@@ -41,10 +41,10 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When "computer" update the cosignatories of the multisignature:
+    And "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | phone       | remove    |
-    And computer publishes the contract
+    When computer publishes the contract
     Then Alice should receive a confirmation message
     And the multisignature contract should be updated
 
@@ -53,12 +53,12 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When "computer" update the cosignatories of the multisignature:
+    And "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | phone       | remove    |
       | tablet      | add       |
     And computer published the bonded contract
-    And "tablet" accepts the transaction
+    When "tablet" accepts the transaction
     Then Alice should receive a confirmation message
     And the multisignature contract should be updated
 
@@ -67,13 +67,13 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When "computer" update the cosignatories of the multisignature:
+    And "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | phone       | remove    |
       | tablet      | add       |
     And computer published the bonded contract
-    And "phone" accepts the transaction
-    And "tablet" accepts the transaction
+    And "phone" accepted the transaction
+    When "tablet" accepts the transaction
     Then Alice should receive a confirmation message
     And the multisignature contract should be updated
 
@@ -82,10 +82,10 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When "computer" update the cosignatories of the multisignature:
+    And "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | computer    | remove    |
-    And computer publishes the contract
+    When computer publishes the contract
     Then Alice should receive a confirmation message
     And the multisignature contract should be updated
 
@@ -93,10 +93,10 @@ Feature: Edit a multisignature contract
     Given Alice created a 1 of 1 multisignature contract called "tom" with 1 required for removal with cosignatories:
       | cosignatory |
       | computer    |
-    When "computer" remove the last cosignatory of the multisignature:
+    And "computer" remove the last cosignatory of the multisignature:
       | cosignatory | operation |
       | computer    | remove    |
-    And computer publishes the contract
+    When computer publishes the contract
     Then Alice should receive a confirmation message
     And tom become a regular account
 
@@ -108,9 +108,9 @@ Feature: Edit a multisignature contract
       | phone       |
       | phone2      |
       | tablet      |
-    When phone publishes a contract to change approval by <approval-delta> units and removal by <removal-delta> units
+    And phone created a contract to change approval by <approval-delta> units and removal by <removal-delta> units
     And phone published the bonded contract
-    And "computer" accepts the transaction
+    When "computer" accepts the transaction
     Then the multisignature contract should be updated
 
     Examples:
@@ -126,8 +126,8 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When phone publishes a contract to change approval by <minimum-approval> units and removal by <minimum-removal> units
-    And phone publishes the contract
+    And phone created a contract to change approval by <minimum-approval> units and removal by <minimum-removal> units
+    When phone publishes the contract
     Then she should receive the error "<error>"
 
     Examples:
@@ -141,10 +141,10 @@ Feature: Edit a multisignature contract
     Given Alice created a 1 of 1 multisignature contract called "tom" with 1 required for removal with cosignatories:
       | cosignatory |
       | computer    |
-    When "computer" update the cosignatories of the multisignature:
+    And "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | computer    | remove    |
-    And computer publishes the contract
+    When computer publishes the contract
     Then Alice should receive a confirmation message
     Then she should receive the error "Failure_Multisig_Modify_Min_Setting_Out_Of_Range"
 
@@ -153,12 +153,12 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When "computer" update the cosignatories of the multisignature:
+    And "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | computer    | remove    |
       | phone       | add       |
     And phone published the bonded contract
-    And "phone" accepts the transaction
+    When "phone" accepts the transaction
     Then she should receive the error "Failure_Multisig_Modify_Already_A_Cosigner"
 
   Scenario: A cosignatory tries to add more than 10 cosignatories to the multisignature contract
@@ -174,7 +174,7 @@ Feature: Edit a multisignature contract
       | phone8      |
       | phone9      |
       | phone10     |
-    When "phone1" update the cosignatories of the multisignature:
+    And "phone1" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | phone11     | add       |
     And computer published the bonded contract
@@ -186,10 +186,10 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When "computer" update the cosignatories of the multisignature:
+    And "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | tom         | add       |
-    And computer published the bonded contract
+    When computer publishes the bonded contract
     Then "Alice" should receive the error "Failure_Multisig_Modify_Loop"
 
   Scenario: A cosignatory tries to add another cosignatory where the multisignature contract is a cosignatory.
@@ -201,10 +201,10 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | app         |
       | browser     |
-    When "browser" update the cosignatories of the multisignature:
+    And "browser" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | tom         | add       |
-    And browser published the bonded contract
+    When browser publishes the bonded contract
     Then "Alice" should receive the error "Failure_Multisig_Modify_Loop"
 
   Scenario: A cosignatory tries to delete multiple cosignatories
@@ -212,11 +212,11 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When "computer" update the cosignatories of the multisignature:
+    And "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | computer    | remove    |
       | phone       | remove    |
-    And computer publishes the contract
+    When computer publishes the contract
     Then "Alice" should receive the error "Failure_Multisig_Modify_Multiple_Deletes"
 
   Scenario: A cosignatory tries to remove a cosignatory that does not exist
@@ -224,10 +224,10 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When "computer" update the cosignatories of the multisignature:
+    And "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | tablet      | remove    |
-    And computer publishes the contract
+    When computer publishes the contract
     Then "Alice" should receive the error "Failure_Multisig_Modify_Not_A_Cosigner"
 
   Scenario: A cosignatory tries to add and remove the same account as cosignatory at the same time
@@ -235,11 +235,11 @@ Feature: Edit a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When "computer" update the cosignatories of the multisignature:
+    And "computer" update the cosignatories of the multisignature:
       | cosignatory | operation |
       | tablet      | add       |
       | tablet      | remove    |
     And computer published the bonded contract
-    And "tablet" accepts the transaction
+    When "tablet" accepts the transaction
     Then Alice should receive the error "Failure_Multisig_Modify_Account_In_Both_Sets"
 

@@ -108,7 +108,7 @@ public class EditMultisignatureContract extends BaseTest {
 		getTestContext().addTransaction(newModifyMultisigAccountTransaction);
 	}
 
-	@When("^\"(\\w+)\" update the cosignatories of the multisignature:$")
+	@And("^\"(\\w+)\" update the cosignatories of the multisignature:$")
 	public void modifyCosignList(final String userName, final Map<String, String> operationList) {
 		final byte minimumApproval = 0;
 		final byte minimumRemoval = 0;
@@ -122,7 +122,8 @@ public class EditMultisignatureContract extends BaseTest {
 		createModifyMultisigAccount(userName, minimumApproval, minimumRemoval, removeHeader("cosignatory", operationList));
 	}
 
-	@And("^\"(\\w+)\" accepts the transaction$")
+	@And("^\"(\\w+)\" accepted the transaction$")
+	@When("^\"(\\w+)\" accepts the transaction$")
 	public void cosignTransaction(final String cosigner) {
 		final Account account = getUser(cosigner);
 		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
@@ -141,7 +142,8 @@ public class EditMultisignatureContract extends BaseTest {
 		assertFalse("Account " + account.getAddress().pretty() + " is still multisig.", multisigAccountInfoOptional.isPresent());
 	}
 
-	@When("^(\\w+) publishes a contract to change approval by (-?\\d+) units and removal by (-?\\d+) units$")
+	@And("^(\\w+) created a contract to change approval by (-?\\d+) units and removal by (-?\\d+) units$")
+	@When("^(\\w+) creates a contract to change approval by (-?\\d+) units and removal by (-?\\d+) units$")
 	public void publishMultisigSettingsUpdate(final String userName, final byte approvalDetla, final byte removalDelta) {
 		createModifyMultisigAccount(userName, approvalDetla, removalDelta, new HashMap<>());
 	}

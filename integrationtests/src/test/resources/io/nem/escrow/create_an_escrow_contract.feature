@@ -25,7 +25,7 @@ Feature: Create an escrow contract
       | type           | sender | recipient | data             |
       | send-an-asset  | Alice  | Bob       | 5 cat.currency   |
       | send-an-asset  | Sue    | Alice     | 2 euros          |
-    And "Sue" accepts the contract
+    And "Sue" accepted the contract
     When Alice publishes the contract
     Then every sender participant should receive a notification to accept the contract
     And the swap of assets should conclude
@@ -39,8 +39,8 @@ Feature: Create an escrow contract
       | type           | sender | recipient | data             |
       | send-an-asset  | Alice  | Computer  | 10 cat.currency  |
       | send-an-asset  | Tom    | Sue       | 2 cat.currency   |
-    And "Phone" accepts the contract
-    And "Computer" accepts the contract
+    And "Phone" accepted the contract
+    And "Computer" accepted the contract
     When Alice publishes the contract
     And the swap of assets should conclude
 
@@ -57,8 +57,8 @@ Feature: Create an escrow contract
       | type           | sender   | recipient  | data             |
       | send-an-asset  | Computer | Alice      | 5 cat.currency   |
       | send-an-asset  | Tom      | Sue        | 2 cat.currency   |
-    And "Browser" accepts the contract
-    And "App" accepts the contract
+    And "Browser" accepted the contract
+    And "App" accepted the contract
     When Phone publishes the contract
     And the swap of assets should conclude
 
@@ -83,8 +83,8 @@ Feature: Create an escrow contract
       | type           | sender   | recipient | data             |
       | send-an-asset  | Alice    | Bob       | 10 cat.currency  |
       | send-an-asset  | Sue      | Alice     | 200 unknown      |
-    When Alice published the bonded contract
-    And "Sue" accepts the transaction
+    And Alice published the bonded contract
+    When "Sue" accepts the transaction
     Then she should receive the error "Failure_Core_Insufficient_Balance"
     And Alice balance should remain intact
     And Sue balance should remain intact
@@ -121,7 +121,7 @@ Feature: Create an escrow contract
       | send-an-asset  | Alice    | Bob       | 1 cat.currency   |
       | send-an-asset  | Bob      | Sue       | 2 cat.currency   |
     And Alice locks 10 "cat.currency" to guarantee that the contract will conclude 5 blocks
-    And Alice tries to lock 10 "cat.currency" to guarantee that the contract will conclude 1 blocks
+    When Alice tries to lock 10 "cat.currency" to guarantee that the contract will conclude 1 blocks
     Then she should receive the error "Failure_Hash_Lock_Hash_Exists"
 
     Given Alice defined the following bonded escrow contract:
@@ -202,7 +202,7 @@ Feature: Create an escrow contract
       | sender | recipient | type          | data             |
       | Alice  | Tom       | send-an-asset | 1 cat.currency   |
       | Tom    | Alice     | send-an-asset | 2 cat.currency   |
-    And "Phone" accepts the contract
+    And "Phone" accepted the contract
     When Alice publishes the contract
     Then she should receive the error "Failure_Aggregate_Missing_Cosigners"
 

@@ -154,7 +154,8 @@ public class CreateMultisignatureContract extends BaseTest {
 				cosignatories.subList(1, cosignatories.size()));
 	}
 
-	@When("^(\\w+) published the bonded contract")
+	@And("^(\\w+) published the bonded contract")
+	@When("^(\\w+) publishes the bonded contract")
 	public void publishBondedTransaction(final String userName) {
 		final Account account = getUser(AUTOMATION_USER_ALICE);
 		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
@@ -168,6 +169,7 @@ public class CreateMultisignatureContract extends BaseTest {
 		getTestContext().setSignedTransaction(signedTransaction);
 	}
 
+	@And("^(\\w+) published the contract")
 	@When("^(\\w+) publishes the contract")
 	public void publishTransaction(final String userName) {
 		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
