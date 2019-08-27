@@ -241,7 +241,7 @@ public class NamespaceHelper {
 	 * @param namespaceId Namespace id.
 	 * @return Namespace info if present.
 	 */
-	public Optional<NamespaceInfo> getNamesapceInfoNoThrow(final NamespaceId namespaceId) {
+	public Optional<NamespaceInfo> getNamespaceInfoNoThrow(final NamespaceId namespaceId) {
 		try {
 			final NamespaceInfo namespaceInfo = new NamespaceDao(testContext.getCatapultContext())
 					.getNamespace(namespaceId)

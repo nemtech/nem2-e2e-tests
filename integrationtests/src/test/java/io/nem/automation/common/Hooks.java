@@ -69,7 +69,7 @@ public class Hooks {
 	public void afterScenario(final Scenario scenario) {
 		final String scenarioName = scenario.getName();
 		final Log logger = Log.getLogger(scenarioName);
-		logger.senscarioEnd(scenarioName, scenario.getStatus().ordinal());
+		logger.scenarioEnd(scenarioName, scenario.getStatus().ordinal());
 		if (scenario.isFailed()) {
 			ScenarioImpl impl = (ScenarioImpl) scenario;
 			logger.LogException(impl.getError());

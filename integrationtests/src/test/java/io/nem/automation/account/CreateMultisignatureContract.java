@@ -26,10 +26,7 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import io.nem.automation.common.BaseTest;
 import io.nem.automationHelpers.common.TestContext;
-import io.nem.automationHelpers.helper.AccountHelper;
-import io.nem.automationHelpers.helper.AggregateHelper;
-import io.nem.automationHelpers.helper.MultisigAccountHelper;
-import io.nem.automationHelpers.helper.TransactionHelper;
+import io.nem.automationHelpers.helper.*;
 import io.nem.core.utils.ExceptionUtils;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.account.MultisigAccountInfo;
@@ -115,7 +112,7 @@ public class CreateMultisignatureContract extends BaseTest {
 		getTestContext().getScenarioContext().setContext(MULTISIG_ACCOUNT_INFO, multiSigAccount);
 	}
 
-	private int getMultisigAccountLevel(final PublicAccount account) {
+	private int getMultisigAccountLevelDepth(final PublicAccount account) {
 		final MultisigAccountInfo multisigAccountInfo;
 		int level = 0;
 
@@ -128,7 +125,7 @@ public class CreateMultisignatureContract extends BaseTest {
 		}
 		final List<PublicAccount> cosigners = multisigAccountInfo.getCosignatories();
 		for (final PublicAccount cosigner : cosigners) {
-			final int cosignerLevel = getMultisigAccountLevel(cosigner) + 1;
+			final int cosignerLevel = getMultisigAccountLevelDepth(cosigner) + 1;
 			if (cosignerLevel > level) {
 				level = cosignerLevel;
 			}
@@ -160,10 +157,8 @@ public class CreateMultisignatureContract extends BaseTest {
 		final Account account = getUser(AUTOMATION_USER_ALICE);
 		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
 		final BigInteger duration = BigInteger.valueOf(10);
-		final Mosaic mosaicToLock = NetworkCurrencyMosaic.createRelative(BigInteger.valueOf(10));
 		final AggregateHelper aggregateHelper = new AggregateHelper(getTestContext());
-		aggregateHelper.submitLockFundsTransactionAndWait(
-				account, mosaicToLock, duration, signedTransaction);
+		aggregateHelper.submitLockFundForBondedTransaction(account, signedTransaction, duration);
 		final TransactionHelper transactionHelper = new TransactionHelper(getTestContext());
 		transactionHelper.announceAggregateBonded(signedTransaction);
 		getTestContext().setSignedTransaction(signedTransaction);
@@ -276,11 +271,7 @@ public class CreateMultisignatureContract extends BaseTest {
 					publishBondedTransaction(signer);
 					cosignMultiSignatureAccount();
 				};
-		ExecutorService es = Executors.newCachedThreadPool();
-		for (int i = 0; i < numberOfContracts; i++) {
-			es.execute(runnable);
-		}
-		ExceptionUtils.propagateVoid(() -> es.awaitTermination(2, TimeUnit.MINUTES));
+		CommonHelper.executeInParallel(runnable, numberOfContracts, 8 * BLOCK_CREATION_TIME_IN_SECONDS);
 	}
 
 	@Then("^the multisignature contract should become a (\\d+) level multisignature contract$")
@@ -288,6 +279,6 @@ public class CreateMultisignatureContract extends BaseTest {
 		waitForLastTransactionToComplete();
 		final Account multisigAccount =
 				getTestContext().getScenarioContext().getContext(MULTISIG_ACCOUNT_INFO);
-		assertEquals("Multisig account level did not match.", level, getMultisigAccountLevel(multisigAccount.getPublicAccount()));
+		assertEquals("Multisig account level did not match.", level, getMultisigAccountLevelDepth(multisigAccount.getPublicAccount()));
 	}
 }

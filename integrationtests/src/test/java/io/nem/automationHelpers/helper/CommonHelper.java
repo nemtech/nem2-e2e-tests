@@ -22,6 +22,7 @@ package io.nem.automationHelpers.helper;
 
 import io.nem.automation.common.BaseTest;
 import io.nem.automationHelpers.common.TestContext;
+import io.nem.core.utils.ExceptionUtils;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.account.AccountInfo;
 import io.nem.sdk.model.blockchain.NetworkType;
@@ -33,6 +34,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
@@ -180,16 +184,32 @@ public class CommonHelper {
 	 * Execute a callable and return the results.
 	 *
 	 * @param testContext Test context.
-	 * @param callable Callable to execute.
-	 * @param <T> Return type.
+	 * @param callable    Callable to execute.
+	 * @param <T>         Return type.
 	 * @return Return result of the callable else Optional.empty.
 	 */
 	public static <T> Optional<T> executeCallablenNoThrow(final TestContext testContext, final Callable<T> callable) {
 		try {
 			return Optional.of(callable.call());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			//testContext.getLogger().LogException(e);
 			return Optional.empty();
 		}
+	}
+
+	/**
+	 * Execute a runnable method a given amount of time in parallel.
+	 *
+	 * @param runnable          Runnable method.
+	 * @param numberOfInstances Number of times.
+	 * @param timeoutInSeconds  Timeout in seconds.
+	 */
+	public static void executeInParallel(final Runnable runnable, final int numberOfInstances, final long timeoutInSeconds) {
+		ExecutorService es = Executors.newCachedThreadPool();
+		for (int i = 0; i < numberOfInstances; i++) {
+			es.execute(runnable);
+		}
+		ExceptionUtils.propagateVoid(() -> es.awaitTermination(timeoutInSeconds, TimeUnit.SECONDS));
 	}
 }

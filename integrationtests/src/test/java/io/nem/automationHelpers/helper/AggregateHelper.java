@@ -160,6 +160,20 @@ public class AggregateHelper {
 	}
 
 	/**
+	 * Submits a lock fund transaction for a aggregate bonded transaction.
+	 *
+	 * @param account           Signer account.
+	 * @param signedTransaction Signed bonded transaction.
+	 * @param duration          Duration for the lock funds.
+	 * @return Lock funds transaction.
+	 */
+	public LockFundsTransaction submitLockFundForBondedTransaction(final Account account, final SignedTransaction signedTransaction,
+																   final BigInteger duration) {
+		final Mosaic mosaicToLock = NetworkCurrencyMosaic.createRelative(BigInteger.valueOf(10));
+		return submitLockFundsTransactionAndWait(account, mosaicToLock, duration, signedTransaction);
+	}
+
+	/**
 	 * Creates an aggregate bonded transaction and announce it to the network.
 	 *
 	 * @param account          User account.
@@ -174,8 +188,7 @@ public class AggregateHelper {
 		final SignedTransaction signedTransaction =
 				transactionHelper.signTransaction(aggregateTransaction, account);
 		final BigInteger duration = BigInteger.valueOf(5);
-		final Mosaic mosaicToLock = NetworkCurrencyMosaic.createRelative(BigInteger.valueOf(10));
-		submitLockFundsTransactionAndWait(account, mosaicToLock, duration, signedTransaction);
+		submitLockFundForBondedTransaction(account, signedTransaction, duration);
 		transactionHelper.announceTransaction(signedTransaction);
 		return signedTransaction;
 	}

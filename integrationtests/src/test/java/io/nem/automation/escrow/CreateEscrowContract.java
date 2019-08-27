@@ -176,7 +176,7 @@ public class CreateEscrowContract extends BaseTest {
 			final Optional<Mosaic> mosaicAfter = getMosaic(recipientAccountInfoAfter, mosaicId);
 			final String errorMessage =
 					"Recipient("
-							+ recipientAccountInfoAfter.getAddress()
+							+ recipientAccountInfoAfter.getAddress().pretty()
 							+ ") did not receive Asset mosaic id:"
 							+ mosaicId;
 			assertEquals(errorMessage, true, mosaicAfter.isPresent());
@@ -298,7 +298,8 @@ public class CreateEscrowContract extends BaseTest {
 				innerTransaction.add(transaction.toAggregate(signer.getPublicAccount()));
 			});
 		}
-		ExceptionUtils.propagateVoid(() -> es.awaitTermination(2, TimeUnit.MINUTES));
+		final long timeoutInSeconds = 8 * BLOCK_CREATION_TIME_IN_SECONDS;
+		ExceptionUtils.propagateVoid(() -> es.awaitTermination(timeoutInSeconds, TimeUnit.SECONDS));
 		final AggregateTransaction aggregateTransaction =
 				new AggregateHelper(getTestContext()).createAggregateCompleteTransaction(innerTransaction);
 		signedAggregateTransaction(userName, aggregateTransaction, cosigners);
