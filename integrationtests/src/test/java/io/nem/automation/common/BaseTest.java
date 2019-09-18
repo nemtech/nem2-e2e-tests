@@ -57,6 +57,7 @@ public abstract class BaseTest {
 	private static boolean initialized = false;
 	protected final String COSIGNATORIES_LIST = "cosignatories";
 	protected final String MULTISIG_ACCOUNT_INFO = "multisigAccount";
+	protected final int BLOCK_CREATION_TIME_IN_SECONDS = 15;
 	private TestContext testContext;
 
 	/**
@@ -89,7 +90,7 @@ public abstract class BaseTest {
 			CORE_USER_ACCOUNTS.put(AUTOMATION_USER_BOB, accountBob);
 			final NamespaceHelper namespaceHelper = new NamespaceHelper(testContext);
 			final NamespaceId eurosNamespaceId = new NamespaceId(MOSAIC_EUROS_KEY);
-			final Optional<NamespaceInfo> optionalNamespaceInfo = namespaceHelper.getNamesapceInfoNoThrow(eurosNamespaceId);
+			final Optional<NamespaceInfo> optionalNamespaceInfo = namespaceHelper.getNamespaceInfoNoThrow(eurosNamespaceId);
 			MosaicId mosaicId;
 			if (optionalNamespaceInfo.isPresent()) {
 				mosaicId = namespaceHelper.getLinkedMosaicId(eurosNamespaceId);
