@@ -20,6 +20,7 @@
 
 package io.nem.sdk.infrastructure.common;
 
+import io.nem.core.crypto.PrivateKey;
 import io.nem.core.crypto.PublicKey;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.database.common.CatapultMongoDbClient;
 import io.nem.sdk.infrastructure.directconnect.network.AuthenticatedSocket;
@@ -52,7 +53,7 @@ public class CatapultContext {
   /* Catapult server public key. */
   private final PublicKey publicKey;
 
-  private final AuthenticatedSocket authenticatedSocket;
+  private static AuthenticatedSocket authenticatedSocket = null;
   private final CatapultMongoDbClient catapultMongoDbClient;
 
   /**
@@ -60,8 +61,8 @@ public class CatapultContext {
    *
    * @param publicKey Catapult server public key.
    */
-  public CatapultContext(final PublicKey publicKey) {
-    this(publicKey, HOST_NAME);
+  public CatapultContext(final PublicKey publicKey, final PrivateKey automationPrivateKey) {
+    this(publicKey, HOST_NAME, automationPrivateKey);
   }
 
   /**
@@ -70,14 +71,14 @@ public class CatapultContext {
    * @param publicKey Catapult server public key.
    * @param hostName Host name.
    */
-  public CatapultContext(final PublicKey publicKey, final String hostName) {
+  public CatapultContext(final PublicKey publicKey, final String hostName, final PrivateKey automationPrivateKey) {
     this(
         publicKey,
         hostName,
         MONGODB_PORT,
         API_PORT,
         DATABASE_TIMEOUT_IN_SECONDS,
-        NETWORK_TIMEOUT_IN_MILLISECONDS);
+        NETWORK_TIMEOUT_IN_MILLISECONDS, automationPrivateKey);
   }
 
   /**
@@ -91,21 +92,24 @@ public class CatapultContext {
    * @param socketTimeoutInMilliseconds Socket timeout in Milliseconds.
    */
   public CatapultContext(
-      final PublicKey publicKey,
-      final String hostName,
-      final int mongodbPort,
-      final int apiPort,
-      final int databaseTimeoutInSeconds,
-      final int socketTimeoutInMilliseconds) {
+          final PublicKey publicKey,
+          final String hostName,
+          final int mongodbPort,
+          final int apiPort,
+          final int databaseTimeoutInSeconds,
+          final int socketTimeoutInMilliseconds,
+          final PrivateKey automationPrivateKey) {
     this.publicKey = publicKey;
     this.hostName = hostName;
     this.mongodbPort = mongodbPort;
     this.apiPort = apiPort;
     this.databaseTimeoutInSeconds = databaseTimeoutInSeconds;
     this.socketTimeoutInMillseconds = socketTimeoutInMilliseconds;
-    final SocketClient socket =
-        SocketFactory.OpenSocket(hostName, apiPort, socketTimeoutInMilliseconds);
-    this.authenticatedSocket = AuthenticatedSocket.create(socket, publicKey);
+    if (authenticatedSocket == null) {
+      final SocketClient socket =
+          SocketFactory.OpenSocket(hostName, apiPort, socketTimeoutInMilliseconds);
+      authenticatedSocket = AuthenticatedSocket.create(socket, publicKey, automationPrivateKey);
+    }
     this.catapultMongoDbClient = CatapultMongoDbClient.create(hostName, mongodbPort);
   }
 
