@@ -17,6 +17,7 @@
 package io.nem.sdk.model.account;
 
 import io.nem.sdk.model.mosaic.Mosaic;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -124,5 +125,20 @@ public class AccountInfo {
      */
     public AccountType getAccountType() {
         return accountType;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(this.address.pretty() + " ");
+        stringBuilder.append(this.address.plain() + " ");
+        stringBuilder.append(this.publicKey + " ");
+        stringBuilder.append(this.accountType.getValue() + "\n");
+        stringBuilder.append("\nMosaics:\n");
+        this.mosaics.forEach(mosaic -> {
+            stringBuilder.append("\t" + mosaic.getId() + ": ");
+            stringBuilder.append(mosaic.getAmount() + "\n");
+        });
+        return stringBuilder.toString();
     }
 }
