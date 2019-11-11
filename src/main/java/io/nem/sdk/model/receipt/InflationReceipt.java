@@ -18,6 +18,7 @@ package io.nem.sdk.model.receipt;
 
 import io.nem.sdk.model.mosaic.MosaicId;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.Optional;
 
 public class InflationReceipt extends Receipt {
@@ -56,7 +57,7 @@ public class InflationReceipt extends Receipt {
      */
     public InflationReceipt(
         MosaicId mosaicId, BigInteger amount, ReceiptType type, ReceiptVersion version) {
-        super(type, version, null);
+        super(type, version, Optional.empty());
         this.amount = amount;
         this.mosaicId = mosaicId;
         this.validateReceiptType(type);
@@ -78,6 +79,20 @@ public class InflationReceipt extends Receipt {
      */
     public BigInteger getAmount() {
         return this.amount;
+    }
+
+    /**
+     * Serialize receipt and returns receipt bytes
+     *
+     * @return receipt bytes
+     */
+    public byte[] serialize() {
+        final ByteBuffer buffer = ByteBuffer.allocate(20);
+        buffer.putShort(Short.reverseBytes((short) getVersion().getValue()));
+        buffer.putShort(Short.reverseBytes((short) getType().getValue()));
+        buffer.putLong(Long.reverseBytes(getMosaicId().getIdAsLong()));
+        buffer.putLong(Long.reverseBytes(getAmount().longValue()));
+        return buffer.array();
     }
 
     /**

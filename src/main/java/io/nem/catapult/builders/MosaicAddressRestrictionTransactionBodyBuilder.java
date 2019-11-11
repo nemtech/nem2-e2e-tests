@@ -20,33 +20,33 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a mosaic address restriction transaction. */
-final class MosaicAddressRestrictionTransactionBodyBuilder {
+public final class MosaicAddressRestrictionTransactionBodyBuilder {
     /** Identifier of the mosaic to which the restriction applies. */
     private final UnresolvedMosaicIdDto mosaicId;
     /** Restriction key. */
     private final long restrictionKey;
-    /** Address being restricted. */
-    private final UnresolvedAddressDto targetAddress;
     /** Previous restriction value. */
     private final long previousRestrictionValue;
     /** New restriction value. */
     private final long newRestrictionValue;
+    /** Address being restricted. */
+    private final UnresolvedAddressDto targetAddress;
 
     /**
      * Constructor - Creates an object from stream.
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected MosaicAddressRestrictionTransactionBodyBuilder(final DataInput stream) {
+    protected MosaicAddressRestrictionTransactionBodyBuilder(final DataInputStream stream) {
         try {
             this.mosaicId = UnresolvedMosaicIdDto.loadFromBinary(stream);
             this.restrictionKey = Long.reverseBytes(stream.readLong());
-            this.targetAddress = UnresolvedAddressDto.loadFromBinary(stream);
             this.previousRestrictionValue = Long.reverseBytes(stream.readLong());
             this.newRestrictionValue = Long.reverseBytes(stream.readLong());
+            this.targetAddress = UnresolvedAddressDto.loadFromBinary(stream);
         } catch(Exception e) {
             throw GeneratorUtils.getExceptionToPropagate(e);
         }
@@ -57,18 +57,18 @@ final class MosaicAddressRestrictionTransactionBodyBuilder {
      *
      * @param mosaicId Identifier of the mosaic to which the restriction applies.
      * @param restrictionKey Restriction key.
-     * @param targetAddress Address being restricted.
      * @param previousRestrictionValue Previous restriction value.
      * @param newRestrictionValue New restriction value.
+     * @param targetAddress Address being restricted.
      */
-    protected MosaicAddressRestrictionTransactionBodyBuilder(final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final UnresolvedAddressDto targetAddress, final long previousRestrictionValue, final long newRestrictionValue) {
+    protected MosaicAddressRestrictionTransactionBodyBuilder(final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final long previousRestrictionValue, final long newRestrictionValue, final UnresolvedAddressDto targetAddress) {
         GeneratorUtils.notNull(mosaicId, "mosaicId is null");
         GeneratorUtils.notNull(targetAddress, "targetAddress is null");
         this.mosaicId = mosaicId;
         this.restrictionKey = restrictionKey;
-        this.targetAddress = targetAddress;
         this.previousRestrictionValue = previousRestrictionValue;
         this.newRestrictionValue = newRestrictionValue;
+        this.targetAddress = targetAddress;
     }
 
     /**
@@ -76,13 +76,13 @@ final class MosaicAddressRestrictionTransactionBodyBuilder {
      *
      * @param mosaicId Identifier of the mosaic to which the restriction applies.
      * @param restrictionKey Restriction key.
-     * @param targetAddress Address being restricted.
      * @param previousRestrictionValue Previous restriction value.
      * @param newRestrictionValue New restriction value.
+     * @param targetAddress Address being restricted.
      * @return Instance of MosaicAddressRestrictionTransactionBodyBuilder.
      */
-    public static MosaicAddressRestrictionTransactionBodyBuilder create(final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final UnresolvedAddressDto targetAddress, final long previousRestrictionValue, final long newRestrictionValue) {
-        return new MosaicAddressRestrictionTransactionBodyBuilder(mosaicId, restrictionKey, targetAddress, previousRestrictionValue, newRestrictionValue);
+    public static MosaicAddressRestrictionTransactionBodyBuilder create(final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final long previousRestrictionValue, final long newRestrictionValue, final UnresolvedAddressDto targetAddress) {
+        return new MosaicAddressRestrictionTransactionBodyBuilder(mosaicId, restrictionKey, previousRestrictionValue, newRestrictionValue, targetAddress);
     }
 
     /**
@@ -104,15 +104,6 @@ final class MosaicAddressRestrictionTransactionBodyBuilder {
     }
 
     /**
-     * Gets address being restricted.
-     *
-     * @return Address being restricted.
-     */
-    public UnresolvedAddressDto getTargetAddress() {
-        return this.targetAddress;
-    }
-
-    /**
      * Gets previous restriction value.
      *
      * @return Previous restriction value.
@@ -131,6 +122,15 @@ final class MosaicAddressRestrictionTransactionBodyBuilder {
     }
 
     /**
+     * Gets address being restricted.
+     *
+     * @return Address being restricted.
+     */
+    public UnresolvedAddressDto getTargetAddress() {
+        return this.targetAddress;
+    }
+
+    /**
      * Gets the size of the object.
      *
      * @return Size in bytes.
@@ -139,9 +139,9 @@ final class MosaicAddressRestrictionTransactionBodyBuilder {
         int size = 0;
         size += this.mosaicId.getSize();
         size += 8; // restrictionKey
-        size += this.targetAddress.getSize();
         size += 8; // previousRestrictionValue
         size += 8; // newRestrictionValue
+        size += this.targetAddress.getSize();
         return size;
     }
 
@@ -151,7 +151,7 @@ final class MosaicAddressRestrictionTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicAddressRestrictionTransactionBodyBuilder.
      */
-    public static MosaicAddressRestrictionTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static MosaicAddressRestrictionTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new MosaicAddressRestrictionTransactionBodyBuilder(stream);
     }
 
@@ -165,10 +165,10 @@ final class MosaicAddressRestrictionTransactionBodyBuilder {
             final byte[] mosaicIdBytes = this.mosaicId.serialize();
             dataOutputStream.write(mosaicIdBytes, 0, mosaicIdBytes.length);
             dataOutputStream.writeLong(Long.reverseBytes(this.getRestrictionKey()));
-            final byte[] targetAddressBytes = this.targetAddress.serialize();
-            dataOutputStream.write(targetAddressBytes, 0, targetAddressBytes.length);
             dataOutputStream.writeLong(Long.reverseBytes(this.getPreviousRestrictionValue()));
             dataOutputStream.writeLong(Long.reverseBytes(this.getNewRestrictionValue()));
+            final byte[] targetAddressBytes = this.targetAddress.serialize();
+            dataOutputStream.write(targetAddressBytes, 0, targetAddressBytes.length);
         });
     }
 }

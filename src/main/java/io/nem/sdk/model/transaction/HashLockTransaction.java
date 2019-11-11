@@ -15,20 +15,8 @@
  */
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.AmountDto;
-import io.nem.catapult.builders.BlockDurationDto;
-import io.nem.catapult.builders.EmbeddedHashLockTransactionBuilder;
-import io.nem.catapult.builders.Hash256Dto;
-import io.nem.catapult.builders.HashLockTransactionBuilder;
-import io.nem.catapult.builders.KeyDto;
-import io.nem.catapult.builders.SignatureDto;
-import io.nem.catapult.builders.TimestampDto;
-import io.nem.catapult.builders.UnresolvedMosaicBuilder;
-import io.nem.catapult.builders.UnresolvedMosaicIdDto;
 import io.nem.sdk.model.mosaic.Mosaic;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import org.bouncycastle.util.encoders.Hex;
 
 /**
  * Lock funds transaction is used before sending an Aggregate bonded transaction, as a deposit to
@@ -86,60 +74,4 @@ public class HashLockTransaction extends Transaction {
         return signedTransaction;
     }
 
-    /**
-     * Serialized the transaction.
-     *
-     * @return bytes of the transaction.
-     */
-    @Override
-    byte[] generateBytes() {
-        // Add place holders to the signer and signature until actually signed
-        final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-        final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-        HashLockTransactionBuilder txBuilder =
-            HashLockTransactionBuilder.create(
-                new SignatureDto(signatureBuffer),
-                new KeyDto(signerBuffer),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new AmountDto(getMaxFee().longValue()),
-                new TimestampDto(getDeadline().getInstant()),
-                UnresolvedMosaicBuilder.create(
-                    new UnresolvedMosaicIdDto(getMosaic().getId().getId().longValue()),
-                    new AmountDto(getMosaic().getAmount().longValue())),
-                new BlockDurationDto(getDuration().longValue()),
-                new Hash256Dto(getHashBuffer()));
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Gets the embedded tx bytes.
-     *
-     * @return Embedded tx bytes
-     */
-    @Override
-    byte[] generateEmbeddedBytes() {
-        EmbeddedHashLockTransactionBuilder txBuilder =
-            EmbeddedHashLockTransactionBuilder.create(
-                new KeyDto(getRequiredSignerBytes()),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                UnresolvedMosaicBuilder.create(
-                    new UnresolvedMosaicIdDto(getMosaic().getId().getId().longValue()),
-                    new AmountDto(getMosaic().getAmount().longValue())),
-                new BlockDurationDto(getDuration().longValue()),
-                new Hash256Dto(getHashBuffer()));
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Gets hash buffer.
-     *
-     * @return Hash buffer.
-     */
-    private ByteBuffer getHashBuffer() {
-        final byte[] hashBytes = Hex.decode(signedTransaction.getHash());
-        return ByteBuffer.wrap(hashBytes);
-    }
 }

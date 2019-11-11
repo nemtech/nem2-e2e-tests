@@ -20,24 +20,30 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
-/** Enumeration of account restriction modification actions. */
-public enum AccountRestrictionModificationActionDto {
-    /** Remove account restriction value. */
-    DEL((byte) 0),
-    /** Add account restriction value. */
-    ADD((byte) 1);
+/** Enumeration of account restriction flags. */
+public enum AccountRestrictionFlagsDto implements BitMaskable {
+    /** Restriction type is an address. */
+    ADDRESS((short) 1),
+    /** Restriction type is a mosaic identifier. */
+    MOSAIC_ID((short) 2),
+    /** Restriction type is a transaction type. */
+    TRANSACTION_TYPE((short) 4),
+    /** Restriction is interpreted as outgoing. */
+    OUTGOING((short) 16384),
+    /** Restriction is interpreted as blocking operation. */
+    BLOCK((short) 32768);
 
     /** Enum value. */
-    private final byte value;
+    private final short value;
 
     /**
      * Constructor.
      *
      * @param value Enum value.
      */
-     AccountRestrictionModificationActionDto(final byte value) {
+     AccountRestrictionFlagsDto(final short value) {
         this.value = value;
     }
 
@@ -47,13 +53,13 @@ public enum AccountRestrictionModificationActionDto {
      * @param value Raw value of the enum.
      * @return Enum value.
      */
-    public static AccountRestrictionModificationActionDto rawValueOf(final byte value) {
-        for (AccountRestrictionModificationActionDto current : AccountRestrictionModificationActionDto.values()) {
+    public static AccountRestrictionFlagsDto rawValueOf(final short value) {
+        for (AccountRestrictionFlagsDto current : AccountRestrictionFlagsDto.values()) {
             if (value == current.value) {
                 return current;
             }
         }
-        throw new IllegalArgumentException(value + " was not a backing value for AccountRestrictionModificationActionDto.");
+        throw new IllegalArgumentException(value + " was not a backing value for AccountRestrictionFlagsDto.");
     }
 
     /**
@@ -62,18 +68,27 @@ public enum AccountRestrictionModificationActionDto {
      * @return Size in bytes.
      */
     public int getSize() {
-        return 1;
+        return 2;
     }
 
     /**
-     * Creates an instance of AccountRestrictionModificationActionDto from a stream.
+     * Gets the value of the enum.
+     *
+     * @return Value of the enum.
+     */
+    public long getValue() {
+        return this.value;
+    }
+
+    /**
+     * Creates an instance of AccountRestrictionFlagsDto from a stream.
      *
      * @param stream Byte stream to use to serialize the object.
-     * @return Instance of AccountRestrictionModificationActionDto.
+     * @return Instance of AccountRestrictionFlagsDto.
      */
-    public static AccountRestrictionModificationActionDto loadFromBinary(final DataInput stream) {
+    public static AccountRestrictionFlagsDto loadFromBinary(final DataInputStream stream) {
         try {
-            final byte streamValue = stream.readByte();
+            final short streamValue = Short.reverseBytes(stream.readShort());
             return rawValueOf(streamValue);
         } catch(Exception e) {
             throw GeneratorUtils.getExceptionToPropagate(e);
@@ -87,7 +102,7 @@ public enum AccountRestrictionModificationActionDto {
      */
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
-            dataOutputStream.writeByte(this.value);
+            dataOutputStream.writeShort(Short.reverseBytes(this.value));
         });
     }
 }

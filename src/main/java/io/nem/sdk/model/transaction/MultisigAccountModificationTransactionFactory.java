@@ -17,6 +17,7 @@
 
 package io.nem.sdk.model.transaction;
 
+import io.nem.sdk.model.account.PublicAccount;
 import io.nem.sdk.model.blockchain.NetworkType;
 import java.util.List;
 import org.apache.commons.lang3.Validate;
@@ -27,20 +28,24 @@ import org.apache.commons.lang3.Validate;
 public class MultisigAccountModificationTransactionFactory extends
     TransactionFactory<MultisigAccountModificationTransaction> {
 
-    private final int minApprovalDelta;
-    private final int minRemovalDelta;
-    private final List<MultisigCosignatoryModification> modifications;
+    private final byte minApprovalDelta;
+    private final byte minRemovalDelta;
+    private final List<PublicAccount> publicAccountsAdditions;
+    private final List<PublicAccount> publicAccountsDeletions;
 
     private MultisigAccountModificationTransactionFactory(
         NetworkType networkType,
         byte minApprovalDelta,
         byte minRemovalDelta,
-        List<MultisigCosignatoryModification> modifications) {
+        List<PublicAccount> publicAccountsAdditions,
+        List<PublicAccount> publicAccountsDeletions) {
         super(TransactionType.MODIFY_MULTISIG_ACCOUNT, networkType);
-        Validate.notNull(modifications, "Modifications must not be null");
+        Validate.notNull(publicAccountsAdditions, "publicKeyAdditions must not be null");
+        Validate.notNull(publicAccountsAdditions, "publicKeyDeletions must not be null");
         this.minApprovalDelta = minApprovalDelta;
         this.minRemovalDelta = minRemovalDelta;
-        this.modifications = modifications;
+        this.publicAccountsAdditions = publicAccountsAdditions;
+        this.publicAccountsDeletions = publicAccountsDeletions;
     }
 
     /**
@@ -49,16 +54,18 @@ public class MultisigAccountModificationTransactionFactory extends
      * @param networkType Network type.
      * @param minApprovalDelta Minimum approval delta.
      * @param minRemovalDelta Minimum removal delta.
-     * @param modifications List of multisig account modifications.
+     * @param publicAccountsAdditions List of cosigners accounts to add.
+     * @param publicAccountsDeletions List of cosigners accounts to remove.
      * @return Multisig account modification transaction.
      */
     public static MultisigAccountModificationTransactionFactory create(
         NetworkType networkType,
         byte minApprovalDelta,
         byte minRemovalDelta,
-        List<MultisigCosignatoryModification> modifications) {
-        return new MultisigAccountModificationTransactionFactory(networkType, minApprovalDelta, minRemovalDelta,
-            modifications);
+        List<PublicAccount> publicAccountsAdditions,
+        List<PublicAccount> publicAccountsDeletions) {
+        return new MultisigAccountModificationTransactionFactory(networkType, minApprovalDelta, minRemovalDelta, publicAccountsAdditions,
+                publicAccountsDeletions);
     }
 
     /**
@@ -67,7 +74,7 @@ public class MultisigAccountModificationTransactionFactory extends
      *
      * @return byte
      */
-    public int getMinApprovalDelta() {
+    public byte getMinApprovalDelta() {
         return minApprovalDelta;
     }
 
@@ -77,17 +84,26 @@ public class MultisigAccountModificationTransactionFactory extends
      *
      * @return byte
      */
-    public int getMinRemovalDelta() {
+    public byte getMinRemovalDelta() {
         return minRemovalDelta;
     }
 
     /**
-     * The List of cosigner accounts added or removed from the multi-signature account.
+     * The List of cosigner accounts to added from the multi-signature account.
      *
-     * @return {@link List} of { @ link MultisigCosignatoryModification }
+     * @return {@link List} of { @ link PublicAccount }
      */
-    public List<MultisigCosignatoryModification> getModifications() {
-        return modifications;
+    public List<PublicAccount> getPublicAccountsAdditions() {
+        return publicAccountsAdditions;
+    }
+
+    /**
+     * The List of cosigner accounts to removed from the multi-signature account.
+     *
+     * @return {@link List} of { @ link PublicAccount }
+     */
+    public List<PublicAccount> getPublicAccountsDeletions() {
+        return publicAccountsDeletions;
     }
 
     @Override

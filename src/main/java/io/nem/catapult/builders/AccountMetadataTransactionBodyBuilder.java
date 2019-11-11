@@ -20,11 +20,11 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for an account metadata transaction. */
-final class AccountMetadataTransactionBodyBuilder {
+public final class AccountMetadataTransactionBodyBuilder {
     /** Metadata target public key. */
     private final KeyDto targetPublicKey;
     /** Metadata key scoped to source, target and type. */
@@ -39,7 +39,7 @@ final class AccountMetadataTransactionBodyBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected AccountMetadataTransactionBodyBuilder(final DataInput stream) {
+    protected AccountMetadataTransactionBodyBuilder(final DataInputStream stream) {
         try {
             this.targetPublicKey = KeyDto.loadFromBinary(stream);
             this.scopedMetadataKey = Long.reverseBytes(stream.readLong());
@@ -139,7 +139,7 @@ final class AccountMetadataTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AccountMetadataTransactionBodyBuilder.
      */
-    public static AccountMetadataTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static AccountMetadataTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new AccountMetadataTransactionBodyBuilder(stream);
     }
 

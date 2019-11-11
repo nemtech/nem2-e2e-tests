@@ -20,18 +20,24 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a transaction. */
 public class TransactionBuilder {
     /** Entity size. */
     private int size;
+    /** Reserved padding to align Signature on 8-byte boundary. */
+    private final int verifiableEntityHeader_Reserved1;
     /** Entity signature. */
     private final SignatureDto signature;
     /** Entity signer's public key. */
-    private final KeyDto signer;
+    private final KeyDto signerPublicKey;
+    /** Reserved padding to align end of EntityBody on 8-byte boundary. */
+    private final int entityBody_Reserved1;
     /** Entity version. */
-    private final short version;
+    private final byte version;
+    /** Entity network. */
+    private final NetworkTypeDto network;
     /** Entity type. */
     private final EntityTypeDto type;
     /** Transaction fee. */
@@ -44,12 +50,15 @@ public class TransactionBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected TransactionBuilder(final DataInput stream) {
+    protected TransactionBuilder(final DataInputStream stream) {
         try {
             this.size = Integer.reverseBytes(stream.readInt());
+            this.verifiableEntityHeader_Reserved1 = Integer.reverseBytes(stream.readInt());
             this.signature = SignatureDto.loadFromBinary(stream);
-            this.signer = KeyDto.loadFromBinary(stream);
-            this.version = Short.reverseBytes(stream.readShort());
+            this.signerPublicKey = KeyDto.loadFromBinary(stream);
+            this.entityBody_Reserved1 = Integer.reverseBytes(stream.readInt());
+            this.version = stream.readByte();
+            this.network = NetworkTypeDto.loadFromBinary(stream);
             this.type = EntityTypeDto.loadFromBinary(stream);
             this.fee = AmountDto.loadFromBinary(stream);
             this.deadline = TimestampDto.loadFromBinary(stream);
@@ -62,21 +71,26 @@ public class TransactionBuilder {
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
      */
-    protected TransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline) {
+    protected TransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline) {
         GeneratorUtils.notNull(signature, "signature is null");
-        GeneratorUtils.notNull(signer, "signer is null");
+        GeneratorUtils.notNull(signerPublicKey, "signerPublicKey is null");
+        GeneratorUtils.notNull(network, "network is null");
         GeneratorUtils.notNull(type, "type is null");
         GeneratorUtils.notNull(fee, "fee is null");
         GeneratorUtils.notNull(deadline, "deadline is null");
+        this.verifiableEntityHeader_Reserved1 = 0;
         this.signature = signature;
-        this.signer = signer;
+        this.signerPublicKey = signerPublicKey;
+        this.entityBody_Reserved1 = 0;
         this.version = version;
+        this.network = network;
         this.type = type;
         this.fee = fee;
         this.deadline = deadline;
@@ -86,15 +100,16 @@ public class TransactionBuilder {
      * Creates an instance of TransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
      * @return Instance of TransactionBuilder.
      */
-    public static TransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline) {
-        return new TransactionBuilder(signature, signer, version, type, fee, deadline);
+    public static TransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline) {
+        return new TransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline);
     }
 
     /**
@@ -104,6 +119,15 @@ public class TransactionBuilder {
      */
     protected int getStreamSize() {
         return this.size;
+    }
+
+    /**
+     * Gets reserved padding to align Signature on 8-byte boundary.
+     *
+     * @return Reserved padding to align Signature on 8-byte boundary.
+     */
+    private int getVerifiableEntityHeader_Reserved1() {
+        return this.verifiableEntityHeader_Reserved1;
     }
 
     /**
@@ -120,8 +144,17 @@ public class TransactionBuilder {
      *
      * @return Entity signer's public key.
      */
-    public KeyDto getSigner() {
-        return this.signer;
+    public KeyDto getSignerPublicKey() {
+        return this.signerPublicKey;
+    }
+
+    /**
+     * Gets reserved padding to align end of EntityBody on 8-byte boundary.
+     *
+     * @return Reserved padding to align end of EntityBody on 8-byte boundary.
+     */
+    private int getEntityBody_Reserved1() {
+        return this.entityBody_Reserved1;
     }
 
     /**
@@ -129,8 +162,17 @@ public class TransactionBuilder {
      *
      * @return Entity version.
      */
-    public short getVersion() {
+    public byte getVersion() {
         return this.version;
+    }
+
+    /**
+     * Gets entity network.
+     *
+     * @return Entity network.
+     */
+    public NetworkTypeDto getNetwork() {
+        return this.network;
     }
 
     /**
@@ -143,7 +185,7 @@ public class TransactionBuilder {
     }
 
     /**
-     * Gets transaction fee..
+     * Gets transaction fee.
      *
      * @return Transaction fee.
      */
@@ -168,9 +210,12 @@ public class TransactionBuilder {
     public int getSize() {
         int size = 0;
         size += 4; // size
+        size += 4; // verifiableEntityHeader_Reserved1
         size += this.signature.getSize();
-        size += this.signer.getSize();
-        size += 2; // version
+        size += this.signerPublicKey.getSize();
+        size += 4; // entityBody_Reserved1
+        size += 1; // version
+        size += this.network.getSize();
         size += this.type.getSize();
         size += this.fee.getSize();
         size += this.deadline.getSize();
@@ -183,7 +228,7 @@ public class TransactionBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of TransactionBuilder.
      */
-    public static TransactionBuilder loadFromBinary(final DataInput stream) {
+    public static TransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new TransactionBuilder(stream);
     }
 
@@ -195,11 +240,15 @@ public class TransactionBuilder {
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
             dataOutputStream.writeInt(Integer.reverseBytes(this.getSize()));
+            dataOutputStream.writeInt(Integer.reverseBytes(this.getVerifiableEntityHeader_Reserved1()));
             final byte[] signatureBytes = this.signature.serialize();
             dataOutputStream.write(signatureBytes, 0, signatureBytes.length);
-            final byte[] signerBytes = this.signer.serialize();
-            dataOutputStream.write(signerBytes, 0, signerBytes.length);
-            dataOutputStream.writeShort(Short.reverseBytes(this.getVersion()));
+            final byte[] signerPublicKeyBytes = this.signerPublicKey.serialize();
+            dataOutputStream.write(signerPublicKeyBytes, 0, signerPublicKeyBytes.length);
+            dataOutputStream.writeInt(Integer.reverseBytes(this.getEntityBody_Reserved1()));
+            dataOutputStream.writeByte(this.getVersion());
+            final byte[] networkBytes = this.network.serialize();
+            dataOutputStream.write(networkBytes, 0, networkBytes.length);
             final byte[] typeBytes = this.type.serialize();
             dataOutputStream.write(typeBytes, 0, typeBytes.length);
             final byte[] feeBytes = this.fee.serialize();

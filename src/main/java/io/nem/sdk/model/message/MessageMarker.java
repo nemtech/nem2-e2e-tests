@@ -14,36 +14,21 @@
  * limitations under the License.
  */
 
-package io.nem.sdk.model.transaction;
+package io.nem.sdk.model.message;
 
 /**
- * An abstract message class that serves as the base class of all message types.
+ * Special message prefix for catapult.
  */
-public abstract class Message {
-
-    private final int type;
-    private final String payload;
-
-    public Message(int type, String payload) {
-        this.type = type;
-        this.payload = payload;
-    }
+public class MessageMarker {
 
     /**
-     * Returns message type.
-     *
-     * @return int
+     * private constructor.
      */
-    public int getType() {
-        return type;
-    }
+    private MessageMarker(){
 
-    /**
-     * Returns message payload.
-     *
-     * @return String
-     */
-    public String getPayload() {
-        return payload;
     }
+    /**
+     * 8-byte marker: FE CC 71 C7 64 BF E5 98 for PersistentDelegationRequestTransaction message
+     */
+    public static final String PERSISTENT_DELEGATION_UNLOCK = "FECC71C764BFE598";
 }

@@ -16,38 +16,54 @@
 
 package io.nem.sdk.model.receipt;
 
-import io.nem.sdk.model.account.Address;
-import io.nem.sdk.model.mosaic.MosaicId;
+import io.nem.core.crypto.Hashes;
+import io.nem.core.utils.ArrayUtils;
+import io.nem.core.utils.ByteUtils;
+import io.nem.sdk.infrastructure.SerializationUtils;
+import io.nem.sdk.model.account.UnresolvedAddress;
+import io.nem.sdk.model.blockchain.NetworkType;
+import io.nem.sdk.model.mosaic.UnresolvedMosaicId;
 import java.math.BigInteger;
 import java.util.List;
+import org.bouncycastle.util.encoders.Hex;
 
-public class ResolutionStatement<T> {
+/**
+ * @param <U> the unresolved type {@link UnresolvedAddress} or  {@link UnresolvedMosaicId}
+ * @param <R> the resolved type {@link io.nem.sdk.model.account.Address} or {@link
+ * io.nem.sdk.model.mosaic.MosaicId}
+ */
+public abstract class ResolutionStatement<U, R> {
 
+    private final ResolutionType resolutionType;
     private final BigInteger height;
-    private final T unresolved;
-    private final List<ResolutionEntry> resolutionEntries;
+    private final U unresolved;
+    private final List<ResolutionEntry<R>> resolutionEntries;
 
     /**
      * Constructor
      *
      * @param height Height
-     * @param unresolved An unresolved address or unresolved mosaicId (Address | MosaicId).
-     * @param resolutionEntries Array of resolution entries.
+     * @param unresolved An unresolved address or unresolved mosaicId ({@link UnresolvedAddress} |
+     * {@link UnresolvedMosaicId}).
+     * @param resolutionEntries Array of resolution entries ({@link io.nem.sdk.model.account.Address},
+     * or {@link io.nem.sdk.model.mosaic.MosaicId}).
      */
     public ResolutionStatement(
-        BigInteger height, T unresolved, List<ResolutionEntry> resolutionEntries) {
+        ResolutionType resolutionType, BigInteger height, U unresolved,
+        List<ResolutionEntry<R>> resolutionEntries) {
         this.height = height;
         this.unresolved = unresolved;
         this.resolutionEntries = resolutionEntries;
+        this.resolutionType = resolutionType;
         this.validateType();
     }
 
     /**
-     * Returns An unresolved address or unresolved mosaicId (Address | MosaicId).
+     * Returns An unresolved address or unresolved mosaicId (UnresolvedAddress | UnresolvedMosaic).
      *
-     * @return An unresolved address or unresolved mosaicId (Address | MosaicId).
+     * @return An unresolved address or unresolved mosaicId (UnresolvedAddress | UnresolvedMosaic).
      */
-    public T getUnresolved() {
+    public U getUnresolved() {
         return this.unresolved;
     }
 
@@ -65,8 +81,17 @@ public class ResolutionStatement<T> {
      *
      * @return Array of resolution entries.
      */
-    public List<ResolutionEntry> getResolutionEntries() {
+    public List<ResolutionEntry<R>> getResolutionEntries() {
         return this.resolutionEntries;
+    }
+
+    /**
+     * Returns resolution type
+     *
+     * @return resolution type
+     */
+    public ResolutionType getResolutionType() {
+        return this.resolutionType;
     }
 
     /**
@@ -75,27 +100,87 @@ public class ResolutionStatement<T> {
      * @return void
      */
     private void validateType() {
-        Class unresolvedClass = this.unresolved.getClass();
-        if (!Address.class.isAssignableFrom(unresolvedClass)
-            && !MosaicId.class.isAssignableFrom(unresolvedClass)) {
-            throw new IllegalArgumentException(
-                "Unresolved type: ["
-                    + unresolvedClass.getName()
-                    + "] is not valid for this ResolutionStatement");
-        }
+        validateType(ResolutionType.ADDRESS, UnresolvedAddress.class);
+        validateType(ResolutionType.MOSAIC, UnresolvedMosaicId.class);
         this.resolutionEntries.forEach(
             entry -> {
-                if ((Address.class.isAssignableFrom(unresolvedClass)
-                    && entry.getType() != ReceiptType.ADDRESS_ALIAS_RESOLUTION)
-                    || (MosaicId.class.isAssignableFrom(unresolvedClass)
-                    && entry.getType() != ReceiptType.MOSAIC_ALIAS_RESOLUTION)) {
-                    throw new IllegalArgumentException(
-                        "Unresolved type: ["
-                            + unresolvedClass.getName()
-                            + "] does not match ResolutionEntry's type: ["
-                            + entry.getType().name()
-                            + "]for this ResolutionStatement");
-                }
+                validateType(ResolutionType.ADDRESS, ReceiptType.ADDRESS_ALIAS_RESOLUTION,
+                    entry.getType());
+                validateType(ResolutionType.MOSAIC, ReceiptType.MOSAIC_ALIAS_RESOLUTION,
+                    entry.getType());
             });
     }
+
+
+    /**
+     * Validate resolved type ({@link UnresolvedMosaicId} | {@link UnresolvedAddress})
+     */
+    private void validateType(ResolutionType givenResolutionType, Class<?> expectedType) {
+        if (!expectedType.isAssignableFrom(this.unresolved.getClass())
+            && getResolutionType() == givenResolutionType) {
+            throw new IllegalArgumentException(
+                "Unresolved Type: ["
+                    + expectedType.getName()
+                    + "] is not valid for this ResolutionEntry type " + getResolutionType());
+        }
+    }
+
+
+    private void validateType(ResolutionType givenResolutionType, ReceiptType expectedReceiptType,
+        ReceiptType currentRecipientType
+    ) {
+        if (getResolutionType() == givenResolutionType
+            && currentRecipientType != expectedReceiptType) {
+            throw new IllegalArgumentException(
+                "Resolution Type: ["
+                    + getResolutionType()
+                    + "] does not match ResolutionEntry's type: ["
+                    + currentRecipientType
+                    + "] for this ResolutionStatement");
+        }
+    }
+
+    /**
+     * Serialize resolution statement and generate hash
+     *
+     * @param networkType networkType
+     * @return resolution statement hash
+     */
+    public String generateHash(NetworkType networkType) {
+
+        final byte[] versionByte = ByteUtils.shortToBytes(
+            Short.reverseBytes((short) ReceiptVersion.RESOLUTION_STATEMENT.getValue()));
+        final byte[] typeByte = getResolutionType() == ResolutionType.ADDRESS ?
+            ByteUtils.shortToBytes(
+                Short.reverseBytes((short) ReceiptType.ADDRESS_ALIAS_RESOLUTION.getValue())) :
+            ByteUtils.shortToBytes(
+                Short.reverseBytes((short) ReceiptType.MOSAIC_ALIAS_RESOLUTION.getValue()));
+        final byte[] unresolvedBytes = serializeUnresolved(networkType);
+
+        byte[] results = ArrayUtils.concat(versionByte, typeByte, unresolvedBytes);
+
+        for (final ResolutionEntry entry : resolutionEntries) {
+            results = ArrayUtils.concat(results, entry.serialize());
+        }
+
+        byte[] hash = Hashes.sha3_256(results);
+        return Hex.toHexString(hash).toUpperCase();
+    }
+
+    /**
+     * Generate unresolved bytes
+     *
+     * @param networkType the network type.
+     * @return unresolved bytes
+     */
+    private byte[] serializeUnresolved(NetworkType networkType) {
+        if (getResolutionType() == ResolutionType.ADDRESS) {
+            return SerializationUtils
+                .fromUnresolvedAddressToByteBuffer((UnresolvedAddress) getUnresolved(), networkType)
+                .array();
+        }
+        return ByteUtils
+            .reverseCopy(ByteUtils.bigIntToBytes(((UnresolvedMosaicId) getUnresolved()).getId()));
+    }
+
 }

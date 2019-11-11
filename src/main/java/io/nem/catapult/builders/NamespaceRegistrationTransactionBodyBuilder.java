@@ -20,19 +20,19 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for a namespace registration transaction. */
-final class NamespaceRegistrationTransactionBodyBuilder {
-    /** Namespace registration type. */
-    private final NamespaceRegistrationTypeDto registrationType;
+public final class NamespaceRegistrationTransactionBodyBuilder {
     /** Namespace duration. */
     private BlockDurationDto duration;
     /** Parent namespace identifier. */
     private NamespaceIdDto parentId;
     /** Namespace identifier. */
     private final NamespaceIdDto id;
+    /** Namespace registration type. */
+    private final NamespaceRegistrationTypeDto registrationType;
     /** Namespace name. */
     private final ByteBuffer name;
 
@@ -41,18 +41,19 @@ final class NamespaceRegistrationTransactionBodyBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected NamespaceRegistrationTransactionBodyBuilder(final DataInput stream) {
+    protected NamespaceRegistrationTransactionBodyBuilder(final DataInputStream stream) {
         try {
+            final long registrationTypeCondition = Long.reverseBytes(stream.readLong());
+            this.id = NamespaceIdDto.loadFromBinary(stream);
             this.registrationType = NamespaceRegistrationTypeDto.loadFromBinary(stream);
             if (this.registrationType == NamespaceRegistrationTypeDto.ROOT) {
-                this.duration = BlockDurationDto.loadFromBinary(stream);
+                this.duration = new BlockDurationDto(registrationTypeCondition);
                 this.parentId = null;
             }
             if (this.registrationType == NamespaceRegistrationTypeDto.CHILD) {
-                this.parentId = NamespaceIdDto.loadFromBinary(stream);
+                this.parentId = new NamespaceIdDto(registrationTypeCondition);
                 this.duration = null;
             }
-            this.id = NamespaceIdDto.loadFromBinary(stream);
             final byte nameSize = stream.readByte();
             this.name = ByteBuffer.allocate(nameSize);
             stream.readFully(this.name.array());
@@ -122,15 +123,6 @@ final class NamespaceRegistrationTransactionBodyBuilder {
     }
 
     /**
-     * Gets namespace registration type.
-     *
-     * @return Namespace registration type.
-     */
-    public NamespaceRegistrationTypeDto getRegistrationType() {
-        return this.registrationType;
-    }
-
-    /**
      * Gets namespace duration.
      *
      * @return Namespace duration.
@@ -164,6 +156,15 @@ final class NamespaceRegistrationTransactionBodyBuilder {
     }
 
     /**
+     * Gets namespace registration type.
+     *
+     * @return Namespace registration type.
+     */
+    public NamespaceRegistrationTypeDto getRegistrationType() {
+        return this.registrationType;
+    }
+
+    /**
      * Gets namespace name.
      *
      * @return Namespace name.
@@ -179,7 +180,6 @@ final class NamespaceRegistrationTransactionBodyBuilder {
      */
     public int getSize() {
         int size = 0;
-        size += this.registrationType.getSize();
         if (this.registrationType == NamespaceRegistrationTypeDto.ROOT) {
             size += this.duration.getSize();
         }
@@ -187,6 +187,7 @@ final class NamespaceRegistrationTransactionBodyBuilder {
             size += this.parentId.getSize();
         }
         size += this.id.getSize();
+        size += this.registrationType.getSize();
         size += 1; // nameSize
         size += this.name.array().length;
         return size;
@@ -198,7 +199,7 @@ final class NamespaceRegistrationTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of NamespaceRegistrationTransactionBodyBuilder.
      */
-    public static NamespaceRegistrationTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static NamespaceRegistrationTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new NamespaceRegistrationTransactionBodyBuilder(stream);
     }
 
@@ -209,8 +210,6 @@ final class NamespaceRegistrationTransactionBodyBuilder {
      */
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
-            final byte[] registrationTypeBytes = this.registrationType.serialize();
-            dataOutputStream.write(registrationTypeBytes, 0, registrationTypeBytes.length);
             if (this.registrationType == NamespaceRegistrationTypeDto.ROOT) {
                 final byte[] durationBytes = this.duration.serialize();
                 dataOutputStream.write(durationBytes, 0, durationBytes.length);
@@ -221,6 +220,8 @@ final class NamespaceRegistrationTransactionBodyBuilder {
             }
             final byte[] idBytes = this.id.serialize();
             dataOutputStream.write(idBytes, 0, idBytes.length);
+            final byte[] registrationTypeBytes = this.registrationType.serialize();
+            dataOutputStream.write(registrationTypeBytes, 0, registrationTypeBytes.length);
             dataOutputStream.writeByte((byte) this.name.array().length);
             dataOutputStream.write(this.name.array(), 0, this.name.array().length);
         });

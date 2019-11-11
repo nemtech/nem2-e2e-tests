@@ -20,10 +20,9 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
-import java.util.ArrayList;
-import java.nio.ByteBuffer;
+import java.io.DataInputStream;
 import java.util.List;
+import java.nio.ByteBuffer;
 
 /** Binary layout for an embedded transfer transaction. */
 public final class EmbeddedTransferTransactionBuilder extends EmbeddedTransactionBuilder {
@@ -35,7 +34,7 @@ public final class EmbeddedTransferTransactionBuilder extends EmbeddedTransactio
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedTransferTransactionBuilder(final DataInput stream) {
+    protected EmbeddedTransferTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.transferTransactionBody = TransferTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -43,49 +42,42 @@ public final class EmbeddedTransferTransactionBuilder extends EmbeddedTransactio
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param recipient Transaction recipient.
-     * @param message Transaction message.
+     * @param recipientAddress Recipient address.
      * @param mosaics Attached mosaics.
+     * @param message Attached message.
      */
-    protected EmbeddedTransferTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final UnresolvedAddressDto recipient, final ByteBuffer message, final ArrayList<UnresolvedMosaicBuilder> mosaics) {
-        super(signer, version, type);
-        this.transferTransactionBody = TransferTransactionBodyBuilder.create(recipient, message, mosaics);
+    protected EmbeddedTransferTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final UnresolvedAddressDto recipientAddress, final List<UnresolvedMosaicBuilder> mosaics, final ByteBuffer message) {
+        super(signerPublicKey, version, network, type);
+        this.transferTransactionBody = TransferTransactionBodyBuilder.create(recipientAddress, mosaics, message);
     }
 
     /**
      * Creates an instance of EmbeddedTransferTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param recipient Transaction recipient.
-     * @param message Transaction message.
+     * @param recipientAddress Recipient address.
      * @param mosaics Attached mosaics.
+     * @param message Attached message.
      * @return Instance of EmbeddedTransferTransactionBuilder.
      */
-    public static EmbeddedTransferTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final UnresolvedAddressDto recipient, final ByteBuffer message, final ArrayList<UnresolvedMosaicBuilder> mosaics) {
-        return new EmbeddedTransferTransactionBuilder(signer, version, type, recipient, message, mosaics);
+    public static EmbeddedTransferTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final UnresolvedAddressDto recipientAddress, final List<UnresolvedMosaicBuilder> mosaics, final ByteBuffer message) {
+        return new EmbeddedTransferTransactionBuilder(signerPublicKey, version, network, type, recipientAddress, mosaics, message);
     }
 
     /**
-     * Gets transaction recipient.
+     * Gets recipient address.
      *
-     * @return Transaction recipient.
+     * @return Recipient address.
      */
-    public UnresolvedAddressDto getRecipient() {
-        return this.transferTransactionBody.getRecipient();
-    }
-
-    /**
-     * Gets transaction message.
-     *
-     * @return Transaction message.
-     */
-    public ByteBuffer getMessage() {
-        return this.transferTransactionBody.getMessage();
+    public UnresolvedAddressDto getRecipientAddress() {
+        return this.transferTransactionBody.getRecipientAddress();
     }
 
     /**
@@ -95,6 +87,15 @@ public final class EmbeddedTransferTransactionBuilder extends EmbeddedTransactio
      */
     public List<UnresolvedMosaicBuilder> getMosaics() {
         return this.transferTransactionBody.getMosaics();
+    }
+
+    /**
+     * Gets attached message.
+     *
+     * @return Attached message.
+     */
+    public ByteBuffer getMessage() {
+        return this.transferTransactionBody.getMessage();
     }
 
     /**
@@ -115,7 +116,7 @@ public final class EmbeddedTransferTransactionBuilder extends EmbeddedTransactio
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedTransferTransactionBuilder.
      */
-    public static EmbeddedTransferTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedTransferTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedTransferTransactionBuilder(stream);
     }
 

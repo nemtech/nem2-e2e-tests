@@ -20,8 +20,8 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
-import java.util.ArrayList;
+import java.io.DataInputStream;
+import java.util.List;
 
 /** Binary layout for a non-embedded multisig account modification transaction. */
 public final class MultisigAccountModificationTransactionBuilder extends TransactionBuilder {
@@ -33,7 +33,7 @@ public final class MultisigAccountModificationTransactionBuilder extends Transac
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected MultisigAccountModificationTransactionBuilder(final DataInput stream) {
+    protected MultisigAccountModificationTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.multisigAccountModificationTransactionBody = MultisigAccountModificationTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -42,36 +42,40 @@ public final class MultisigAccountModificationTransactionBuilder extends Transac
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
      * @param minRemovalDelta Relative change of the minimal number of cosignatories required when removing an account.
      * @param minApprovalDelta Relative change of the minimal number of cosignatories required when approving a transaction.
-     * @param modifications Attached cosignatory modifications.
+     * @param publicKeyAdditions Cosignatory public key additions.
+     * @param publicKeyDeletions Cosignatory public key deletions.
      */
-    protected MultisigAccountModificationTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final byte minRemovalDelta, final byte minApprovalDelta, final ArrayList<CosignatoryModificationBuilder> modifications) {
-        super(signature, signer, version, type, fee, deadline);
-        this.multisigAccountModificationTransactionBody = MultisigAccountModificationTransactionBodyBuilder.create(minRemovalDelta, minApprovalDelta, modifications);
+    protected MultisigAccountModificationTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final byte minRemovalDelta, final byte minApprovalDelta, final List<KeyDto> publicKeyAdditions, final List<KeyDto> publicKeyDeletions) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
+        this.multisigAccountModificationTransactionBody = MultisigAccountModificationTransactionBodyBuilder.create(minRemovalDelta, minApprovalDelta, publicKeyAdditions, publicKeyDeletions);
     }
 
     /**
      * Creates an instance of MultisigAccountModificationTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
      * @param minRemovalDelta Relative change of the minimal number of cosignatories required when removing an account.
      * @param minApprovalDelta Relative change of the minimal number of cosignatories required when approving a transaction.
-     * @param modifications Attached cosignatory modifications.
+     * @param publicKeyAdditions Cosignatory public key additions.
+     * @param publicKeyDeletions Cosignatory public key deletions.
      * @return Instance of MultisigAccountModificationTransactionBuilder.
      */
-    public static MultisigAccountModificationTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final byte minRemovalDelta, final byte minApprovalDelta, final ArrayList<CosignatoryModificationBuilder> modifications) {
-        return new MultisigAccountModificationTransactionBuilder(signature, signer, version, type, fee, deadline, minRemovalDelta, minApprovalDelta, modifications);
+    public static MultisigAccountModificationTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final byte minRemovalDelta, final byte minApprovalDelta, final List<KeyDto> publicKeyAdditions, final List<KeyDto> publicKeyDeletions) {
+        return new MultisigAccountModificationTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, minRemovalDelta, minApprovalDelta, publicKeyAdditions, publicKeyDeletions);
     }
 
     /**
@@ -93,12 +97,21 @@ public final class MultisigAccountModificationTransactionBuilder extends Transac
     }
 
     /**
-     * Gets attached cosignatory modifications.
+     * Gets cosignatory public key additions.
      *
-     * @return Attached cosignatory modifications.
+     * @return Cosignatory public key additions.
      */
-    public ArrayList<CosignatoryModificationBuilder> getModifications() {
-        return this.multisigAccountModificationTransactionBody.getModifications();
+    public List<KeyDto> getPublicKeyAdditions() {
+        return this.multisigAccountModificationTransactionBody.getPublicKeyAdditions();
+    }
+
+    /**
+     * Gets cosignatory public key deletions.
+     *
+     * @return Cosignatory public key deletions.
+     */
+    public List<KeyDto> getPublicKeyDeletions() {
+        return this.multisigAccountModificationTransactionBody.getPublicKeyDeletions();
     }
 
     /**
@@ -119,7 +132,7 @@ public final class MultisigAccountModificationTransactionBuilder extends Transac
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MultisigAccountModificationTransactionBuilder.
      */
-    public static MultisigAccountModificationTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static MultisigAccountModificationTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new MultisigAccountModificationTransactionBuilder(stream);
     }
 

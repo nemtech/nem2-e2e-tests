@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for an embedded mosaic global restriction transaction. */
 public final class EmbeddedMosaicGlobalRestrictionTransactionBuilder extends EmbeddedTransactionBuilder {
@@ -32,7 +32,7 @@ public final class EmbeddedMosaicGlobalRestrictionTransactionBuilder extends Emb
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedMosaicGlobalRestrictionTransactionBuilder(final DataInput stream) {
+    protected EmbeddedMosaicGlobalRestrictionTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.mosaicGlobalRestrictionTransactionBody = MosaicGlobalRestrictionTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -40,39 +40,41 @@ public final class EmbeddedMosaicGlobalRestrictionTransactionBuilder extends Emb
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param mosaicId Identifier of the mosaic being restricted.
      * @param referenceMosaicId Identifier of the mosaic providing the restriction key.
      * @param restrictionKey Restriction key relative to the reference mosaic identifier.
      * @param previousRestrictionValue Previous restriction value.
-     * @param previousRestrictionType Previous restriction type.
      * @param newRestrictionValue New restriction value.
+     * @param previousRestrictionType Previous restriction type.
      * @param newRestrictionType New restriction type.
      */
-    protected EmbeddedMosaicGlobalRestrictionTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final UnresolvedMosaicIdDto referenceMosaicId, final long restrictionKey, final long previousRestrictionValue, final MosaicRestrictionTypeDto previousRestrictionType, final long newRestrictionValue, final MosaicRestrictionTypeDto newRestrictionType) {
-        super(signer, version, type);
-        this.mosaicGlobalRestrictionTransactionBody = MosaicGlobalRestrictionTransactionBodyBuilder.create(mosaicId, referenceMosaicId, restrictionKey, previousRestrictionValue, previousRestrictionType, newRestrictionValue, newRestrictionType);
+    protected EmbeddedMosaicGlobalRestrictionTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final UnresolvedMosaicIdDto referenceMosaicId, final long restrictionKey, final long previousRestrictionValue, final long newRestrictionValue, final MosaicRestrictionTypeDto previousRestrictionType, final MosaicRestrictionTypeDto newRestrictionType) {
+        super(signerPublicKey, version, network, type);
+        this.mosaicGlobalRestrictionTransactionBody = MosaicGlobalRestrictionTransactionBodyBuilder.create(mosaicId, referenceMosaicId, restrictionKey, previousRestrictionValue, newRestrictionValue, previousRestrictionType, newRestrictionType);
     }
 
     /**
      * Creates an instance of EmbeddedMosaicGlobalRestrictionTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param mosaicId Identifier of the mosaic being restricted.
      * @param referenceMosaicId Identifier of the mosaic providing the restriction key.
      * @param restrictionKey Restriction key relative to the reference mosaic identifier.
      * @param previousRestrictionValue Previous restriction value.
-     * @param previousRestrictionType Previous restriction type.
      * @param newRestrictionValue New restriction value.
+     * @param previousRestrictionType Previous restriction type.
      * @param newRestrictionType New restriction type.
      * @return Instance of EmbeddedMosaicGlobalRestrictionTransactionBuilder.
      */
-    public static EmbeddedMosaicGlobalRestrictionTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final UnresolvedMosaicIdDto referenceMosaicId, final long restrictionKey, final long previousRestrictionValue, final MosaicRestrictionTypeDto previousRestrictionType, final long newRestrictionValue, final MosaicRestrictionTypeDto newRestrictionType) {
-        return new EmbeddedMosaicGlobalRestrictionTransactionBuilder(signer, version, type, mosaicId, referenceMosaicId, restrictionKey, previousRestrictionValue, previousRestrictionType, newRestrictionValue, newRestrictionType);
+    public static EmbeddedMosaicGlobalRestrictionTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final UnresolvedMosaicIdDto referenceMosaicId, final long restrictionKey, final long previousRestrictionValue, final long newRestrictionValue, final MosaicRestrictionTypeDto previousRestrictionType, final MosaicRestrictionTypeDto newRestrictionType) {
+        return new EmbeddedMosaicGlobalRestrictionTransactionBuilder(signerPublicKey, version, network, type, mosaicId, referenceMosaicId, restrictionKey, previousRestrictionValue, newRestrictionValue, previousRestrictionType, newRestrictionType);
     }
 
     /**
@@ -112,21 +114,21 @@ public final class EmbeddedMosaicGlobalRestrictionTransactionBuilder extends Emb
     }
 
     /**
-     * Gets previous restriction type.
-     *
-     * @return Previous restriction type.
-     */
-    public MosaicRestrictionTypeDto getPreviousRestrictionType() {
-        return this.mosaicGlobalRestrictionTransactionBody.getPreviousRestrictionType();
-    }
-
-    /**
      * Gets new restriction value.
      *
      * @return New restriction value.
      */
     public long getNewRestrictionValue() {
         return this.mosaicGlobalRestrictionTransactionBody.getNewRestrictionValue();
+    }
+
+    /**
+     * Gets previous restriction type.
+     *
+     * @return Previous restriction type.
+     */
+    public MosaicRestrictionTypeDto getPreviousRestrictionType() {
+        return this.mosaicGlobalRestrictionTransactionBody.getPreviousRestrictionType();
     }
 
     /**
@@ -156,7 +158,7 @@ public final class EmbeddedMosaicGlobalRestrictionTransactionBuilder extends Emb
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedMosaicGlobalRestrictionTransactionBuilder.
      */
-    public static EmbeddedMosaicGlobalRestrictionTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedMosaicGlobalRestrictionTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedMosaicGlobalRestrictionTransactionBuilder(stream);
     }
 

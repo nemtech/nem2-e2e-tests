@@ -20,68 +20,77 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a secret lock transaction. */
-final class SecretLockTransactionBodyBuilder {
+public final class SecretLockTransactionBodyBuilder {
+    /** Secret. */
+    private final Hash256Dto secret;
     /** Locked mosaic. */
     private final UnresolvedMosaicBuilder mosaic;
     /** Number of blocks for which a lock should be valid. */
     private final BlockDurationDto duration;
     /** Hash algorithm. */
     private final LockHashAlgorithmDto hashAlgorithm;
-    /** Secret. */
-    private final Hash256Dto secret;
-    /** Locked mosaic recipient. */
-    private final UnresolvedAddressDto recipient;
+    /** Locked mosaic recipient address. */
+    private final UnresolvedAddressDto recipientAddress;
 
     /**
      * Constructor - Creates an object from stream.
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected SecretLockTransactionBodyBuilder(final DataInput stream) {
+    protected SecretLockTransactionBodyBuilder(final DataInputStream stream) {
+        this.secret = Hash256Dto.loadFromBinary(stream);
         this.mosaic = UnresolvedMosaicBuilder.loadFromBinary(stream);
         this.duration = BlockDurationDto.loadFromBinary(stream);
         this.hashAlgorithm = LockHashAlgorithmDto.loadFromBinary(stream);
-        this.secret = Hash256Dto.loadFromBinary(stream);
-        this.recipient = UnresolvedAddressDto.loadFromBinary(stream);
+        this.recipientAddress = UnresolvedAddressDto.loadFromBinary(stream);
     }
 
     /**
      * Constructor.
      *
+     * @param secret Secret.
      * @param mosaic Locked mosaic.
      * @param duration Number of blocks for which a lock should be valid.
      * @param hashAlgorithm Hash algorithm.
-     * @param secret Secret.
-     * @param recipient Locked mosaic recipient.
+     * @param recipientAddress Locked mosaic recipient address.
      */
-    protected SecretLockTransactionBodyBuilder(final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final LockHashAlgorithmDto hashAlgorithm, final Hash256Dto secret, final UnresolvedAddressDto recipient) {
+    protected SecretLockTransactionBodyBuilder(final Hash256Dto secret, final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final LockHashAlgorithmDto hashAlgorithm, final UnresolvedAddressDto recipientAddress) {
+        GeneratorUtils.notNull(secret, "secret is null");
         GeneratorUtils.notNull(mosaic, "mosaic is null");
         GeneratorUtils.notNull(duration, "duration is null");
         GeneratorUtils.notNull(hashAlgorithm, "hashAlgorithm is null");
-        GeneratorUtils.notNull(secret, "secret is null");
-        GeneratorUtils.notNull(recipient, "recipient is null");
+        GeneratorUtils.notNull(recipientAddress, "recipientAddress is null");
+        this.secret = secret;
         this.mosaic = mosaic;
         this.duration = duration;
         this.hashAlgorithm = hashAlgorithm;
-        this.secret = secret;
-        this.recipient = recipient;
+        this.recipientAddress = recipientAddress;
     }
 
     /**
      * Creates an instance of SecretLockTransactionBodyBuilder.
      *
+     * @param secret Secret.
      * @param mosaic Locked mosaic.
      * @param duration Number of blocks for which a lock should be valid.
      * @param hashAlgorithm Hash algorithm.
-     * @param secret Secret.
-     * @param recipient Locked mosaic recipient.
+     * @param recipientAddress Locked mosaic recipient address.
      * @return Instance of SecretLockTransactionBodyBuilder.
      */
-    public static SecretLockTransactionBodyBuilder create(final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final LockHashAlgorithmDto hashAlgorithm, final Hash256Dto secret, final UnresolvedAddressDto recipient) {
-        return new SecretLockTransactionBodyBuilder(mosaic, duration, hashAlgorithm, secret, recipient);
+    public static SecretLockTransactionBodyBuilder create(final Hash256Dto secret, final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final LockHashAlgorithmDto hashAlgorithm, final UnresolvedAddressDto recipientAddress) {
+        return new SecretLockTransactionBodyBuilder(secret, mosaic, duration, hashAlgorithm, recipientAddress);
+    }
+
+    /**
+     * Gets secret.
+     *
+     * @return Secret.
+     */
+    public Hash256Dto getSecret() {
+        return this.secret;
     }
 
     /**
@@ -112,21 +121,12 @@ final class SecretLockTransactionBodyBuilder {
     }
 
     /**
-     * Gets secret.
+     * Gets locked mosaic recipient address.
      *
-     * @return Secret.
+     * @return Locked mosaic recipient address.
      */
-    public Hash256Dto getSecret() {
-        return this.secret;
-    }
-
-    /**
-     * Gets locked mosaic recipient.
-     *
-     * @return Locked mosaic recipient.
-     */
-    public UnresolvedAddressDto getRecipient() {
-        return this.recipient;
+    public UnresolvedAddressDto getRecipientAddress() {
+        return this.recipientAddress;
     }
 
     /**
@@ -136,11 +136,11 @@ final class SecretLockTransactionBodyBuilder {
      */
     public int getSize() {
         int size = 0;
+        size += this.secret.getSize();
         size += this.mosaic.getSize();
         size += this.duration.getSize();
         size += this.hashAlgorithm.getSize();
-        size += this.secret.getSize();
-        size += this.recipient.getSize();
+        size += this.recipientAddress.getSize();
         return size;
     }
 
@@ -150,7 +150,7 @@ final class SecretLockTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of SecretLockTransactionBodyBuilder.
      */
-    public static SecretLockTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static SecretLockTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new SecretLockTransactionBodyBuilder(stream);
     }
 
@@ -161,16 +161,16 @@ final class SecretLockTransactionBodyBuilder {
      */
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
+            final byte[] secretBytes = this.secret.serialize();
+            dataOutputStream.write(secretBytes, 0, secretBytes.length);
             final byte[] mosaicBytes = this.mosaic.serialize();
             dataOutputStream.write(mosaicBytes, 0, mosaicBytes.length);
             final byte[] durationBytes = this.duration.serialize();
             dataOutputStream.write(durationBytes, 0, durationBytes.length);
             final byte[] hashAlgorithmBytes = this.hashAlgorithm.serialize();
             dataOutputStream.write(hashAlgorithmBytes, 0, hashAlgorithmBytes.length);
-            final byte[] secretBytes = this.secret.serialize();
-            dataOutputStream.write(secretBytes, 0, secretBytes.length);
-            final byte[] recipientBytes = this.recipient.serialize();
-            dataOutputStream.write(recipientBytes, 0, recipientBytes.length);
+            final byte[] recipientAddressBytes = this.recipientAddress.serialize();
+            dataOutputStream.write(recipientAddressBytes, 0, recipientAddressBytes.length);
         });
     }
 }

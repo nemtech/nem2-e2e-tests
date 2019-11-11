@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Mosaic id. */
 public final class MosaicIdDto {
@@ -41,7 +41,7 @@ public final class MosaicIdDto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public MosaicIdDto(final DataInput stream) {
+    public MosaicIdDto(final DataInputStream stream) {
         try {
             this.mosaicId = Long.reverseBytes(stream.readLong());
         } catch(Exception e) {
@@ -73,7 +73,7 @@ public final class MosaicIdDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicIdDto.
      */
-    public static MosaicIdDto loadFromBinary(final DataInput stream) {
+    public static MosaicIdDto loadFromBinary(final DataInputStream stream) {
         return new MosaicIdDto(stream);
     }
 

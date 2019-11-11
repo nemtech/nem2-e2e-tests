@@ -22,42 +22,40 @@ package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
 import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.mappers.AddressResolutionStatementsMapper;
-import io.nem.sdk.model.account.Address;
-import io.nem.sdk.model.receipt.ResolutionStatement;
+import io.nem.sdk.model.receipt.AddressResolutionStatement;
 
 import java.util.List;
 
 public class AddressResolutionStatementsCollection {
-	/**
-	 * Catapult collection
-	 */
-	private final CatapultCollection<ResolutionStatement<Address>, AddressResolutionStatementsMapper> catapultCollection;
-	/* Catapult context. */
-	private final DataAccessContext context;
+  /** Catapult collection */
+  private final CatapultCollection<AddressResolutionStatement, AddressResolutionStatementsMapper>
+      catapultCollection;
+  /* Catapult context. */
+  private final DataAccessContext context;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param context Catapult context.
-	 */
-	public AddressResolutionStatementsCollection(final DataAccessContext context) {
-		this.context = context;
-		catapultCollection =
-				new CatapultCollection<>(
-						context.getCatapultMongoDbClient(),
-						"addressResolutionStatements",
-						AddressResolutionStatementsMapper::new);
-	}
+  /**
+   * Constructor.
+   *
+   * @param context Catapult context.
+   */
+  public AddressResolutionStatementsCollection(final DataAccessContext context) {
+    this.context = context;
+    catapultCollection =
+        new CatapultCollection<>(
+            context.getCatapultMongoDbClient(),
+            "addressResolutionStatements",
+            AddressResolutionStatementsMapper::new);
+  }
 
-	/**
-	 * Gets resolution statement for an unresolved address.
-	 *
-	 * @param height Block height.
-	 * @return Resolution statement.
-	 */
-	public List<ResolutionStatement<Address>> findByHeight(final long height) {
-		final String keyName = "statement.height";
-		final int timeoutInSeconds = 0;
-		return catapultCollection.find(keyName, height, timeoutInSeconds);
-	}
+  /**
+   * Gets resolution statement for an unresolved address.
+   *
+   * @param height Block height.
+   * @return Resolution statement.
+   */
+  public List<AddressResolutionStatement> findByHeight(final long height) {
+    final String keyName = "statement.height";
+    final int timeoutInSeconds = 0;
+    return catapultCollection.find(keyName, height, timeoutInSeconds);
+  }
 }

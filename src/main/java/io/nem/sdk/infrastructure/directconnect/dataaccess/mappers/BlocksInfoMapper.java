@@ -21,6 +21,7 @@
 package io.nem.sdk.infrastructure.directconnect.dataaccess.mappers;
 
 import io.nem.sdk.model.blockchain.BlockInfo;
+import io.nem.sdk.model.blockchain.NetworkType;
 import io.vertx.core.json.JsonObject;
 
 import java.math.BigInteger;
@@ -47,6 +48,7 @@ public class BlocksInfoMapper implements Function<JsonObject, BlockInfo> {
     final String signature = blockJsonObject.getString("signature");
     final String signer = blockJsonObject.getString("signerPublicKey");
     final int version = blockJsonObject.getInteger("version");
+    final NetworkType networkType = NetworkType.rawValueOf(blockJsonObject.getInteger("network"));
     final int type = blockJsonObject.getInteger("type");
     final BigInteger height = MapperUtils.extractBigInteger(blockJsonObject, "height");
     final BigInteger timestamp = MapperUtils.extractBigInteger(blockJsonObject, "timestamp");
@@ -66,6 +68,7 @@ public class BlocksInfoMapper implements Function<JsonObject, BlockInfo> {
         signature,
         signer,
         version,
+        networkType,
         type,
         height,
         timestamp,

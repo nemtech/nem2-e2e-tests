@@ -20,11 +20,11 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for a namespace metadata transaction. */
-final class NamespaceMetadataTransactionBodyBuilder {
+public final class NamespaceMetadataTransactionBodyBuilder {
     /** Metadata target public key. */
     private final KeyDto targetPublicKey;
     /** Metadata key scoped to source, target and type. */
@@ -41,7 +41,7 @@ final class NamespaceMetadataTransactionBodyBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected NamespaceMetadataTransactionBodyBuilder(final DataInput stream) {
+    protected NamespaceMetadataTransactionBodyBuilder(final DataInputStream stream) {
         try {
             this.targetPublicKey = KeyDto.loadFromBinary(stream);
             this.scopedMetadataKey = Long.reverseBytes(stream.readLong());
@@ -156,7 +156,7 @@ final class NamespaceMetadataTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of NamespaceMetadataTransactionBodyBuilder.
      */
-    public static NamespaceMetadataTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static NamespaceMetadataTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new NamespaceMetadataTransactionBodyBuilder(stream);
     }
 

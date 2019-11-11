@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a non-embedded mosaic address restriction transaction. */
 public final class MosaicAddressRestrictionTransactionBuilder extends TransactionBuilder {
@@ -32,7 +32,7 @@ public final class MosaicAddressRestrictionTransactionBuilder extends Transactio
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected MosaicAddressRestrictionTransactionBuilder(final DataInput stream) {
+    protected MosaicAddressRestrictionTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.mosaicAddressRestrictionTransactionBody = MosaicAddressRestrictionTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,40 +41,42 @@ public final class MosaicAddressRestrictionTransactionBuilder extends Transactio
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
      * @param mosaicId Identifier of the mosaic to which the restriction applies.
      * @param restrictionKey Restriction key.
-     * @param targetAddress Address being restricted.
      * @param previousRestrictionValue Previous restriction value.
      * @param newRestrictionValue New restriction value.
+     * @param targetAddress Address being restricted.
      */
-    protected MosaicAddressRestrictionTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final UnresolvedAddressDto targetAddress, final long previousRestrictionValue, final long newRestrictionValue) {
-        super(signature, signer, version, type, fee, deadline);
-        this.mosaicAddressRestrictionTransactionBody = MosaicAddressRestrictionTransactionBodyBuilder.create(mosaicId, restrictionKey, targetAddress, previousRestrictionValue, newRestrictionValue);
+    protected MosaicAddressRestrictionTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final long previousRestrictionValue, final long newRestrictionValue, final UnresolvedAddressDto targetAddress) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
+        this.mosaicAddressRestrictionTransactionBody = MosaicAddressRestrictionTransactionBodyBuilder.create(mosaicId, restrictionKey, previousRestrictionValue, newRestrictionValue, targetAddress);
     }
 
     /**
      * Creates an instance of MosaicAddressRestrictionTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
      * @param mosaicId Identifier of the mosaic to which the restriction applies.
      * @param restrictionKey Restriction key.
-     * @param targetAddress Address being restricted.
      * @param previousRestrictionValue Previous restriction value.
      * @param newRestrictionValue New restriction value.
+     * @param targetAddress Address being restricted.
      * @return Instance of MosaicAddressRestrictionTransactionBuilder.
      */
-    public static MosaicAddressRestrictionTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final UnresolvedAddressDto targetAddress, final long previousRestrictionValue, final long newRestrictionValue) {
-        return new MosaicAddressRestrictionTransactionBuilder(signature, signer, version, type, fee, deadline, mosaicId, restrictionKey, targetAddress, previousRestrictionValue, newRestrictionValue);
+    public static MosaicAddressRestrictionTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final long previousRestrictionValue, final long newRestrictionValue, final UnresolvedAddressDto targetAddress) {
+        return new MosaicAddressRestrictionTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, mosaicId, restrictionKey, previousRestrictionValue, newRestrictionValue, targetAddress);
     }
 
     /**
@@ -96,15 +98,6 @@ public final class MosaicAddressRestrictionTransactionBuilder extends Transactio
     }
 
     /**
-     * Gets address being restricted.
-     *
-     * @return Address being restricted.
-     */
-    public UnresolvedAddressDto getTargetAddress() {
-        return this.mosaicAddressRestrictionTransactionBody.getTargetAddress();
-    }
-
-    /**
      * Gets previous restriction value.
      *
      * @return Previous restriction value.
@@ -120,6 +113,15 @@ public final class MosaicAddressRestrictionTransactionBuilder extends Transactio
      */
     public long getNewRestrictionValue() {
         return this.mosaicAddressRestrictionTransactionBody.getNewRestrictionValue();
+    }
+
+    /**
+     * Gets address being restricted.
+     *
+     * @return Address being restricted.
+     */
+    public UnresolvedAddressDto getTargetAddress() {
+        return this.mosaicAddressRestrictionTransactionBody.getTargetAddress();
     }
 
     /**
@@ -140,7 +142,7 @@ public final class MosaicAddressRestrictionTransactionBuilder extends Transactio
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicAddressRestrictionTransactionBuilder.
      */
-    public static MosaicAddressRestrictionTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static MosaicAddressRestrictionTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new MosaicAddressRestrictionTransactionBuilder(stream);
     }
 

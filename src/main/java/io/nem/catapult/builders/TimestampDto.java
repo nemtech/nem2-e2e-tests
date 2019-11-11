@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Timestamp. */
 public final class TimestampDto {
@@ -41,7 +41,7 @@ public final class TimestampDto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public TimestampDto(final DataInput stream) {
+    public TimestampDto(final DataInputStream stream) {
         try {
             this.timestamp = Long.reverseBytes(stream.readLong());
         } catch(Exception e) {
@@ -73,7 +73,7 @@ public final class TimestampDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of TimestampDto.
      */
-    public static TimestampDto loadFromBinary(final DataInput stream) {
+    public static TimestampDto loadFromBinary(final DataInputStream stream) {
         return new TimestampDto(stream);
     }
 

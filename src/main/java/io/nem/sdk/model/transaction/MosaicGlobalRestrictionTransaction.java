@@ -17,38 +17,29 @@
 
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.AmountDto;
-import io.nem.catapult.builders.EmbeddedMosaicGlobalRestrictionTransactionBuilder;
-import io.nem.catapult.builders.KeyDto;
-import io.nem.catapult.builders.MosaicGlobalRestrictionTransactionBuilder;
-import io.nem.catapult.builders.MosaicRestrictionTypeDto;
-import io.nem.catapult.builders.SignatureDto;
-import io.nem.catapult.builders.TimestampDto;
-import io.nem.catapult.builders.UnresolvedMosaicIdDto;
-import io.nem.sdk.model.mosaic.MosaicId;
+import io.nem.sdk.model.mosaic.UnresolvedMosaicId;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 
 /**
  * Mosaic global restriction transaction.
  *
- * The mosaic global restrictions are the network-wide rules that will determine
- * whether an account will be able to transact a given mosaic.
+ * The mosaic global restrictions are the network-wide rules that will determine whether an account
+ * will be able to transact a given mosaic.
  *
- * Only accounts tagged with the key identifiers and values that meet the conditions
- * will be able to execute transactions involving the mosaic.
+ * Only accounts tagged with the key identifiers and values that meet the conditions will be able to
+ * execute transactions involving the mosaic.
  *
- * Additionally, the mosaic creator can define restrictions that depend directly on
- * global restrictions set on another mosaic - known as **reference mosaic**.
- * The referenced mosaic and the restricted mosaic do not necessarily have to be created
- * by the same account, enabling the delegation of mosaic permissions to a third party.
+ * Additionally, the mosaic creator can define restrictions that depend directly on global
+ * restrictions set on another mosaic - known as **reference mosaic**. The referenced mosaic and the
+ * restricted mosaic do not necessarily have to be created by the same account, enabling the
+ * delegation of mosaic permissions to a third party.
  *
  * @since 1.0
  */
 public class MosaicGlobalRestrictionTransaction extends Transaction {
 
-    private final MosaicId mosaicId;
-    private final MosaicId referenceMosaicId;
+    private final UnresolvedMosaicId mosaicId;
+    private final UnresolvedMosaicId referenceMosaicId;
     private final BigInteger restrictionKey;
     private final BigInteger previousRestrictionValue;
     private final MosaicRestrictionType previousRestrictionType;
@@ -74,18 +65,18 @@ public class MosaicGlobalRestrictionTransaction extends Transaction {
     /**
      * Returns the mosaic id.
      *
-     * @return {@link MosaicId}
+     * @return {@link UnresolvedMosaicId}
      */
-    public MosaicId getMosaicId() {
+    public UnresolvedMosaicId getMosaicId() {
         return mosaicId;
     }
 
     /**
      * Returns the reference mosaic id.
      *
-     * @return {@link MosaicId}
+     * @return {@link UnresolvedMosaicId}
      */
-    public MosaicId getReferenceMosaicId() {
+    public UnresolvedMosaicId getReferenceMosaicId() {
         return referenceMosaicId;
     }
 
@@ -112,7 +103,9 @@ public class MosaicGlobalRestrictionTransaction extends Transaction {
      *
      * @return {@link MosaicRestrictionType}
      */
-    public MosaicRestrictionType getPreviousRestrictionType() { return  previousRestrictionType; }
+    public MosaicRestrictionType getPreviousRestrictionType() {
+        return previousRestrictionType;
+    }
 
     /**
      * Returns the new restriction value.
@@ -128,49 +121,8 @@ public class MosaicGlobalRestrictionTransaction extends Transaction {
      *
      * @return {@link MosaicRestrictionType}
      */
-    public MosaicRestrictionType getNewRestrictionType() { return  newRestrictionType; }
-
-    @Override
-    byte[] generateBytes() {
-        // Add place holders to the signer and signature until actually signed
-        final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-        final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-        MosaicGlobalRestrictionTransactionBuilder txBuilder =
-            MosaicGlobalRestrictionTransactionBuilder.create(
-                new SignatureDto(signatureBuffer),
-                new KeyDto(signerBuffer),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new AmountDto(getMaxFee().longValue()),
-                new TimestampDto(getDeadline().getInstant()),
-                new UnresolvedMosaicIdDto(getMosaicId().getIdAsLong()),
-                new UnresolvedMosaicIdDto(getReferenceMosaicId().getIdAsLong()),
-                getRestrictionKey().longValue(),
-                getPreviousRestrictionValue().longValue(),
-                MosaicRestrictionTypeDto.rawValueOf(getPreviousRestrictionType().getValue()),
-                getNewRestrictionValue().longValue(),
-                MosaicRestrictionTypeDto.rawValueOf(getNewRestrictionType().getValue())
-            );
-        return txBuilder.serialize();
+    public MosaicRestrictionType getNewRestrictionType() {
+        return newRestrictionType;
     }
 
-    @Override
-    byte[] generateEmbeddedBytes() {
-
-        EmbeddedMosaicGlobalRestrictionTransactionBuilder txBuilder =
-            EmbeddedMosaicGlobalRestrictionTransactionBuilder.create(
-                new KeyDto(getRequiredSignerBytes()),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new UnresolvedMosaicIdDto(getMosaicId().getIdAsLong()),
-                new UnresolvedMosaicIdDto(getReferenceMosaicId().getIdAsLong()),
-                getRestrictionKey().longValue(),
-                getPreviousRestrictionValue().longValue(),
-                MosaicRestrictionTypeDto.rawValueOf(getPreviousRestrictionType().getValue()),
-                getNewRestrictionValue().longValue(),
-                MosaicRestrictionTypeDto.rawValueOf(getNewRestrictionType().getValue())
-            );
-        return txBuilder.serialize();
-    }
 }

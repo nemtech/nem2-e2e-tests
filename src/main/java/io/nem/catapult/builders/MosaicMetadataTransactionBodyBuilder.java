@@ -20,11 +20,11 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for a mosaic metadata transaction. */
-final class MosaicMetadataTransactionBodyBuilder {
+public final class MosaicMetadataTransactionBodyBuilder {
     /** Metadata target public key. */
     private final KeyDto targetPublicKey;
     /** Metadata key scoped to source, target and type. */
@@ -41,7 +41,7 @@ final class MosaicMetadataTransactionBodyBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected MosaicMetadataTransactionBodyBuilder(final DataInput stream) {
+    protected MosaicMetadataTransactionBodyBuilder(final DataInputStream stream) {
         try {
             this.targetPublicKey = KeyDto.loadFromBinary(stream);
             this.scopedMetadataKey = Long.reverseBytes(stream.readLong());
@@ -156,7 +156,7 @@ final class MosaicMetadataTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicMetadataTransactionBodyBuilder.
      */
-    public static MosaicMetadataTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static MosaicMetadataTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new MosaicMetadataTransactionBodyBuilder(stream);
     }
 

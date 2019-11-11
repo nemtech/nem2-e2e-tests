@@ -17,15 +17,7 @@
 
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.AmountDto;
-import io.nem.catapult.builders.EmbeddedNamespaceMetadataTransactionBuilder;
-import io.nem.catapult.builders.KeyDto;
-import io.nem.catapult.builders.NamespaceIdDto;
-import io.nem.catapult.builders.NamespaceMetadataTransactionBuilder;
-import io.nem.catapult.builders.SignatureDto;
-import io.nem.catapult.builders.TimestampDto;
 import io.nem.sdk.model.namespace.NamespaceId;
-import java.nio.ByteBuffer;
 
 /**
  * Announce an NameMetadataTransaction to associate a key-value state to an namespace.
@@ -50,45 +42,5 @@ public class NamespaceMetadataTransaction extends MetadataTransaction {
     public NamespaceId getTargetNamespaceId() {
         return targetNamespaceId;
     }
-
-    @Override
-    byte[] generateBytes() {
-        // Add place holders to the signer and signature until actually signed
-        final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-        final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-        NamespaceMetadataTransactionBuilder txBuilder =
-            NamespaceMetadataTransactionBuilder.create(
-                new SignatureDto(signatureBuffer),
-                new KeyDto(signerBuffer),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new AmountDto(getMaxFee().longValue()),
-                new TimestampDto(getDeadline().getInstant()),
-                new KeyDto(this.getTargetAccount().getPublicKey().getByteBuffer()),
-                this.getScopedMetadataKey().longValue(),
-                new NamespaceIdDto(getTargetNamespaceId().getId().longValue()),
-                (short) getValueSizeDelta(),
-                getValueBuffer()
-            );
-        return txBuilder.serialize();
-    }
-
-    @Override
-    byte[] generateEmbeddedBytes() {
-        EmbeddedNamespaceMetadataTransactionBuilder txBuilder =
-            EmbeddedNamespaceMetadataTransactionBuilder.create(
-                new KeyDto(getRequiredSignerBytes()),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new KeyDto(this.getTargetAccount().getPublicKey().getByteBuffer()),
-                this.getScopedMetadataKey().longValue(),
-                new NamespaceIdDto(getTargetNamespaceId().getId().longValue()),
-                (short) getValueSizeDelta(),
-                getValueBuffer()
-            );
-        return txBuilder.serialize();
-    }
-
 
 }

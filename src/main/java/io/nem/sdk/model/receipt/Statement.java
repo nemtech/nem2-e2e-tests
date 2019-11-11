@@ -16,15 +16,13 @@
 
 package io.nem.sdk.model.receipt;
 
-import io.nem.sdk.model.account.Address;
-import io.nem.sdk.model.mosaic.MosaicId;
 import java.util.List;
 
 public class Statement {
 
     private final List<TransactionStatement> transactionStatements;
-    private final List<ResolutionStatement<Address>> addressResolutionStatements;
-    private final List<ResolutionStatement<MosaicId>> mosaicResolutionStatement;
+    private final List<AddressResolutionStatement> addressResolutionStatements;
+    private final List<MosaicResolutionStatement> mosaicResolutionStatement;
 
     /**
      * Constructor
@@ -35,8 +33,8 @@ public class Statement {
      */
     public Statement(
         List<TransactionStatement> transactionStatements,
-        List<ResolutionStatement<Address>> addressResolutionStatements,
-        List<ResolutionStatement<MosaicId>> mosaicResolutionStatement) {
+        List<AddressResolutionStatement> addressResolutionStatements,
+        List<MosaicResolutionStatement> mosaicResolutionStatement) {
         this.addressResolutionStatements = addressResolutionStatements;
         this.mosaicResolutionStatement = mosaicResolutionStatement;
         this.transactionStatements = transactionStatements;
@@ -56,7 +54,7 @@ public class Statement {
      *
      * @return address resolution statements.
      */
-    public List<ResolutionStatement<Address>> getAddressResolutionStatements() {
+    public List<AddressResolutionStatement> getAddressResolutionStatements() {
         return this.addressResolutionStatements;
     }
 
@@ -65,7 +63,7 @@ public class Statement {
      *
      * @return mosaic resolution statements.
      */
-    public List<ResolutionStatement<MosaicId>> getMosaicResolutionStatement() {
+    public List<MosaicResolutionStatement> getMosaicResolutionStatement() {
         return this.mosaicResolutionStatement;
     }
 }

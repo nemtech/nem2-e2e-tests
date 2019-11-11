@@ -105,6 +105,18 @@ public class ByteUtils {
     }
 
     /**
+     * Converts an short value into an array of 4 bytes.
+     *
+     * @param x The short.
+     * @return The bytes.
+     */
+    public static byte[] shortToBytes(final short x) {
+        final ByteBuffer buffer = ByteBuffer.allocate(2);
+        buffer.putShort(x);
+        return buffer.array();
+    }
+
+    /**
      * Converts an int array into a byte array. Assumes each integer value fits in a byte. If
      * integer value uses more than 1 byte then only the lowest byte
      *

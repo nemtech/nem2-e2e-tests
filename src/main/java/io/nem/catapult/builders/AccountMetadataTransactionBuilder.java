@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for a non-embedded account metadata transaction. */
@@ -33,7 +33,7 @@ public final class AccountMetadataTransactionBuilder extends TransactionBuilder 
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected AccountMetadataTransactionBuilder(final DataInput stream) {
+    protected AccountMetadataTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.accountMetadataTransactionBody = AccountMetadataTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -42,8 +42,9 @@ public final class AccountMetadataTransactionBuilder extends TransactionBuilder 
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
@@ -52,8 +53,8 @@ public final class AccountMetadataTransactionBuilder extends TransactionBuilder 
      * @param valueSizeDelta Change in value size in bytes.
      * @param value Difference between existing value and new value \note when there is no existing value, new value is same this value \note when there is an existing value, new value is calculated as xor(previous-value, value).
      */
-    protected AccountMetadataTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto targetPublicKey, final long scopedMetadataKey, final short valueSizeDelta, final ByteBuffer value) {
-        super(signature, signer, version, type, fee, deadline);
+    protected AccountMetadataTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto targetPublicKey, final long scopedMetadataKey, final short valueSizeDelta, final ByteBuffer value) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
         this.accountMetadataTransactionBody = AccountMetadataTransactionBodyBuilder.create(targetPublicKey, scopedMetadataKey, valueSizeDelta, value);
     }
 
@@ -61,8 +62,9 @@ public final class AccountMetadataTransactionBuilder extends TransactionBuilder 
      * Creates an instance of AccountMetadataTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
@@ -72,8 +74,8 @@ public final class AccountMetadataTransactionBuilder extends TransactionBuilder 
      * @param value Difference between existing value and new value \note when there is no existing value, new value is same this value \note when there is an existing value, new value is calculated as xor(previous-value, value).
      * @return Instance of AccountMetadataTransactionBuilder.
      */
-    public static AccountMetadataTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto targetPublicKey, final long scopedMetadataKey, final short valueSizeDelta, final ByteBuffer value) {
-        return new AccountMetadataTransactionBuilder(signature, signer, version, type, fee, deadline, targetPublicKey, scopedMetadataKey, valueSizeDelta, value);
+    public static AccountMetadataTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto targetPublicKey, final long scopedMetadataKey, final short valueSizeDelta, final ByteBuffer value) {
+        return new AccountMetadataTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, targetPublicKey, scopedMetadataKey, valueSizeDelta, value);
     }
 
     /**
@@ -130,7 +132,7 @@ public final class AccountMetadataTransactionBuilder extends TransactionBuilder 
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AccountMetadataTransactionBuilder.
      */
-    public static AccountMetadataTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static AccountMetadataTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new AccountMetadataTransactionBuilder(stream);
     }
 

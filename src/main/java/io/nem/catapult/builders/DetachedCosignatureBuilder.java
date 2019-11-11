@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Cosignature detached from an aggregate transaction. */
 public final class DetachedCosignatureBuilder extends CosignatureBuilder {
@@ -32,7 +32,7 @@ public final class DetachedCosignatureBuilder extends CosignatureBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected DetachedCosignatureBuilder(final DataInput stream) {
+    protected DetachedCosignatureBuilder(final DataInputStream stream) {
         super(stream);
         this.parentHash = Hash256Dto.loadFromBinary(stream);
     }
@@ -40,12 +40,12 @@ public final class DetachedCosignatureBuilder extends CosignatureBuilder {
     /**
      * Constructor.
      *
-     * @param signer Cosigner public key.
+     * @param signerPublicKey Cosigner public key.
      * @param signature Cosigner signature.
      * @param parentHash Hash of the aggregate transaction that is signed by this cosignature.
      */
-    protected DetachedCosignatureBuilder(final KeyDto signer, final SignatureDto signature, final Hash256Dto parentHash) {
-        super(signer, signature);
+    protected DetachedCosignatureBuilder(final KeyDto signerPublicKey, final SignatureDto signature, final Hash256Dto parentHash) {
+        super(signerPublicKey, signature);
         GeneratorUtils.notNull(parentHash, "parentHash is null");
         this.parentHash = parentHash;
     }
@@ -53,13 +53,13 @@ public final class DetachedCosignatureBuilder extends CosignatureBuilder {
     /**
      * Creates an instance of DetachedCosignatureBuilder.
      *
-     * @param signer Cosigner public key.
+     * @param signerPublicKey Cosigner public key.
      * @param signature Cosigner signature.
      * @param parentHash Hash of the aggregate transaction that is signed by this cosignature.
      * @return Instance of DetachedCosignatureBuilder.
      */
-    public static DetachedCosignatureBuilder create(final KeyDto signer, final SignatureDto signature, final Hash256Dto parentHash) {
-        return new DetachedCosignatureBuilder(signer, signature, parentHash);
+    public static DetachedCosignatureBuilder create(final KeyDto signerPublicKey, final SignatureDto signature, final Hash256Dto parentHash) {
+        return new DetachedCosignatureBuilder(signerPublicKey, signature, parentHash);
     }
 
     /**
@@ -89,7 +89,7 @@ public final class DetachedCosignatureBuilder extends CosignatureBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of DetachedCosignatureBuilder.
      */
-    public static DetachedCosignatureBuilder loadFromBinary(final DataInput stream) {
+    public static DetachedCosignatureBuilder loadFromBinary(final DataInputStream stream) {
         return new DetachedCosignatureBuilder(stream);
     }
 

@@ -16,18 +16,9 @@
 
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.AmountDto;
-import io.nem.catapult.builders.EmbeddedMosaicSupplyChangeTransactionBuilder;
-import io.nem.catapult.builders.KeyDto;
-import io.nem.catapult.builders.MosaicSupplyChangeActionDto;
-import io.nem.catapult.builders.MosaicSupplyChangeTransactionBuilder;
-import io.nem.catapult.builders.SignatureDto;
-import io.nem.catapult.builders.TimestampDto;
-import io.nem.catapult.builders.UnresolvedMosaicIdDto;
-import io.nem.sdk.model.mosaic.MosaicId;
 import io.nem.sdk.model.mosaic.MosaicSupplyChangeActionType;
+import io.nem.sdk.model.mosaic.UnresolvedMosaicId;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 
 /**
  * In case a mosaic has the flag 'supplyMutable' set to true, the creator of the mosaic can change
@@ -37,7 +28,7 @@ import java.nio.ByteBuffer;
  */
 public class MosaicSupplyChangeTransaction extends Transaction {
 
-    private final MosaicId mosaicId;
+    private final UnresolvedMosaicId mosaicId;
     private final MosaicSupplyChangeActionType action;
     private final BigInteger delta;
 
@@ -53,7 +44,7 @@ public class MosaicSupplyChangeTransaction extends Transaction {
      *
      * @return BigInteger
      */
-    public MosaicId getMosaicId() {
+    public UnresolvedMosaicId getMosaicId() {
         return mosaicId;
     }
 
@@ -75,44 +66,4 @@ public class MosaicSupplyChangeTransaction extends Transaction {
         return delta;
     }
 
-    /**
-     * Gets the serialized bytes.
-     *
-     * @return Serialized bytes
-     */
-    byte[] generateBytes() {
-        // Add place holders to the signer and signature until actually signed
-        final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-        final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-        MosaicSupplyChangeTransactionBuilder txBuilder =
-            MosaicSupplyChangeTransactionBuilder.create(
-                new SignatureDto(signatureBuffer),
-                new KeyDto(signerBuffer),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new AmountDto(getMaxFee().longValue()),
-                new TimestampDto(getDeadline().getInstant()),
-                new UnresolvedMosaicIdDto(getMosaicId().getId().longValue()),
-                MosaicSupplyChangeActionDto.rawValueOf((byte) getAction().getValue()),
-                new AmountDto(getDelta().longValue()));
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Gets the embedded tx bytes.
-     *
-     * @return Embedded tx bytes
-     */
-    byte[] generateEmbeddedBytes() {
-        EmbeddedMosaicSupplyChangeTransactionBuilder txBuilder =
-            EmbeddedMosaicSupplyChangeTransactionBuilder.create(
-                new KeyDto(getRequiredSignerBytes()),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new UnresolvedMosaicIdDto(getMosaicId().getId().longValue()),
-                MosaicSupplyChangeActionDto.rawValueOf((byte) getAction().getValue()),
-                new AmountDto(getDelta().longValue()));
-        return txBuilder.serialize();
-    }
 }

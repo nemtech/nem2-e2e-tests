@@ -20,63 +20,54 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for an mosaic alias transaction. */
-final class MosaicAliasTransactionBodyBuilder {
-    /** Alias action. */
-    private final AliasActionDto aliasAction;
+public final class MosaicAliasTransactionBodyBuilder {
     /** Identifier of the namespace that will become an alias. */
     private final NamespaceIdDto namespaceId;
     /** Aliased mosaic identifier. */
     private final MosaicIdDto mosaicId;
+    /** Alias action. */
+    private final AliasActionDto aliasAction;
 
     /**
      * Constructor - Creates an object from stream.
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected MosaicAliasTransactionBodyBuilder(final DataInput stream) {
-        this.aliasAction = AliasActionDto.loadFromBinary(stream);
+    protected MosaicAliasTransactionBodyBuilder(final DataInputStream stream) {
         this.namespaceId = NamespaceIdDto.loadFromBinary(stream);
         this.mosaicId = MosaicIdDto.loadFromBinary(stream);
+        this.aliasAction = AliasActionDto.loadFromBinary(stream);
     }
 
     /**
      * Constructor.
      *
-     * @param aliasAction Alias action.
      * @param namespaceId Identifier of the namespace that will become an alias.
      * @param mosaicId Aliased mosaic identifier.
+     * @param aliasAction Alias action.
      */
-    protected MosaicAliasTransactionBodyBuilder(final AliasActionDto aliasAction, final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId) {
-        GeneratorUtils.notNull(aliasAction, "aliasAction is null");
+    protected MosaicAliasTransactionBodyBuilder(final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId, final AliasActionDto aliasAction) {
         GeneratorUtils.notNull(namespaceId, "namespaceId is null");
         GeneratorUtils.notNull(mosaicId, "mosaicId is null");
-        this.aliasAction = aliasAction;
+        GeneratorUtils.notNull(aliasAction, "aliasAction is null");
         this.namespaceId = namespaceId;
         this.mosaicId = mosaicId;
+        this.aliasAction = aliasAction;
     }
 
     /**
      * Creates an instance of MosaicAliasTransactionBodyBuilder.
      *
-     * @param aliasAction Alias action.
      * @param namespaceId Identifier of the namespace that will become an alias.
      * @param mosaicId Aliased mosaic identifier.
+     * @param aliasAction Alias action.
      * @return Instance of MosaicAliasTransactionBodyBuilder.
      */
-    public static MosaicAliasTransactionBodyBuilder create(final AliasActionDto aliasAction, final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId) {
-        return new MosaicAliasTransactionBodyBuilder(aliasAction, namespaceId, mosaicId);
-    }
-
-    /**
-     * Gets alias action.
-     *
-     * @return Alias action.
-     */
-    public AliasActionDto getAliasAction() {
-        return this.aliasAction;
+    public static MosaicAliasTransactionBodyBuilder create(final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId, final AliasActionDto aliasAction) {
+        return new MosaicAliasTransactionBodyBuilder(namespaceId, mosaicId, aliasAction);
     }
 
     /**
@@ -98,15 +89,24 @@ final class MosaicAliasTransactionBodyBuilder {
     }
 
     /**
+     * Gets alias action.
+     *
+     * @return Alias action.
+     */
+    public AliasActionDto getAliasAction() {
+        return this.aliasAction;
+    }
+
+    /**
      * Gets the size of the object.
      *
      * @return Size in bytes.
      */
     public int getSize() {
         int size = 0;
-        size += this.aliasAction.getSize();
         size += this.namespaceId.getSize();
         size += this.mosaicId.getSize();
+        size += this.aliasAction.getSize();
         return size;
     }
 
@@ -116,7 +116,7 @@ final class MosaicAliasTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicAliasTransactionBodyBuilder.
      */
-    public static MosaicAliasTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static MosaicAliasTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new MosaicAliasTransactionBodyBuilder(stream);
     }
 
@@ -127,12 +127,12 @@ final class MosaicAliasTransactionBodyBuilder {
      */
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
-            final byte[] aliasActionBytes = this.aliasAction.serialize();
-            dataOutputStream.write(aliasActionBytes, 0, aliasActionBytes.length);
             final byte[] namespaceIdBytes = this.namespaceId.serialize();
             dataOutputStream.write(namespaceIdBytes, 0, namespaceIdBytes.length);
             final byte[] mosaicIdBytes = this.mosaicId.serialize();
             dataOutputStream.write(mosaicIdBytes, 0, mosaicIdBytes.length);
+            final byte[] aliasActionBytes = this.aliasAction.serialize();
+            dataOutputStream.write(aliasActionBytes, 0, aliasActionBytes.length);
         });
     }
 }

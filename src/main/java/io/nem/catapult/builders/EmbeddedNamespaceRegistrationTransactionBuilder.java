@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for an embedded namespace registration transaction. */
@@ -33,7 +33,7 @@ public final class EmbeddedNamespaceRegistrationTransactionBuilder extends Embed
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedNamespaceRegistrationTransactionBuilder(final DataInput stream) {
+    protected EmbeddedNamespaceRegistrationTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.namespaceRegistrationTransactionBody = NamespaceRegistrationTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,70 +41,65 @@ public final class EmbeddedNamespaceRegistrationTransactionBuilder extends Embed
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param duration Namespace duration.
      * @param id Namespace identifier.
      * @param name Namespace name.
      */
-    protected EmbeddedNamespaceRegistrationTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final BlockDurationDto duration, final NamespaceIdDto id, final ByteBuffer name) {
-        super(signer, version, type);
+    protected EmbeddedNamespaceRegistrationTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final BlockDurationDto duration, final NamespaceIdDto id, final ByteBuffer name) {
+        super(signerPublicKey, version, network, type);
         this.namespaceRegistrationTransactionBody = NamespaceRegistrationTransactionBodyBuilder.create(duration, id, name);
     }
 
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param parentId Parent namespace identifier.
      * @param id Namespace identifier.
      * @param name Namespace name.
      */
-    protected EmbeddedNamespaceRegistrationTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final NamespaceIdDto parentId, final NamespaceIdDto id, final ByteBuffer name) {
-        super(signer, version, type);
+    protected EmbeddedNamespaceRegistrationTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final NamespaceIdDto parentId, final NamespaceIdDto id, final ByteBuffer name) {
+        super(signerPublicKey, version, network, type);
         this.namespaceRegistrationTransactionBody = NamespaceRegistrationTransactionBodyBuilder.create(parentId, id, name);
     }
 
     /**
      * Creates an instance of EmbeddedNamespaceRegistrationTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param duration Namespace duration.
      * @param id Namespace identifier.
      * @param name Namespace name.
      * @return Instance of EmbeddedNamespaceRegistrationTransactionBuilder.
      */
-    public static EmbeddedNamespaceRegistrationTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final BlockDurationDto duration, final NamespaceIdDto id, final ByteBuffer name) {
-        return new EmbeddedNamespaceRegistrationTransactionBuilder(signer, version, type, duration, id, name);
+    public static EmbeddedNamespaceRegistrationTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final BlockDurationDto duration, final NamespaceIdDto id, final ByteBuffer name) {
+        return new EmbeddedNamespaceRegistrationTransactionBuilder(signerPublicKey, version, network, type, duration, id, name);
     }
 
     /**
      * Creates an instance of EmbeddedNamespaceRegistrationTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param parentId Parent namespace identifier.
      * @param id Namespace identifier.
      * @param name Namespace name.
      * @return Instance of EmbeddedNamespaceRegistrationTransactionBuilder.
      */
-    public static EmbeddedNamespaceRegistrationTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final NamespaceIdDto parentId, final NamespaceIdDto id, final ByteBuffer name) {
-        return new EmbeddedNamespaceRegistrationTransactionBuilder(signer, version, type, parentId, id, name);
-    }
-
-    /**
-     * Gets namespace registration type.
-     *
-     * @return Namespace registration type.
-     */
-    public NamespaceRegistrationTypeDto getRegistrationType() {
-        return this.namespaceRegistrationTransactionBody.getRegistrationType();
+    public static EmbeddedNamespaceRegistrationTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final NamespaceIdDto parentId, final NamespaceIdDto id, final ByteBuffer name) {
+        return new EmbeddedNamespaceRegistrationTransactionBuilder(signerPublicKey, version, network, type, parentId, id, name);
     }
 
     /**
@@ -135,6 +130,15 @@ public final class EmbeddedNamespaceRegistrationTransactionBuilder extends Embed
     }
 
     /**
+     * Gets namespace registration type.
+     *
+     * @return Namespace registration type.
+     */
+    public NamespaceRegistrationTypeDto getRegistrationType() {
+        return this.namespaceRegistrationTransactionBody.getRegistrationType();
+    }
+
+    /**
      * Gets namespace name.
      *
      * @return Namespace name.
@@ -161,7 +165,7 @@ public final class EmbeddedNamespaceRegistrationTransactionBuilder extends Embed
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedNamespaceRegistrationTransactionBuilder.
      */
-    public static EmbeddedNamespaceRegistrationTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedNamespaceRegistrationTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedNamespaceRegistrationTransactionBuilder(stream);
     }
 

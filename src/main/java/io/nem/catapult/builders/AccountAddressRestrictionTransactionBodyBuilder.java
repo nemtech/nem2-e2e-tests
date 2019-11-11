@@ -20,28 +20,39 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
-import java.util.ArrayList;
+import java.io.DataInputStream;
+import java.util.EnumSet;
+import java.util.List;
 
 /** Binary layout for an account address restriction transaction. */
-final class AccountAddressRestrictionTransactionBodyBuilder {
-    /** Account restriction type. */
-    private final AccountRestrictionTypeDto restrictionType;
-    /** Account restriction modifications. */
-    private final ArrayList<AccountAddressRestrictionModificationBuilder> modifications;
+public final class AccountAddressRestrictionTransactionBodyBuilder {
+    /** Account restriction flags. */
+    private final EnumSet<AccountRestrictionFlagsDto> restrictionFlags;
+    /** Reserved padding to align restrictionAdditions on 8-byte boundary. */
+    private final int accountRestrictionTransactionBody_Reserved1;
+    /** Account restriction additions. */
+    private final List<UnresolvedAddressDto> restrictionAdditions;
+    /** Account restriction deletions. */
+    private final List<UnresolvedAddressDto> restrictionDeletions;
 
     /**
      * Constructor - Creates an object from stream.
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected AccountAddressRestrictionTransactionBodyBuilder(final DataInput stream) {
+    protected AccountAddressRestrictionTransactionBodyBuilder(final DataInputStream stream) {
         try {
-            this.restrictionType = AccountRestrictionTypeDto.loadFromBinary(stream);
-            final byte modificationsCount = stream.readByte();
-            this.modifications = new java.util.ArrayList<>(modificationsCount);
-            for (int i = 0; i < modificationsCount; i++) {
-                modifications.add(AccountAddressRestrictionModificationBuilder.loadFromBinary(stream));
+            this.restrictionFlags = GeneratorUtils.toSet(AccountRestrictionFlagsDto.class, Short.reverseBytes(stream.readShort()));
+            final byte restrictionAdditionsCount = stream.readByte();
+            final byte restrictionDeletionsCount = stream.readByte();
+            this.accountRestrictionTransactionBody_Reserved1 = Integer.reverseBytes(stream.readInt());
+            this.restrictionAdditions = new java.util.ArrayList<>(restrictionAdditionsCount);
+            for (int i = 0; i < restrictionAdditionsCount; i++) {
+                restrictionAdditions.add(UnresolvedAddressDto.loadFromBinary(stream));
+            }
+            this.restrictionDeletions = new java.util.ArrayList<>(restrictionDeletionsCount);
+            for (int i = 0; i < restrictionDeletionsCount; i++) {
+                restrictionDeletions.add(UnresolvedAddressDto.loadFromBinary(stream));
             }
         } catch(Exception e) {
             throw GeneratorUtils.getExceptionToPropagate(e);
@@ -51,43 +62,66 @@ final class AccountAddressRestrictionTransactionBodyBuilder {
     /**
      * Constructor.
      *
-     * @param restrictionType Account restriction type.
-     * @param modifications Account restriction modifications.
+     * @param restrictionFlags Account restriction flags.
+     * @param restrictionAdditions Account restriction additions.
+     * @param restrictionDeletions Account restriction deletions.
      */
-    protected AccountAddressRestrictionTransactionBodyBuilder(final AccountRestrictionTypeDto restrictionType, final ArrayList<AccountAddressRestrictionModificationBuilder> modifications) {
-        GeneratorUtils.notNull(restrictionType, "restrictionType is null");
-        GeneratorUtils.notNull(modifications, "modifications is null");
-        this.restrictionType = restrictionType;
-        this.modifications = modifications;
+    protected AccountAddressRestrictionTransactionBodyBuilder(final EnumSet<AccountRestrictionFlagsDto> restrictionFlags, final List<UnresolvedAddressDto> restrictionAdditions, final List<UnresolvedAddressDto> restrictionDeletions) {
+        GeneratorUtils.notNull(restrictionFlags, "restrictionFlags is null");
+        GeneratorUtils.notNull(restrictionAdditions, "restrictionAdditions is null");
+        GeneratorUtils.notNull(restrictionDeletions, "restrictionDeletions is null");
+        this.restrictionFlags = restrictionFlags;
+        this.accountRestrictionTransactionBody_Reserved1 = 0;
+        this.restrictionAdditions = restrictionAdditions;
+        this.restrictionDeletions = restrictionDeletions;
     }
 
     /**
      * Creates an instance of AccountAddressRestrictionTransactionBodyBuilder.
      *
-     * @param restrictionType Account restriction type.
-     * @param modifications Account restriction modifications.
+     * @param restrictionFlags Account restriction flags.
+     * @param restrictionAdditions Account restriction additions.
+     * @param restrictionDeletions Account restriction deletions.
      * @return Instance of AccountAddressRestrictionTransactionBodyBuilder.
      */
-    public static AccountAddressRestrictionTransactionBodyBuilder create(final AccountRestrictionTypeDto restrictionType, final ArrayList<AccountAddressRestrictionModificationBuilder> modifications) {
-        return new AccountAddressRestrictionTransactionBodyBuilder(restrictionType, modifications);
+    public static AccountAddressRestrictionTransactionBodyBuilder create(final EnumSet<AccountRestrictionFlagsDto> restrictionFlags, final List<UnresolvedAddressDto> restrictionAdditions, final List<UnresolvedAddressDto> restrictionDeletions) {
+        return new AccountAddressRestrictionTransactionBodyBuilder(restrictionFlags, restrictionAdditions, restrictionDeletions);
     }
 
     /**
-     * Gets account restriction type.
+     * Gets account restriction flags.
      *
-     * @return Account restriction type.
+     * @return Account restriction flags.
      */
-    public AccountRestrictionTypeDto getRestrictionType() {
-        return this.restrictionType;
+    public EnumSet<AccountRestrictionFlagsDto> getRestrictionFlags() {
+        return this.restrictionFlags;
     }
 
     /**
-     * Gets account restriction modifications.
+     * Gets reserved padding to align restrictionAdditions on 8-byte boundary.
      *
-     * @return Account restriction modifications.
+     * @return Reserved padding to align restrictionAdditions on 8-byte boundary.
      */
-    public ArrayList<AccountAddressRestrictionModificationBuilder> getModifications() {
-        return this.modifications;
+    private int getAccountRestrictionTransactionBody_Reserved1() {
+        return this.accountRestrictionTransactionBody_Reserved1;
+    }
+
+    /**
+     * Gets account restriction additions.
+     *
+     * @return Account restriction additions.
+     */
+    public List<UnresolvedAddressDto> getRestrictionAdditions() {
+        return this.restrictionAdditions;
+    }
+
+    /**
+     * Gets account restriction deletions.
+     *
+     * @return Account restriction deletions.
+     */
+    public List<UnresolvedAddressDto> getRestrictionDeletions() {
+        return this.restrictionDeletions;
     }
 
     /**
@@ -97,9 +131,12 @@ final class AccountAddressRestrictionTransactionBodyBuilder {
      */
     public int getSize() {
         int size = 0;
-        size += this.restrictionType.getSize();
-        size += 1; // modificationsCount
-        size += this.modifications.stream().mapToInt(o -> o.getSize()).sum();
+        size += AccountRestrictionFlagsDto.values()[0].getSize(); // restrictionFlags
+        size += 1; // restrictionAdditionsCount
+        size += 1; // restrictionDeletionsCount
+        size += 4; // accountRestrictionTransactionBody_Reserved1
+        size += this.restrictionAdditions.stream().mapToInt(o -> o.getSize()).sum();
+        size += this.restrictionDeletions.stream().mapToInt(o -> o.getSize()).sum();
         return size;
     }
 
@@ -109,7 +146,7 @@ final class AccountAddressRestrictionTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AccountAddressRestrictionTransactionBodyBuilder.
      */
-    public static AccountAddressRestrictionTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static AccountAddressRestrictionTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new AccountAddressRestrictionTransactionBodyBuilder(stream);
     }
 
@@ -120,12 +157,18 @@ final class AccountAddressRestrictionTransactionBodyBuilder {
      */
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
-            final byte[] restrictionTypeBytes = this.restrictionType.serialize();
-            dataOutputStream.write(restrictionTypeBytes, 0, restrictionTypeBytes.length);
-            dataOutputStream.writeByte((byte) this.modifications.size());
-            for (int i = 0; i < this.modifications.size(); i++) {
-                final byte[] modificationsBytes = this.modifications.get(i).serialize();
-                dataOutputStream.write(modificationsBytes, 0, modificationsBytes.length);
+            final short bitMask = (short) GeneratorUtils.toLong(AccountRestrictionFlagsDto.class, this.restrictionFlags);
+            dataOutputStream.writeShort(Short.reverseBytes(bitMask));
+            dataOutputStream.writeByte((byte) this.restrictionAdditions.size());
+            dataOutputStream.writeByte((byte) this.restrictionDeletions.size());
+            dataOutputStream.writeInt(Integer.reverseBytes(this.getAccountRestrictionTransactionBody_Reserved1()));
+            for (int i = 0; i < this.restrictionAdditions.size(); i++) {
+                final byte[] restrictionAdditionsBytes = this.restrictionAdditions.get(i).serialize();
+                dataOutputStream.write(restrictionAdditionsBytes, 0, restrictionAdditionsBytes.length);
+            }
+            for (int i = 0; i < this.restrictionDeletions.size(); i++) {
+                final byte[] restrictionDeletionsBytes = this.restrictionDeletions.get(i).serialize();
+                dataOutputStream.write(restrictionDeletionsBytes, 0, restrictionDeletionsBytes.length);
             }
         });
     }

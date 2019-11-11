@@ -18,6 +18,7 @@ package io.nem.sdk.model.transaction;
 
 import io.nem.core.crypto.Hashes;
 import io.nem.core.utils.ByteUtils;
+import io.nem.core.utils.ConvertUtils;
 import io.nem.sdk.model.mosaic.IllegalIdentifierException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -64,16 +65,19 @@ public class IdGenerator {
      */
     public static BigInteger generateNamespaceId(final String namespaceName,
         final BigInteger parentId) {
+/*
         if (!namespaceName.matches("^[a-z0-9][a-z0-9-_]*$")) {
             throw new IllegalIdentifierException("invalid namespace name");
         }
+*/
 
         final ByteBuffer parentIdBuffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN)
             .putLong(parentId.longValue());
         final byte[] hash = IdGenerator
             .getHashInLittleEndian(parentIdBuffer.array(), namespaceName.getBytes());
         // Set the high bit for namespace id
-        return BigInteger.valueOf(ByteBuffer.wrap(hash).getLong() | ID_GENERATOR_FLAG);
+        return ConvertUtils
+            .toUnsignedBigInteger(ByteBuffer.wrap(hash).getLong() | ID_GENERATOR_FLAG);
     }
 
     /**

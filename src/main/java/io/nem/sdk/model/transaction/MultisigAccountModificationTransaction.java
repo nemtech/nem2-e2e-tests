@@ -16,16 +16,8 @@
 
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.AmountDto;
-import io.nem.catapult.builders.CosignatoryModificationActionDto;
-import io.nem.catapult.builders.CosignatoryModificationBuilder;
-import io.nem.catapult.builders.EmbeddedMultisigAccountModificationTransactionBuilder;
-import io.nem.catapult.builders.KeyDto;
-import io.nem.catapult.builders.MultisigAccountModificationTransactionBuilder;
-import io.nem.catapult.builders.SignatureDto;
-import io.nem.catapult.builders.TimestampDto;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import io.nem.sdk.model.account.PublicAccount;
+
 import java.util.List;
 
 /**
@@ -37,108 +29,55 @@ import java.util.List;
  */
 public class MultisigAccountModificationTransaction extends Transaction {
 
-    private final int minApprovalDelta;
-    private final int minRemovalDelta;
-    private final List<MultisigCosignatoryModification> modifications;
+  private final byte minApprovalDelta;
+  private final byte minRemovalDelta;
+  private final List<PublicAccount> publicAccountsAdditions;
+  private final List<PublicAccount> publicAccountsDeletions;
 
-    public MultisigAccountModificationTransaction(
-        MultisigAccountModificationTransactionFactory factory) {
-        super(factory);
-        this.minApprovalDelta = factory.getMinApprovalDelta();
-        this.minRemovalDelta = factory.getMinRemovalDelta();
-        this.modifications = factory.getModifications();
-    }
+  public MultisigAccountModificationTransaction(
+      MultisigAccountModificationTransactionFactory factory) {
+    super(factory);
+    this.minApprovalDelta = factory.getMinApprovalDelta();
+    this.minRemovalDelta = factory.getMinRemovalDelta();
+    this.publicAccountsAdditions = factory.getPublicAccountsAdditions();
+    this.publicAccountsDeletions = factory.getPublicAccountsDeletions();
+  }
 
-    /**
-     * Return number of signatures needed to approve a transaction. If we are modifying and existing
-     * multi-signature account this indicates the relative change of the minimum cosignatories.
-     *
-     * @return byte
-     */
-    public int getMinApprovalDelta() {
-        return minApprovalDelta;
-    }
+  /**
+   * Return number of signatures needed to approve a transaction. If we are modifying and existing
+   * multi-signature account this indicates the relative change of the minimum cosignatories.
+   *
+   * @return byte
+   */
+  public byte getMinApprovalDelta() {
+    return minApprovalDelta;
+  }
 
-    /**
-     * Return number of signatures needed to remove a cosignatory. If we are modifying and existing
-     * multi-signature account this indicates the relative change of the minimum cosignatories.
-     *
-     * @return byte
-     */
-    public int getMinRemovalDelta() {
-        return minRemovalDelta;
-    }
+  /**
+   * Return number of signatures needed to remove a cosignatory. If we are modifying and existing
+   * multi-signature account this indicates the relative change of the minimum cosignatories.
+   *
+   * @return byte
+   */
+  public byte getMinRemovalDelta() {
+    return minRemovalDelta;
+  }
 
-    /**
-     * The List of cosigner accounts added or removed from the multi-signature account.
-     *
-     * @return {@link List} of { @ link MultisigCosignatoryModification }
-     */
-    public List<MultisigCosignatoryModification> getModifications() {
-        return modifications;
-    }
+  /**
+   * The List of cosigner accounts to added from the multi-signature account.
+   *
+   * @return {@link List} of { @ link PublicAccount }
+   */
+  public List<PublicAccount> getPublicAccountsAdditions() {
+    return publicAccountsAdditions;
+  }
 
-    /**
-     * Serialized the transaction.
-     *
-     * @return bytes of the transaction.
-     */
-    byte[] generateBytes() {
-        // Add place holders to the signer and signature until actually signed
-        final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-        final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-        MultisigAccountModificationTransactionBuilder txBuilder =
-            MultisigAccountModificationTransactionBuilder.create(
-                new SignatureDto(signatureBuffer),
-                new KeyDto(signerBuffer),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new AmountDto(getMaxFee().longValue()),
-                new TimestampDto(getDeadline().getInstant()),
-                (byte) getMinRemovalDelta(),
-                (byte) getMinApprovalDelta(),
-                getModificationBuilder());
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Gets the embedded tx bytes.
-     *
-     * @return Embedded tx bytes
-     */
-    byte[] generateEmbeddedBytes() {
-        EmbeddedMultisigAccountModificationTransactionBuilder txBuilder =
-            EmbeddedMultisigAccountModificationTransactionBuilder.create(
-                new KeyDto(getRequiredSignerBytes()),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                (byte) getMinRemovalDelta(),
-                (byte) getMinApprovalDelta(),
-                getModificationBuilder());
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Gets cosignatory modification.
-     *
-     * @return Cosignatory modification.
-     */
-    private ArrayList<CosignatoryModificationBuilder> getModificationBuilder() {
-        final ArrayList<CosignatoryModificationBuilder> modificationBuilder =
-            new ArrayList<>(modifications.size());
-        for (MultisigCosignatoryModification multisigCosignatoryModification : modifications) {
-            final byte[] byteCosignatoryPublicKey =
-                multisigCosignatoryModification.getCosignatoryPublicAccount().getPublicKey()
-                    .getBytes();
-            final ByteBuffer keyBuffer = ByteBuffer.wrap(byteCosignatoryPublicKey);
-            final CosignatoryModificationBuilder cosignatoryModificationBuilder =
-                CosignatoryModificationBuilder.create(
-                    CosignatoryModificationActionDto.rawValueOf(
-                        (byte) multisigCosignatoryModification.getModificationAction().getValue()),
-                    new KeyDto(keyBuffer));
-            modificationBuilder.add(cosignatoryModificationBuilder);
-        }
-        return modificationBuilder;
-    }
+  /**
+   * The List of cosigner accounts to removed from the multi-signature account.
+   *
+   * @return {@link List} of { @ link PublicAccount }
+   */
+  public List<PublicAccount> getPublicAccountsDeletions() {
+    return publicAccountsDeletions;
+  }
 }

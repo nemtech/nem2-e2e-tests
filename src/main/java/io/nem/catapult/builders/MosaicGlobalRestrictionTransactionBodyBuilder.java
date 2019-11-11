@@ -20,10 +20,10 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a mosaic global restriction transaction. */
-final class MosaicGlobalRestrictionTransactionBodyBuilder {
+public final class MosaicGlobalRestrictionTransactionBodyBuilder {
     /** Identifier of the mosaic being restricted. */
     private final UnresolvedMosaicIdDto mosaicId;
     /** Identifier of the mosaic providing the restriction key. */
@@ -32,10 +32,10 @@ final class MosaicGlobalRestrictionTransactionBodyBuilder {
     private final long restrictionKey;
     /** Previous restriction value. */
     private final long previousRestrictionValue;
-    /** Previous restriction type. */
-    private final MosaicRestrictionTypeDto previousRestrictionType;
     /** New restriction value. */
     private final long newRestrictionValue;
+    /** Previous restriction type. */
+    private final MosaicRestrictionTypeDto previousRestrictionType;
     /** New restriction type. */
     private final MosaicRestrictionTypeDto newRestrictionType;
 
@@ -44,14 +44,14 @@ final class MosaicGlobalRestrictionTransactionBodyBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected MosaicGlobalRestrictionTransactionBodyBuilder(final DataInput stream) {
+    protected MosaicGlobalRestrictionTransactionBodyBuilder(final DataInputStream stream) {
         try {
             this.mosaicId = UnresolvedMosaicIdDto.loadFromBinary(stream);
             this.referenceMosaicId = UnresolvedMosaicIdDto.loadFromBinary(stream);
             this.restrictionKey = Long.reverseBytes(stream.readLong());
             this.previousRestrictionValue = Long.reverseBytes(stream.readLong());
-            this.previousRestrictionType = MosaicRestrictionTypeDto.loadFromBinary(stream);
             this.newRestrictionValue = Long.reverseBytes(stream.readLong());
+            this.previousRestrictionType = MosaicRestrictionTypeDto.loadFromBinary(stream);
             this.newRestrictionType = MosaicRestrictionTypeDto.loadFromBinary(stream);
         } catch(Exception e) {
             throw GeneratorUtils.getExceptionToPropagate(e);
@@ -65,11 +65,11 @@ final class MosaicGlobalRestrictionTransactionBodyBuilder {
      * @param referenceMosaicId Identifier of the mosaic providing the restriction key.
      * @param restrictionKey Restriction key relative to the reference mosaic identifier.
      * @param previousRestrictionValue Previous restriction value.
-     * @param previousRestrictionType Previous restriction type.
      * @param newRestrictionValue New restriction value.
+     * @param previousRestrictionType Previous restriction type.
      * @param newRestrictionType New restriction type.
      */
-    protected MosaicGlobalRestrictionTransactionBodyBuilder(final UnresolvedMosaicIdDto mosaicId, final UnresolvedMosaicIdDto referenceMosaicId, final long restrictionKey, final long previousRestrictionValue, final MosaicRestrictionTypeDto previousRestrictionType, final long newRestrictionValue, final MosaicRestrictionTypeDto newRestrictionType) {
+    protected MosaicGlobalRestrictionTransactionBodyBuilder(final UnresolvedMosaicIdDto mosaicId, final UnresolvedMosaicIdDto referenceMosaicId, final long restrictionKey, final long previousRestrictionValue, final long newRestrictionValue, final MosaicRestrictionTypeDto previousRestrictionType, final MosaicRestrictionTypeDto newRestrictionType) {
         GeneratorUtils.notNull(mosaicId, "mosaicId is null");
         GeneratorUtils.notNull(referenceMosaicId, "referenceMosaicId is null");
         GeneratorUtils.notNull(previousRestrictionType, "previousRestrictionType is null");
@@ -78,8 +78,8 @@ final class MosaicGlobalRestrictionTransactionBodyBuilder {
         this.referenceMosaicId = referenceMosaicId;
         this.restrictionKey = restrictionKey;
         this.previousRestrictionValue = previousRestrictionValue;
-        this.previousRestrictionType = previousRestrictionType;
         this.newRestrictionValue = newRestrictionValue;
+        this.previousRestrictionType = previousRestrictionType;
         this.newRestrictionType = newRestrictionType;
     }
 
@@ -90,13 +90,13 @@ final class MosaicGlobalRestrictionTransactionBodyBuilder {
      * @param referenceMosaicId Identifier of the mosaic providing the restriction key.
      * @param restrictionKey Restriction key relative to the reference mosaic identifier.
      * @param previousRestrictionValue Previous restriction value.
-     * @param previousRestrictionType Previous restriction type.
      * @param newRestrictionValue New restriction value.
+     * @param previousRestrictionType Previous restriction type.
      * @param newRestrictionType New restriction type.
      * @return Instance of MosaicGlobalRestrictionTransactionBodyBuilder.
      */
-    public static MosaicGlobalRestrictionTransactionBodyBuilder create(final UnresolvedMosaicIdDto mosaicId, final UnresolvedMosaicIdDto referenceMosaicId, final long restrictionKey, final long previousRestrictionValue, final MosaicRestrictionTypeDto previousRestrictionType, final long newRestrictionValue, final MosaicRestrictionTypeDto newRestrictionType) {
-        return new MosaicGlobalRestrictionTransactionBodyBuilder(mosaicId, referenceMosaicId, restrictionKey, previousRestrictionValue, previousRestrictionType, newRestrictionValue, newRestrictionType);
+    public static MosaicGlobalRestrictionTransactionBodyBuilder create(final UnresolvedMosaicIdDto mosaicId, final UnresolvedMosaicIdDto referenceMosaicId, final long restrictionKey, final long previousRestrictionValue, final long newRestrictionValue, final MosaicRestrictionTypeDto previousRestrictionType, final MosaicRestrictionTypeDto newRestrictionType) {
+        return new MosaicGlobalRestrictionTransactionBodyBuilder(mosaicId, referenceMosaicId, restrictionKey, previousRestrictionValue, newRestrictionValue, previousRestrictionType, newRestrictionType);
     }
 
     /**
@@ -136,21 +136,21 @@ final class MosaicGlobalRestrictionTransactionBodyBuilder {
     }
 
     /**
-     * Gets previous restriction type.
-     *
-     * @return Previous restriction type.
-     */
-    public MosaicRestrictionTypeDto getPreviousRestrictionType() {
-        return this.previousRestrictionType;
-    }
-
-    /**
      * Gets new restriction value.
      *
      * @return New restriction value.
      */
     public long getNewRestrictionValue() {
         return this.newRestrictionValue;
+    }
+
+    /**
+     * Gets previous restriction type.
+     *
+     * @return Previous restriction type.
+     */
+    public MosaicRestrictionTypeDto getPreviousRestrictionType() {
+        return this.previousRestrictionType;
     }
 
     /**
@@ -173,8 +173,8 @@ final class MosaicGlobalRestrictionTransactionBodyBuilder {
         size += this.referenceMosaicId.getSize();
         size += 8; // restrictionKey
         size += 8; // previousRestrictionValue
-        size += this.previousRestrictionType.getSize();
         size += 8; // newRestrictionValue
+        size += this.previousRestrictionType.getSize();
         size += this.newRestrictionType.getSize();
         return size;
     }
@@ -185,7 +185,7 @@ final class MosaicGlobalRestrictionTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicGlobalRestrictionTransactionBodyBuilder.
      */
-    public static MosaicGlobalRestrictionTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static MosaicGlobalRestrictionTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new MosaicGlobalRestrictionTransactionBodyBuilder(stream);
     }
 
@@ -202,9 +202,9 @@ final class MosaicGlobalRestrictionTransactionBodyBuilder {
             dataOutputStream.write(referenceMosaicIdBytes, 0, referenceMosaicIdBytes.length);
             dataOutputStream.writeLong(Long.reverseBytes(this.getRestrictionKey()));
             dataOutputStream.writeLong(Long.reverseBytes(this.getPreviousRestrictionValue()));
+            dataOutputStream.writeLong(Long.reverseBytes(this.getNewRestrictionValue()));
             final byte[] previousRestrictionTypeBytes = this.previousRestrictionType.serialize();
             dataOutputStream.write(previousRestrictionTypeBytes, 0, previousRestrictionTypeBytes.length);
-            dataOutputStream.writeLong(Long.reverseBytes(this.getNewRestrictionValue()));
             final byte[] newRestrictionTypeBytes = this.newRestrictionType.serialize();
             dataOutputStream.write(newRestrictionTypeBytes, 0, newRestrictionTypeBytes.length);
         });

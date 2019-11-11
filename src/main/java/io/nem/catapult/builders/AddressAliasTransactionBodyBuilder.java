@@ -20,63 +20,54 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for an address alias transaction. */
-final class AddressAliasTransactionBodyBuilder {
-    /** Alias action. */
-    private final AliasActionDto aliasAction;
+public final class AddressAliasTransactionBodyBuilder {
     /** Identifier of the namespace that will become an alias. */
     private final NamespaceIdDto namespaceId;
     /** Aliased address. */
     private final AddressDto address;
+    /** Alias action. */
+    private final AliasActionDto aliasAction;
 
     /**
      * Constructor - Creates an object from stream.
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected AddressAliasTransactionBodyBuilder(final DataInput stream) {
-        this.aliasAction = AliasActionDto.loadFromBinary(stream);
+    protected AddressAliasTransactionBodyBuilder(final DataInputStream stream) {
         this.namespaceId = NamespaceIdDto.loadFromBinary(stream);
         this.address = AddressDto.loadFromBinary(stream);
+        this.aliasAction = AliasActionDto.loadFromBinary(stream);
     }
 
     /**
      * Constructor.
      *
-     * @param aliasAction Alias action.
      * @param namespaceId Identifier of the namespace that will become an alias.
      * @param address Aliased address.
+     * @param aliasAction Alias action.
      */
-    protected AddressAliasTransactionBodyBuilder(final AliasActionDto aliasAction, final NamespaceIdDto namespaceId, final AddressDto address) {
-        GeneratorUtils.notNull(aliasAction, "aliasAction is null");
+    protected AddressAliasTransactionBodyBuilder(final NamespaceIdDto namespaceId, final AddressDto address, final AliasActionDto aliasAction) {
         GeneratorUtils.notNull(namespaceId, "namespaceId is null");
         GeneratorUtils.notNull(address, "address is null");
-        this.aliasAction = aliasAction;
+        GeneratorUtils.notNull(aliasAction, "aliasAction is null");
         this.namespaceId = namespaceId;
         this.address = address;
+        this.aliasAction = aliasAction;
     }
 
     /**
      * Creates an instance of AddressAliasTransactionBodyBuilder.
      *
-     * @param aliasAction Alias action.
      * @param namespaceId Identifier of the namespace that will become an alias.
      * @param address Aliased address.
+     * @param aliasAction Alias action.
      * @return Instance of AddressAliasTransactionBodyBuilder.
      */
-    public static AddressAliasTransactionBodyBuilder create(final AliasActionDto aliasAction, final NamespaceIdDto namespaceId, final AddressDto address) {
-        return new AddressAliasTransactionBodyBuilder(aliasAction, namespaceId, address);
-    }
-
-    /**
-     * Gets alias action.
-     *
-     * @return Alias action.
-     */
-    public AliasActionDto getAliasAction() {
-        return this.aliasAction;
+    public static AddressAliasTransactionBodyBuilder create(final NamespaceIdDto namespaceId, final AddressDto address, final AliasActionDto aliasAction) {
+        return new AddressAliasTransactionBodyBuilder(namespaceId, address, aliasAction);
     }
 
     /**
@@ -98,15 +89,24 @@ final class AddressAliasTransactionBodyBuilder {
     }
 
     /**
+     * Gets alias action.
+     *
+     * @return Alias action.
+     */
+    public AliasActionDto getAliasAction() {
+        return this.aliasAction;
+    }
+
+    /**
      * Gets the size of the object.
      *
      * @return Size in bytes.
      */
     public int getSize() {
         int size = 0;
-        size += this.aliasAction.getSize();
         size += this.namespaceId.getSize();
         size += this.address.getSize();
+        size += this.aliasAction.getSize();
         return size;
     }
 
@@ -116,7 +116,7 @@ final class AddressAliasTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AddressAliasTransactionBodyBuilder.
      */
-    public static AddressAliasTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static AddressAliasTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new AddressAliasTransactionBodyBuilder(stream);
     }
 
@@ -127,12 +127,12 @@ final class AddressAliasTransactionBodyBuilder {
      */
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
-            final byte[] aliasActionBytes = this.aliasAction.serialize();
-            dataOutputStream.write(aliasActionBytes, 0, aliasActionBytes.length);
             final byte[] namespaceIdBytes = this.namespaceId.serialize();
             dataOutputStream.write(namespaceIdBytes, 0, namespaceIdBytes.length);
             final byte[] addressBytes = this.address.serialize();
             dataOutputStream.write(addressBytes, 0, addressBytes.length);
+            final byte[] aliasActionBytes = this.aliasAction.serialize();
+            dataOutputStream.write(aliasActionBytes, 0, aliasActionBytes.length);
         });
     }
 }

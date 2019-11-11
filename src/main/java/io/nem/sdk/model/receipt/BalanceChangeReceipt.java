@@ -16,9 +16,11 @@
 
 package io.nem.sdk.model.receipt;
 
+import io.nem.core.utils.ConvertUtils;
 import io.nem.sdk.model.account.PublicAccount;
 import io.nem.sdk.model.mosaic.MosaicId;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.Optional;
 
 public class BalanceChangeReceipt extends Receipt {
@@ -66,7 +68,7 @@ public class BalanceChangeReceipt extends Receipt {
         BigInteger amount,
         ReceiptType type,
         ReceiptVersion version) {
-        super(type, version, null);
+        super(type, version, Optional.empty());
         this.account = account;
         this.amount = amount;
         this.mosaicId = mosaicId;
@@ -98,6 +100,21 @@ public class BalanceChangeReceipt extends Receipt {
      */
     public BigInteger getAmount() {
         return this.amount;
+    }
+
+    /**
+     * Serialize receipt and returns receipt bytes
+     *
+     * @return receipt bytes
+     */
+    public byte[] serialize() {
+        final ByteBuffer buffer = ByteBuffer.allocate(52);
+        buffer.putShort(Short.reverseBytes((short) getVersion().getValue()));
+        buffer.putShort(Short.reverseBytes((short) getType().getValue()));
+        buffer.put(ConvertUtils.getBytes(getAccount().getPublicKey().toHex()));
+        buffer.putLong(Long.reverseBytes(getMosaicId().getIdAsLong()));
+        buffer.putLong(Long.reverseBytes(getAmount().longValue()));
+        return buffer.array();
     }
 
     /**

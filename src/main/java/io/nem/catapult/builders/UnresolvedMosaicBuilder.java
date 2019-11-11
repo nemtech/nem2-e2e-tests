@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for an unresolved mosaic. */
 public class UnresolvedMosaicBuilder {
@@ -34,7 +34,7 @@ public class UnresolvedMosaicBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected UnresolvedMosaicBuilder(final DataInput stream) {
+    protected UnresolvedMosaicBuilder(final DataInputStream stream) {
         this.mosaicId = UnresolvedMosaicIdDto.loadFromBinary(stream);
         this.amount = AmountDto.loadFromBinary(stream);
     }
@@ -99,7 +99,7 @@ public class UnresolvedMosaicBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of UnresolvedMosaicBuilder.
      */
-    public static UnresolvedMosaicBuilder loadFromBinary(final DataInput stream) {
+    public static UnresolvedMosaicBuilder loadFromBinary(final DataInputStream stream) {
         return new UnresolvedMosaicBuilder(stream);
     }
 

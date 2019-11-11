@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Enumeration of namespace registration types. */
 public enum NamespaceRegistrationTypeDto {
@@ -28,6 +28,15 @@ public enum NamespaceRegistrationTypeDto {
     ROOT((byte) 0),
     /** Child namespace. */
     CHILD((byte) 1);
+
+    /**
+     * Gets the value of the enum.
+     *
+     * @return Value of the enum.
+     */
+    public byte getValue() {
+        return this.value;
+    }
 
     /** Enum value. */
     private final byte value;
@@ -71,7 +80,7 @@ public enum NamespaceRegistrationTypeDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of NamespaceRegistrationTypeDto.
      */
-    public static NamespaceRegistrationTypeDto loadFromBinary(final DataInput stream) {
+    public static NamespaceRegistrationTypeDto loadFromBinary(final DataInputStream stream) {
         try {
             final byte streamValue = stream.readByte();
             return rawValueOf(streamValue);

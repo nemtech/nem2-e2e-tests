@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Enumeration of account link actions. */
 public enum AccountLinkActionDto {
@@ -28,6 +28,15 @@ public enum AccountLinkActionDto {
     UNLINK((byte) 0),
     /** Link account. */
     LINK((byte) 1);
+
+    /**
+     * Gets the value of the enum.
+     *
+     * @return Value of the enum.
+     */
+    public byte getValue() {
+        return this.value;
+    }
 
     /** Enum value. */
     private final byte value;
@@ -71,7 +80,7 @@ public enum AccountLinkActionDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AccountLinkActionDto.
      */
-    public static AccountLinkActionDto loadFromBinary(final DataInput stream) {
+    public static AccountLinkActionDto loadFromBinary(final DataInputStream stream) {
         try {
             final byte streamValue = stream.readByte();
             return rawValueOf(streamValue);

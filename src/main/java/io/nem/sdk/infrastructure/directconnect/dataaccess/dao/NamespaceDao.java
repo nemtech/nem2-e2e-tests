@@ -20,6 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.dao;
 
+import io.nem.sdk.infrastructure.SerializationUtils;
 import io.nem.sdk.infrastructure.common.CatapultContext;
 import io.nem.sdk.infrastructure.common.NamespaceRepository;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.NamespacesCollection;
@@ -56,11 +57,11 @@ public class NamespaceDao implements NamespaceRepository {
   }
 
   @Override
-  public Observable<List<NamespaceInfo>> getNamespacesFromAccount(Address address) {
+  public Observable<List<NamespaceInfo>> getNamespacesFromAccount(final Address address) {
     return Observable.fromCallable(
         () ->
             new NamespacesCollection(catapultContext.getDataAccessContext())
-                .findByAddress(address.getByteBuffer().array()));
+                .findByAddress(SerializationUtils.fromAddressToByteBuffer(address).array()));
   }
 
   /**

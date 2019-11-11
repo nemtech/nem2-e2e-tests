@@ -15,31 +15,21 @@
  */
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.AccountMosaicRestrictionModificationBuilder;
-import io.nem.catapult.builders.AccountMosaicRestrictionTransactionBuilder;
-import io.nem.catapult.builders.AccountRestrictionModificationActionDto;
-import io.nem.catapult.builders.AccountRestrictionTypeDto;
-import io.nem.catapult.builders.AmountDto;
-import io.nem.catapult.builders.EmbeddedAccountMosaicRestrictionTransactionBuilder;
-import io.nem.catapult.builders.KeyDto;
-import io.nem.catapult.builders.SignatureDto;
-import io.nem.catapult.builders.TimestampDto;
-import io.nem.catapult.builders.UnresolvedMosaicIdDto;
-import io.nem.sdk.model.mosaic.MosaicId;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import io.nem.sdk.model.mosaic.UnresolvedMosaicId;
 import java.util.List;
 
 public class AccountMosaicRestrictionTransaction extends Transaction {
 
     private final AccountRestrictionType restrictionType;
-    private final List<AccountRestrictionModification<MosaicId>> modifications;
+    private final List<UnresolvedMosaicId> restrictionAdditions;
+    private final List<UnresolvedMosaicId> restrictionDeletions;
 
     public AccountMosaicRestrictionTransaction(
         AccountMosaicRestrictionTransactionFactory factory) {
         super(factory);
         this.restrictionType = factory.getRestrictionType();
-        this.modifications = factory.getModifications();
+        this.restrictionAdditions = factory.getRestrictionAdditions();
+        this.restrictionDeletions = factory.getRestrictionDeletions();
     }
 
     /**
@@ -54,68 +44,18 @@ public class AccountMosaicRestrictionTransaction extends Transaction {
     /**
      * Get account mosaic restriction modifications
      *
-     * @return list of {@link AccountRestrictionModification} with {@link MosaicId}
+     * @return list of {@link UnresolvedMosaicId}
      */
-    public List<AccountRestrictionModification<MosaicId>> getModifications() {
-        return this.modifications;
+    public List<UnresolvedMosaicId> getRestrictionAdditions() {
+        return this.restrictionAdditions;
     }
 
     /**
-     * Serialized the transaction.
+     * Get account mosaic restriction deletions.
      *
-     * @return bytes of the transaction.
+     * @return list of {@link UnresolvedMosaicId}
      */
-    byte[] generateBytes() {
-        // Add place holders to the signer and signature until actually signed
-        final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-        final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-        AccountMosaicRestrictionTransactionBuilder txBuilder =
-            AccountMosaicRestrictionTransactionBuilder.create(
-                new SignatureDto(signatureBuffer),
-                new KeyDto(signerBuffer),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new AmountDto(getMaxFee().longValue()),
-                new TimestampDto(getDeadline().getInstant()),
-                AccountRestrictionTypeDto.rawValueOf((byte) this.restrictionType.getValue()),
-                getModificationBuilder());
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Gets the embedded tx bytes.
-     *
-     * @return Embedded tx bytes
-     */
-    byte[] generateEmbeddedBytes() {
-        EmbeddedAccountMosaicRestrictionTransactionBuilder txBuilder =
-            EmbeddedAccountMosaicRestrictionTransactionBuilder.create(
-                new KeyDto(getRequiredSignerBytes()),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                AccountRestrictionTypeDto.rawValueOf((byte) this.restrictionType.getValue()),
-                getModificationBuilder());
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Gets account restriction modification.
-     *
-     * @return account restriction modification.
-     */
-    private ArrayList<AccountMosaicRestrictionModificationBuilder> getModificationBuilder() {
-        final ArrayList<AccountMosaicRestrictionModificationBuilder> modificationBuilder =
-            new ArrayList<>(modifications.size());
-        for (AccountRestrictionModification<MosaicId> accountRestrictionModification : modifications) {
-            final AccountMosaicRestrictionModificationBuilder builder =
-                AccountMosaicRestrictionModificationBuilder.create(
-                    AccountRestrictionModificationActionDto.rawValueOf(
-                        accountRestrictionModification.getModificationAction().getValue()),
-                    new UnresolvedMosaicIdDto(
-                        accountRestrictionModification.getValue().getIdAsLong()));
-            modificationBuilder.add(builder);
-        }
-        return modificationBuilder;
+    public List<UnresolvedMosaicId> getRestrictionDeletions() {
+        return this.restrictionDeletions;
     }
 }

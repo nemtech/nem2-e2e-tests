@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a non-embedded address alias transaction. */
 public final class AddressAliasTransactionBuilder extends TransactionBuilder {
@@ -32,7 +32,7 @@ public final class AddressAliasTransactionBuilder extends TransactionBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected AddressAliasTransactionBuilder(final DataInput stream) {
+    protected AddressAliasTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.addressAliasTransactionBody = AddressAliasTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,45 +41,38 @@ public final class AddressAliasTransactionBuilder extends TransactionBuilder {
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
-     * @param aliasAction Alias action.
      * @param namespaceId Identifier of the namespace that will become an alias.
      * @param address Aliased address.
+     * @param aliasAction Alias action.
      */
-    protected AddressAliasTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final AliasActionDto aliasAction, final NamespaceIdDto namespaceId, final AddressDto address) {
-        super(signature, signer, version, type, fee, deadline);
-        this.addressAliasTransactionBody = AddressAliasTransactionBodyBuilder.create(aliasAction, namespaceId, address);
+    protected AddressAliasTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final NamespaceIdDto namespaceId, final AddressDto address, final AliasActionDto aliasAction) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
+        this.addressAliasTransactionBody = AddressAliasTransactionBodyBuilder.create(namespaceId, address, aliasAction);
     }
 
     /**
      * Creates an instance of AddressAliasTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
-     * @param aliasAction Alias action.
      * @param namespaceId Identifier of the namespace that will become an alias.
      * @param address Aliased address.
+     * @param aliasAction Alias action.
      * @return Instance of AddressAliasTransactionBuilder.
      */
-    public static AddressAliasTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final AliasActionDto aliasAction, final NamespaceIdDto namespaceId, final AddressDto address) {
-        return new AddressAliasTransactionBuilder(signature, signer, version, type, fee, deadline, aliasAction, namespaceId, address);
-    }
-
-    /**
-     * Gets alias action.
-     *
-     * @return Alias action.
-     */
-    public AliasActionDto getAliasAction() {
-        return this.addressAliasTransactionBody.getAliasAction();
+    public static AddressAliasTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final NamespaceIdDto namespaceId, final AddressDto address, final AliasActionDto aliasAction) {
+        return new AddressAliasTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, namespaceId, address, aliasAction);
     }
 
     /**
@@ -101,6 +94,15 @@ public final class AddressAliasTransactionBuilder extends TransactionBuilder {
     }
 
     /**
+     * Gets alias action.
+     *
+     * @return Alias action.
+     */
+    public AliasActionDto getAliasAction() {
+        return this.addressAliasTransactionBody.getAliasAction();
+    }
+
+    /**
      * Gets the size of the object.
      *
      * @return Size in bytes.
@@ -118,7 +120,7 @@ public final class AddressAliasTransactionBuilder extends TransactionBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AddressAliasTransactionBuilder.
      */
-    public static AddressAliasTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static AddressAliasTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new AddressAliasTransactionBuilder(stream);
     }
 

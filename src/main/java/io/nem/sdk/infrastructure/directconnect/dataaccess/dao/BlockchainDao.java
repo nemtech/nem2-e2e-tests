@@ -28,9 +28,7 @@ import io.nem.sdk.model.account.Address;
 import io.nem.sdk.model.blockchain.BlockInfo;
 import io.nem.sdk.model.blockchain.ChainStatisticInfo;
 import io.nem.sdk.model.mosaic.MosaicId;
-import io.nem.sdk.model.receipt.ResolutionStatement;
-import io.nem.sdk.model.receipt.Statement;
-import io.nem.sdk.model.receipt.TransactionStatement;
+import io.nem.sdk.model.receipt.*;
 import io.nem.sdk.model.transaction.Transaction;
 import io.reactivex.Observable;
 
@@ -113,9 +111,9 @@ public class BlockchainDao implements BlockchainRepository {
 	private Statement createStatement(final BigInteger height) {
 		Observable<List<TransactionStatement>> transactionStatementsObservable =
 				Observable.fromCallable(() -> new TransactionStatementsCollection(catapultContext.getDataAccessContext()).findByHeight(height.longValue()));
-		Observable<List<ResolutionStatement<Address>>> addressResolutionStatementsObservable =
+		Observable<List<AddressResolutionStatement>> addressResolutionStatementsObservable =
 				Observable.fromCallable(() -> new AddressResolutionStatementsCollection(catapultContext.getDataAccessContext()).findByHeight(height.longValue()));
-		Observable<List<ResolutionStatement<MosaicId>>> mosaicResolutionStatementsObservable =
+		Observable<List<MosaicResolutionStatement>> mosaicResolutionStatementsObservable =
 				Observable.fromCallable(() -> new MosaicResolutionStatementsCollection(catapultContext.getDataAccessContext()).findByHeight(height.longValue()));
 		return ExceptionUtils.propagate(() -> new Statement(
 				transactionStatementsObservable.toFuture().get(), addressResolutionStatementsObservable.toFuture().get(),

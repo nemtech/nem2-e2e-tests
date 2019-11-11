@@ -16,24 +16,10 @@
 
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.AmountDto;
-import io.nem.catapult.builders.EmbeddedTransferTransactionBuilder;
-import io.nem.catapult.builders.KeyDto;
-import io.nem.catapult.builders.SignatureDto;
-import io.nem.catapult.builders.TimestampDto;
-import io.nem.catapult.builders.TransferTransactionBuilder;
-import io.nem.catapult.builders.UnresolvedAddressDto;
-import io.nem.catapult.builders.UnresolvedMosaicBuilder;
-import io.nem.catapult.builders.UnresolvedMosaicIdDto;
-import io.nem.sdk.model.account.Address;
+import io.nem.sdk.model.account.UnresolvedAddress;
+import io.nem.sdk.model.message.Message;
 import io.nem.sdk.model.mosaic.Mosaic;
-import io.nem.sdk.model.namespace.NamespaceId;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The transfer transactions object contain data about transfers of mosaics and message to another
@@ -41,10 +27,9 @@ import java.util.Optional;
  */
 public class TransferTransaction extends Transaction {
 
-    private final Optional<Address> recipient;
+    private final UnresolvedAddress recipient;
     private final List<Mosaic> mosaics;
     private final Message message;
-    private final Optional<NamespaceId> namespaceId;
 
     /**
      * Constructor of the transfer transaction using the factory.
@@ -56,7 +41,6 @@ public class TransferTransaction extends Transaction {
         this.recipient = factory.getRecipient();
         this.mosaics = factory.getMosaics();
         this.message = factory.getMessage();
-        this.namespaceId = factory.getNamespaceId();
     }
 
     /**
@@ -64,18 +48,10 @@ public class TransferTransaction extends Transaction {
      *
      * @return recipient address
      */
-    public Optional<Address> getRecipient() {
+    public UnresolvedAddress getRecipient() {
         return recipient;
     }
 
-    /**
-     * Gets namespace id alias for the address of the recipient.
-     *
-     * @return Namespace id.
-     */
-    public Optional<NamespaceId> getNamespaceId() {
-        return namespaceId;
-    }
 
     /**
      * Returns list of mosaic objects.
@@ -93,113 +69,6 @@ public class TransferTransaction extends Transaction {
      */
     public Message getMessage() {
         return message;
-    }
-
-    /**
-     * Serialized the transfer transaction.
-     *
-     * @return bytes of the transaction.
-     */
-    @Override
-    byte[] generateBytes() {
-        // Add place holders to the signer and signature until actually signed
-        final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-        final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-        final TransferTransactionBuilder txBuilder =
-            TransferTransactionBuilder.create(
-                new SignatureDto(signatureBuffer),
-                new KeyDto(signerBuffer),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new AmountDto(getMaxFee().longValue()),
-                new TimestampDto(getDeadline().getInstant()),
-                new UnresolvedAddressDto(getUnresolveAddressBuffer()),
-                getMessageBuffer(),
-                getUnresolvedMosaicArray());
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Serialized the transfer transaction to embedded bytes.
-     *
-     * @return bytes of the transaction.
-     */
-    @Override
-    byte[] generateEmbeddedBytes() {
-        EmbeddedTransferTransactionBuilder txBuilder =
-            EmbeddedTransferTransactionBuilder.create(
-                new KeyDto(getRequiredSignerBytes()),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new UnresolvedAddressDto(getUnresolveAddressBuffer()),
-                getMessageBuffer(),
-                getUnresolvedMosaicArray());
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Gets mosaic array.
-     *
-     * @return Mosaic array.
-     */
-    private ArrayList<UnresolvedMosaicBuilder> getUnresolvedMosaicArray() {
-        // Create Mosaics
-        final ArrayList<UnresolvedMosaicBuilder> unresolvedMosaicArrayList =
-            new ArrayList<>(mosaics.size());
-        for (int i = 0; i < mosaics.size(); ++i) {
-            final Mosaic mosaic = mosaics.get(i);
-            final UnresolvedMosaicBuilder mosaicBuilder =
-                UnresolvedMosaicBuilder.create(
-                    new UnresolvedMosaicIdDto(mosaic.getId().getId().longValue()),
-                    new AmountDto(mosaic.getAmount().longValue()));
-            unresolvedMosaicArrayList.add(mosaicBuilder);
-        }
-        return unresolvedMosaicArrayList;
-    }
-
-    /**
-     * Gets message buffer.
-     *
-     * @return Message buffer.
-     */
-    private ByteBuffer getMessageBuffer() {
-        final byte byteMessageType = (byte) message.getType();
-        final byte[] bytePayload = message.getPayload().getBytes(StandardCharsets.UTF_8);
-        final ByteBuffer messageBuffer =
-            ByteBuffer.allocate(bytePayload.length + 1 /* for the message type */);
-        messageBuffer.put(byteMessageType);
-        messageBuffer.put(bytePayload);
-        return messageBuffer;
-    }
-
-    /**
-     * Gets unresolve address buffer.
-     *
-     * @return Unresolve address buffer
-     */
-    private ByteBuffer getUnresolveAddressBuffer() {
-
-        return getRecipient().map(Address::getByteBuffer).orElseGet(
-            () -> getNamespaceId()
-                .map(this::getNamespaceIdAsUnresolveAddressBuffer).orElseThrow(
-                    () -> new IllegalStateException("Address or namespace alias must be set."))
-        );
-    }
-
-    /**
-     * Gets the namespace id as unresolve address.
-     *
-     * @param namespaceId the namespace id.
-     * @return Unresolve address buffer.
-     */
-    private ByteBuffer getNamespaceIdAsUnresolveAddressBuffer(NamespaceId namespaceId) {
-        final ByteBuffer namespaceIdAlias = ByteBuffer.allocate(25);
-        final byte firstByte = (byte) (this.getNetworkType().getValue() | 0x01);
-        namespaceIdAlias.order(ByteOrder.LITTLE_ENDIAN);
-        namespaceIdAlias.put(firstByte);
-        namespaceIdAlias.putLong(namespaceId.getIdAsLong());
-        return namespaceIdAlias;
     }
 
 }

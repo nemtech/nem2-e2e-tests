@@ -16,17 +16,21 @@
 
 package io.nem.sdk.model.receipt;
 
+import io.nem.core.utils.ConvertUtils;
+import io.nem.sdk.infrastructure.SerializationUtils;
 import io.nem.sdk.model.account.Address;
 import io.nem.sdk.model.account.PublicAccount;
+import io.nem.sdk.model.account.UnresolvedAddress;
 import io.nem.sdk.model.mosaic.MosaicId;
 import io.nem.sdk.model.namespace.AddressAlias;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public class BalanceTransferReceipt<T> extends Receipt {
+public class BalanceTransferReceipt extends Receipt {
 
     private final PublicAccount sender;
-    private final T recipient;
+    private final UnresolvedAddress recipient;
     private final MosaicId mosaicId;
     private final BigInteger amount;
 
@@ -43,7 +47,7 @@ public class BalanceTransferReceipt<T> extends Receipt {
      */
     public BalanceTransferReceipt(
         PublicAccount sender,
-        T recipient,
+        UnresolvedAddress recipient,
         MosaicId mosaicId,
         BigInteger amount,
         ReceiptType type,
@@ -70,12 +74,12 @@ public class BalanceTransferReceipt<T> extends Receipt {
      */
     public BalanceTransferReceipt(
         PublicAccount sender,
-        T recipient,
+        UnresolvedAddress recipient,
         MosaicId mosaicId,
         BigInteger amount,
         ReceiptType type,
         ReceiptVersion version) {
-        super(type, version, null);
+        super(type, version, Optional.empty());
         this.sender = sender;
         this.recipient = recipient;
         this.amount = amount;
@@ -98,7 +102,7 @@ public class BalanceTransferReceipt<T> extends Receipt {
      *
      * @return recipient's address or addressAlias
      */
-    public T getRecipient() {
+    public UnresolvedAddress getRecipient() {
         return this.recipient;
     }
 
@@ -118,6 +122,25 @@ public class BalanceTransferReceipt<T> extends Receipt {
      */
     public BigInteger getAmount() {
         return this.amount;
+    }
+
+    /**
+     * Serialize receipt and returns receipt bytes
+     *
+     * @return receipt bytes
+     */
+    public byte[] serialize() {
+        ByteBuffer recipientBytes = SerializationUtils
+            .fromUnresolvedAddressToByteBuffer(getRecipient(),
+                getSender().getAddress().getNetworkType());
+        final ByteBuffer buffer = ByteBuffer.allocate(52 + recipientBytes.remaining());
+        buffer.putShort(Short.reverseBytes((short) getVersion().getValue()));
+        buffer.putShort(Short.reverseBytes((short) getType().getValue()));
+        buffer.put(recipientBytes);
+        buffer.put(ConvertUtils.getBytes(getSender().getPublicKey().toHex()));
+        buffer.putLong(Long.reverseBytes(getMosaicId().getIdAsLong()));
+        buffer.putLong(Long.reverseBytes(getAmount().longValue()));
+        return buffer.array();
     }
 
     /**

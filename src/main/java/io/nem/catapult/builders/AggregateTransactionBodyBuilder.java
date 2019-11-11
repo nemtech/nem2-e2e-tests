@@ -20,30 +20,41 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
-import java.util.ArrayList;
+import java.io.DataInputStream;
+import java.io.ByteArrayInputStream;
+import java.util.List;
+import java.nio.ByteBuffer;
 
 /** Binary layout for an aggregate transaction. */
-final class AggregateTransactionBodyBuilder {
+public final class AggregateTransactionBodyBuilder {
+    /** Aggregate hash of an aggregate's transactions. */
+    private final Hash256Dto transactionsHash;
+    /** Reserved padding to align end of AggregateTransactionHeader on 8-byte boundary. */
+    private final int aggregateTransactionHeader_Reserved1;
     /** Sub-transaction data (transactions are variable sized and payload size is in bytes). */
-    private final ArrayList<TransactionBuilder> transactions;
+    private final List<EmbeddedTransactionBuilder> transactions;
     /** Cosignatures data (fills remaining body space after transactions). */
-    private final ArrayList<CosignatureBuilder> cosignatures;
+    private final List<CosignatureBuilder> cosignatures;
 
     /**
      * Constructor - Creates an object from stream.
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected AggregateTransactionBodyBuilder(final DataInput stream) {
+    protected AggregateTransactionBodyBuilder(final DataInputStream stream) {
         try {
+            this.transactionsHash = Hash256Dto.loadFromBinary(stream);
             final int payloadSize = Integer.reverseBytes(stream.readInt());
-            this.transactions = new java.util.ArrayList<>(payloadSize);
-            for (int i = 0; i < payloadSize; i++) {
-                transactions.add(TransactionBuilder.loadFromBinary(stream));
+            this.aggregateTransactionHeader_Reserved1 = Integer.reverseBytes(stream.readInt());
+            final ByteBuffer transactionBytes = ByteBuffer.allocate(payloadSize);
+            stream.read(transactionBytes.array());
+            final DataInputStream dataInputStream =  new DataInputStream(new ByteArrayInputStream(transactionBytes.array()));
+            this.transactions = new java.util.ArrayList<>();
+            while (dataInputStream.available() > 0) {
+                transactions.add(EmbeddedTransactionBuilder.loadFromBinary(dataInputStream));
             }
-            this.cosignatures = new java.util.ArrayList<>(0);
-            for (int i = 0; i < 0; i++) {
+            this.cosignatures = new java.util.ArrayList<>();
+            while (stream.available() > 0) {
                 cosignatures.add(CosignatureBuilder.loadFromBinary(stream));
             }
         } catch(Exception e) {
@@ -54,12 +65,16 @@ final class AggregateTransactionBodyBuilder {
     /**
      * Constructor.
      *
+     * @param transactionsHash Aggregate hash of an aggregate's transactions.
      * @param transactions Sub-transaction data (transactions are variable sized and payload size is in bytes).
      * @param cosignatures Cosignatures data (fills remaining body space after transactions).
      */
-    protected AggregateTransactionBodyBuilder(final ArrayList<TransactionBuilder> transactions, final ArrayList<CosignatureBuilder> cosignatures) {
+    protected AggregateTransactionBodyBuilder(final Hash256Dto transactionsHash, final List<EmbeddedTransactionBuilder> transactions, final List<CosignatureBuilder> cosignatures) {
+        GeneratorUtils.notNull(transactionsHash, "transactionsHash is null");
         GeneratorUtils.notNull(transactions, "transactions is null");
         GeneratorUtils.notNull(cosignatures, "cosignatures is null");
+        this.transactionsHash = transactionsHash;
+        this.aggregateTransactionHeader_Reserved1 = 0;
         this.transactions = transactions;
         this.cosignatures = cosignatures;
     }
@@ -67,12 +82,31 @@ final class AggregateTransactionBodyBuilder {
     /**
      * Creates an instance of AggregateTransactionBodyBuilder.
      *
+     * @param transactionsHash Aggregate hash of an aggregate's transactions.
      * @param transactions Sub-transaction data (transactions are variable sized and payload size is in bytes).
      * @param cosignatures Cosignatures data (fills remaining body space after transactions).
      * @return Instance of AggregateTransactionBodyBuilder.
      */
-    public static AggregateTransactionBodyBuilder create(final ArrayList<TransactionBuilder> transactions, final ArrayList<CosignatureBuilder> cosignatures) {
-        return new AggregateTransactionBodyBuilder(transactions, cosignatures);
+    public static AggregateTransactionBodyBuilder create(final Hash256Dto transactionsHash, final List<EmbeddedTransactionBuilder> transactions, final List<CosignatureBuilder> cosignatures) {
+        return new AggregateTransactionBodyBuilder(transactionsHash, transactions, cosignatures);
+    }
+
+    /**
+     * Gets aggregate hash of an aggregate's transactions.
+     *
+     * @return Aggregate hash of an aggregate's transactions.
+     */
+    public Hash256Dto getTransactionsHash() {
+        return this.transactionsHash;
+    }
+
+    /**
+     * Gets reserved padding to align end of AggregateTransactionHeader on 8-byte boundary.
+     *
+     * @return Reserved padding to align end of AggregateTransactionHeader on 8-byte boundary.
+     */
+    private int getAggregateTransactionHeader_Reserved1() {
+        return this.aggregateTransactionHeader_Reserved1;
     }
 
     /**
@@ -80,7 +114,7 @@ final class AggregateTransactionBodyBuilder {
      *
      * @return Sub-transaction data (transactions are variable sized and payload size is in bytes).
      */
-    public ArrayList<TransactionBuilder> getTransactions() {
+    public List<EmbeddedTransactionBuilder> getTransactions() {
         return this.transactions;
     }
 
@@ -89,7 +123,7 @@ final class AggregateTransactionBodyBuilder {
      *
      * @return Cosignatures data (fills remaining body space after transactions).
      */
-    public ArrayList<CosignatureBuilder> getCosignatures() {
+    public List<CosignatureBuilder> getCosignatures() {
         return this.cosignatures;
     }
 
@@ -100,7 +134,9 @@ final class AggregateTransactionBodyBuilder {
      */
     public int getSize() {
         int size = 0;
+        size += this.transactionsHash.getSize();
         size += 4; // payloadSize
+        size += 4; // aggregateTransactionHeader_Reserved1
         size += this.transactions.stream().mapToInt(o -> o.getSize()).sum();
         size += this.cosignatures.stream().mapToInt(o -> o.getSize()).sum();
         return size;
@@ -112,7 +148,7 @@ final class AggregateTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AggregateTransactionBodyBuilder.
      */
-    public static AggregateTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static AggregateTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new AggregateTransactionBodyBuilder(stream);
     }
 
@@ -123,7 +159,10 @@ final class AggregateTransactionBodyBuilder {
      */
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
-            dataOutputStream.writeInt(Integer.reverseBytes((int) this.transactions.size()));
+            final byte[] transactionsHashBytes = this.transactionsHash.serialize();
+            dataOutputStream.write(transactionsHashBytes, 0, transactionsHashBytes.length);
+            dataOutputStream.writeInt(Integer.reverseBytes((int) this.transactions.stream().mapToInt(o -> o.getSize()).sum()));
+            dataOutputStream.writeInt(Integer.reverseBytes(this.getAggregateTransactionHeader_Reserved1()));
             for (int i = 0; i < this.transactions.size(); i++) {
                 final byte[] transactionsBytes = this.transactions.get(i).serialize();
                 dataOutputStream.write(transactionsBytes, 0, transactionsBytes.length);

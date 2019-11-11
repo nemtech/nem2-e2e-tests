@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Hash256. */
@@ -44,7 +44,7 @@ public final class Hash256Dto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public Hash256Dto(final DataInput stream) {
+    public Hash256Dto(final DataInputStream stream) {
         try {
             this.hash256 = ByteBuffer.allocate(32);
             stream.readFully(this.hash256.array());
@@ -77,7 +77,7 @@ public final class Hash256Dto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of Hash256Dto.
      */
-    public static Hash256Dto loadFromBinary(final DataInput stream) {
+    public static Hash256Dto loadFromBinary(final DataInputStream stream) {
         return new Hash256Dto(stream);
     }
 

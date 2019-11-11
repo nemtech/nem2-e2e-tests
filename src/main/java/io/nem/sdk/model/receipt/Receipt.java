@@ -66,4 +66,11 @@ public abstract class Receipt {
     public Optional<Integer> getSize() {
         return this.size;
     }
+
+    /**
+     * Serialize receipt and returns receipt bytes
+     *
+     * @return receipt bytes
+     */
+    abstract byte[] serialize();
 }

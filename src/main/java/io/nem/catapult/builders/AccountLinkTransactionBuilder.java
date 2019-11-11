@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a non-embedded account link transaction. */
 public final class AccountLinkTransactionBuilder extends TransactionBuilder {
@@ -32,7 +32,7 @@ public final class AccountLinkTransactionBuilder extends TransactionBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected AccountLinkTransactionBuilder(final DataInput stream) {
+    protected AccountLinkTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.accountLinkTransactionBody = AccountLinkTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,43 +41,45 @@ public final class AccountLinkTransactionBuilder extends TransactionBuilder {
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
-     * @param remoteAccountPublicKey Remote account public key.
+     * @param remotePublicKey Remote public key.
      * @param linkAction Account link action.
      */
-    protected AccountLinkTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto remoteAccountPublicKey, final AccountLinkActionDto linkAction) {
-        super(signature, signer, version, type, fee, deadline);
-        this.accountLinkTransactionBody = AccountLinkTransactionBodyBuilder.create(remoteAccountPublicKey, linkAction);
+    protected AccountLinkTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto remotePublicKey, final AccountLinkActionDto linkAction) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
+        this.accountLinkTransactionBody = AccountLinkTransactionBodyBuilder.create(remotePublicKey, linkAction);
     }
 
     /**
      * Creates an instance of AccountLinkTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
-     * @param remoteAccountPublicKey Remote account public key.
+     * @param remotePublicKey Remote public key.
      * @param linkAction Account link action.
      * @return Instance of AccountLinkTransactionBuilder.
      */
-    public static AccountLinkTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto remoteAccountPublicKey, final AccountLinkActionDto linkAction) {
-        return new AccountLinkTransactionBuilder(signature, signer, version, type, fee, deadline, remoteAccountPublicKey, linkAction);
+    public static AccountLinkTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto remotePublicKey, final AccountLinkActionDto linkAction) {
+        return new AccountLinkTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, remotePublicKey, linkAction);
     }
 
     /**
-     * Gets remote account public key.
+     * Gets remote public key.
      *
-     * @return Remote account public key.
+     * @return Remote public key.
      */
-    public KeyDto getRemoteAccountPublicKey() {
-        return this.accountLinkTransactionBody.getRemoteAccountPublicKey();
+    public KeyDto getRemotePublicKey() {
+        return this.accountLinkTransactionBody.getRemotePublicKey();
     }
 
     /**
@@ -107,7 +109,7 @@ public final class AccountLinkTransactionBuilder extends TransactionBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AccountLinkTransactionBuilder.
      */
-    public static AccountLinkTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static AccountLinkTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new AccountLinkTransactionBuilder(stream);
     }
 

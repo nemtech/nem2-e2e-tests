@@ -20,24 +20,27 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
-/** Enumeration of account restriction types. */
-public enum AccountRestrictionTypeDto {
-    /** Account restriction type is an address. */
-    ADDRESS((byte) 1),
-    /** Account restriction type is a mosaic id. */
-    MOSAIC_ID((byte) 2),
-    /** Account restriction type is a transaction type. */
-    TRANSACTION_TYPE((byte) 4),
-    /** Account restriction type sentinel. */
-    SENTINEL((byte) 5),
-    /** Account restriction is interpreted as blocking address operation. */
-    BLOCK_ADDRESS((byte) 129),
-    /** Account restriction is interpreted as blocking mosaicId operation. */
-    BLOCK_MOSAIC_ID((byte) 130),
-    /** Account restriction is interpreted as blocking transaction type operation. */
-    BLOCK_TRANSACTION_TYPE((byte) 132);
+/** Enumeration of network types. */
+public enum NetworkTypeDto {
+    /** Public network. */
+    PUBLIC((byte) 104),
+    /** Public test network. */
+    PUBLIC_TEST((byte) 152),
+    /** Private network. */
+    MIJIN((byte) 96),
+    /** Private test network. */
+    MIJIN_TEST((byte) 144);
+
+    /**
+     * Gets the value of the enum.
+     *
+     * @return Value of the enum.
+     */
+    public byte getValue() {
+        return this.value;
+    }
 
     /** Enum value. */
     private final byte value;
@@ -47,7 +50,7 @@ public enum AccountRestrictionTypeDto {
      *
      * @param value Enum value.
      */
-     AccountRestrictionTypeDto(final byte value) {
+     NetworkTypeDto(final byte value) {
         this.value = value;
     }
 
@@ -57,13 +60,13 @@ public enum AccountRestrictionTypeDto {
      * @param value Raw value of the enum.
      * @return Enum value.
      */
-    public static AccountRestrictionTypeDto rawValueOf(final byte value) {
-        for (AccountRestrictionTypeDto current : AccountRestrictionTypeDto.values()) {
+    public static NetworkTypeDto rawValueOf(final byte value) {
+        for (NetworkTypeDto current : NetworkTypeDto.values()) {
             if (value == current.value) {
                 return current;
             }
         }
-        throw new IllegalArgumentException(value + " was not a backing value for AccountRestrictionTypeDto.");
+        throw new IllegalArgumentException(value + " was not a backing value for NetworkTypeDto.");
     }
 
     /**
@@ -76,12 +79,12 @@ public enum AccountRestrictionTypeDto {
     }
 
     /**
-     * Creates an instance of AccountRestrictionTypeDto from a stream.
+     * Creates an instance of NetworkTypeDto from a stream.
      *
      * @param stream Byte stream to use to serialize the object.
-     * @return Instance of AccountRestrictionTypeDto.
+     * @return Instance of NetworkTypeDto.
      */
-    public static AccountRestrictionTypeDto loadFromBinary(final DataInput stream) {
+    public static NetworkTypeDto loadFromBinary(final DataInputStream stream) {
         try {
             final byte streamValue = stream.readByte();
             return rawValueOf(streamValue);

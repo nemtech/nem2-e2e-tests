@@ -20,8 +20,8 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
-import java.util.ArrayList;
+import java.io.DataInputStream;
+import java.util.List;
 
 /** Binary layout for an aggregate bonded transaction. */
 public final class AggregateBondedTransactionBuilder extends TransactionBuilder {
@@ -33,7 +33,7 @@ public final class AggregateBondedTransactionBuilder extends TransactionBuilder 
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected AggregateBondedTransactionBuilder(final DataInput stream) {
+    protected AggregateBondedTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.aggregateTransactionBody = AggregateTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -42,34 +42,47 @@ public final class AggregateBondedTransactionBuilder extends TransactionBuilder 
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
+     * @param transactionsHash Aggregate hash of an aggregate's transactions.
      * @param transactions Sub-transaction data (transactions are variable sized and payload size is in bytes).
      * @param cosignatures Cosignatures data (fills remaining body space after transactions).
      */
-    protected AggregateBondedTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final ArrayList<TransactionBuilder> transactions, final ArrayList<CosignatureBuilder> cosignatures) {
-        super(signature, signer, version, type, fee, deadline);
-        this.aggregateTransactionBody = AggregateTransactionBodyBuilder.create(transactions, cosignatures);
+    protected AggregateBondedTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final Hash256Dto transactionsHash, final List<EmbeddedTransactionBuilder> transactions, final List<CosignatureBuilder> cosignatures) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
+        this.aggregateTransactionBody = AggregateTransactionBodyBuilder.create(transactionsHash, transactions, cosignatures);
     }
 
     /**
      * Creates an instance of AggregateBondedTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
+     * @param transactionsHash Aggregate hash of an aggregate's transactions.
      * @param transactions Sub-transaction data (transactions are variable sized and payload size is in bytes).
      * @param cosignatures Cosignatures data (fills remaining body space after transactions).
      * @return Instance of AggregateBondedTransactionBuilder.
      */
-    public static AggregateBondedTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final ArrayList<TransactionBuilder> transactions, final ArrayList<CosignatureBuilder> cosignatures) {
-        return new AggregateBondedTransactionBuilder(signature, signer, version, type, fee, deadline, transactions, cosignatures);
+    public static AggregateBondedTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final Hash256Dto transactionsHash, final List<EmbeddedTransactionBuilder> transactions, final List<CosignatureBuilder> cosignatures) {
+        return new AggregateBondedTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, transactionsHash, transactions, cosignatures);
+    }
+
+    /**
+     * Gets aggregate hash of an aggregate's transactions.
+     *
+     * @return Aggregate hash of an aggregate's transactions.
+     */
+    public Hash256Dto getTransactionsHash() {
+        return this.aggregateTransactionBody.getTransactionsHash();
     }
 
     /**
@@ -77,7 +90,7 @@ public final class AggregateBondedTransactionBuilder extends TransactionBuilder 
      *
      * @return Sub-transaction data (transactions are variable sized and payload size is in bytes).
      */
-    public ArrayList<TransactionBuilder> getTransactions() {
+    public List<EmbeddedTransactionBuilder> getTransactions() {
         return this.aggregateTransactionBody.getTransactions();
     }
 
@@ -86,7 +99,7 @@ public final class AggregateBondedTransactionBuilder extends TransactionBuilder 
      *
      * @return Cosignatures data (fills remaining body space after transactions).
      */
-    public ArrayList<CosignatureBuilder> getCosignatures() {
+    public List<CosignatureBuilder> getCosignatures() {
         return this.aggregateTransactionBody.getCosignatures();
     }
 
@@ -108,7 +121,7 @@ public final class AggregateBondedTransactionBuilder extends TransactionBuilder 
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AggregateBondedTransactionBuilder.
      */
-    public static AggregateBondedTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static AggregateBondedTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new AggregateBondedTransactionBuilder(stream);
     }
 

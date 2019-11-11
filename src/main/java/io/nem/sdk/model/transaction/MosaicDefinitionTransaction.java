@@ -16,22 +16,10 @@
 
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.AmountDto;
-import io.nem.catapult.builders.BlockDurationDto;
-import io.nem.catapult.builders.EmbeddedMosaicDefinitionTransactionBuilder;
-import io.nem.catapult.builders.KeyDto;
-import io.nem.catapult.builders.MosaicDefinitionTransactionBuilder;
-import io.nem.catapult.builders.MosaicFlagsDto;
-import io.nem.catapult.builders.MosaicIdDto;
-import io.nem.catapult.builders.MosaicNonceDto;
-import io.nem.catapult.builders.SignatureDto;
-import io.nem.catapult.builders.TimestampDto;
 import io.nem.sdk.model.blockchain.BlockDuration;
+import io.nem.sdk.model.mosaic.MosaicFlags;
 import io.nem.sdk.model.mosaic.MosaicId;
 import io.nem.sdk.model.mosaic.MosaicNonce;
-import io.nem.sdk.model.mosaic.MosaicFlags;
-import java.nio.ByteBuffer;
-import java.util.EnumSet;
 
 /**
  * Mosaic definition transaction.
@@ -119,67 +107,4 @@ public class MosaicDefinitionTransaction extends Transaction {
         return divisibility;
     }
 
-    /**
-     * Gets the serialized bytes.
-     *
-     * @return Serialized bytes
-     */
-    byte[] generateBytes() {
-        // Add place holders to the signer and signature until actually signed
-        final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-        final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-        MosaicDefinitionTransactionBuilder txBuilder =
-            MosaicDefinitionTransactionBuilder.create(
-                new SignatureDto(signatureBuffer),
-                new KeyDto(signerBuffer),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new AmountDto(getMaxFee().longValue()),
-                new TimestampDto(getDeadline().getInstant()),
-                new MosaicNonceDto(getMosaicNonce().getNonceAsInt()),
-                new MosaicIdDto(getMosaicId().getId().longValue()),
-                getMosaicFlagsEnumSet(),
-                (byte) getDivisibility(),
-                new BlockDurationDto(getBlockDuration().getDuration()));
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Gets the embedded tx bytes.
-     *
-     * @return Embedded tx bytes
-     */
-    byte[] generateEmbeddedBytes() {
-        EmbeddedMosaicDefinitionTransactionBuilder txBuilder =
-            EmbeddedMosaicDefinitionTransactionBuilder.create(
-                new KeyDto(getRequiredSignerBytes()),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new MosaicNonceDto(getMosaicNonce().getNonceAsInt()),
-                new MosaicIdDto(getMosaicId().getId().longValue()),
-                getMosaicFlagsEnumSet(),
-                (byte) getDivisibility(),
-                new BlockDurationDto(getBlockDuration().getDuration()));
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Get the mosaic flags.
-     *
-     * @return Mosaic flags
-     */
-    private EnumSet<MosaicFlagsDto> getMosaicFlagsEnumSet() {
-        EnumSet<MosaicFlagsDto> mosaicFlagsBuilder = EnumSet.of(MosaicFlagsDto.NONE);
-        if (getMosaicFlags().isSupplyMutable()) {
-            mosaicFlagsBuilder.add(MosaicFlagsDto.SUPPLY_MUTABLE);
-        }
-        if (getMosaicFlags().isTransferable()) {
-            mosaicFlagsBuilder.add(MosaicFlagsDto.TRANSFERABLE);
-        }
-        if (getMosaicFlags().isRestrictable()) {
-            mosaicFlagsBuilder.add(MosaicFlagsDto.RESTRICTABLE);
-        }
-        return mosaicFlagsBuilder;
-    }
 }

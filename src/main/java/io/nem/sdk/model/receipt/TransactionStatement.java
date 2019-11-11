@@ -16,8 +16,12 @@
 
 package io.nem.sdk.model.receipt;
 
+import io.nem.core.crypto.Hashes;
+import io.nem.core.utils.ArrayUtils;
+import io.nem.core.utils.ByteUtils;
 import java.math.BigInteger;
 import java.util.List;
+import org.bouncycastle.util.encoders.Hex;
 
 public class TransactionStatement {
 
@@ -64,5 +68,28 @@ public class TransactionStatement {
      */
     public List<Receipt> getReceipts() {
         return this.receipts;
+    }
+
+    /**
+     * Serialize transaction statement and generate hash
+     *
+     * @return transaction statement hash
+     */
+    public String generateHash() {
+
+        final byte[] versionByte = ByteUtils.shortToBytes(
+            Short.reverseBytes((short) ReceiptVersion.TRANSACTION_STATEMENT.getValue()));
+        final byte[] typeByte = ByteUtils
+            .shortToBytes(Short.reverseBytes((short) ReceiptType.TRANSACTION_GROUP.getValue()));
+        final byte[] sourceByte = getReceiptSource().serialize();
+
+        byte[] results = ArrayUtils.concat(versionByte, typeByte, sourceByte);
+
+        for (final Receipt receipt : receipts) {
+            results = ArrayUtils.concat(results, receipt.serialize());
+        }
+
+        byte[] hash = Hashes.sha3_256(results);
+        return Hex.toHexString(hash).toUpperCase();
     }
 }

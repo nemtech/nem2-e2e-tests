@@ -17,63 +17,80 @@
 package io.nem.sdk.model.transaction;
 
 import io.nem.sdk.model.blockchain.NetworkType;
-import java.util.List;
 import org.apache.commons.lang3.Validate;
 
-/**
- * Factory of {@link AccountOperationRestrictionTransaction}
- */
-public class AccountOperationRestrictionTransactionFactory extends
-    TransactionFactory<AccountOperationRestrictionTransaction> {
+import java.util.List;
 
-    private final AccountRestrictionType restrictionType;
+/** Factory of {@link AccountOperationRestrictionTransaction} */
+public class AccountOperationRestrictionTransactionFactory
+    extends TransactionFactory<AccountOperationRestrictionTransaction> {
 
-    private final List<AccountRestrictionModification<TransactionType>> modifications;
+  private final AccountRestrictionType restrictionType;
 
-    private AccountOperationRestrictionTransactionFactory(
-        final NetworkType networkType,
-        final AccountRestrictionType restrictionType,
-        final List<AccountRestrictionModification<TransactionType>> modifications) {
-        super(TransactionType.ACCOUNT_OPERATION_RESTRICTION, networkType);
-        Validate.notNull(restrictionType, "RestrictionType must not be null");
-        Validate.notNull(modifications, "Modifications must not be null");
-        this.restrictionType = restrictionType;
-        this.modifications = modifications;
-    }
+  private final List<TransactionType> restrictionAdditions;
+  private final List<TransactionType> restrictionDeletions;
 
-    /**
-     * Static create method for factory.
-     *
-     * @param networkType Network type.
-     * @param restrictionType Restriction type.
-     * @param modifications List of account operation restriction modifications.
-     * @return Account operation restriction transaction.
-     */
-    public static AccountOperationRestrictionTransactionFactory create(NetworkType networkType, AccountRestrictionType restrictionType,
-        List<AccountRestrictionModification<TransactionType>> modifications) {
-        return new AccountOperationRestrictionTransactionFactory(networkType, restrictionType, modifications);
-    }
+  private AccountOperationRestrictionTransactionFactory(
+      final NetworkType networkType,
+      final AccountRestrictionType restrictionType,
+      final List<TransactionType> restrictionAdditions,
+      final List<TransactionType> restrictionDeletions) {
+    super(TransactionType.ACCOUNT_OPERATION_RESTRICTION, networkType);
+    Validate.notNull(restrictionType, "RestrictionType must not be null");
+    Validate.notNull(restrictionAdditions, "restrictionAdditions must not be null");
+    Validate.notNull(restrictionDeletions, "restrictionDeletions must not be null");
+    this.restrictionType = restrictionType;
+    this.restrictionAdditions = restrictionAdditions;
+    this.restrictionDeletions = restrictionDeletions;
+  }
 
-    /**
-     * Get account restriction type
-     *
-     * @return {@link AccountRestrictionType}
-     */
-    public AccountRestrictionType getRestrictionType() {
-        return this.restrictionType;
-    }
+  /**
+   * Static create method for factory.
+   *
+   * @param networkType Network type.
+   * @param restrictionType Restriction type.
+   * @param restrictionAdditions List of account operation restriction modifications.
+   * @param restrictionDeletions  List of accounts operation to delete.
+   * @return Account operation restriction transaction.
+   */
+  public static AccountOperationRestrictionTransactionFactory create(
+      NetworkType networkType,
+      AccountRestrictionType restrictionType,
+      final List<TransactionType> restrictionAdditions,
+      final List<TransactionType> restrictionDeletions) {
+    return new AccountOperationRestrictionTransactionFactory(
+        networkType, restrictionType, restrictionAdditions, restrictionDeletions);
+  }
+
+  /**
+   * Get account restriction type
+   *
+   * @return {@link AccountRestrictionType}
+   */
+  public AccountRestrictionType getRestrictionType() {
+    return this.restrictionType;
+  }
+
+  /**
+   * Get account operation restriction modifications
+   *
+   * @return list of {@link TransactionType}
+   */
+  public List<TransactionType> getRestrictionAdditions() {
+    return this.restrictionAdditions;
+  }
 
     /**
      * Get account operation restriction modifications
      *
-     * @return list of {@link AccountRestrictionModification}
+     * @return list of {@link TransactionType}
      */
-    public List<AccountRestrictionModification<TransactionType>> getModifications() {
-        return this.modifications;
+    public List<TransactionType> getRestrictionDeletions() {
+        return this.restrictionDeletions;
     }
 
     @Override
-    public AccountOperationRestrictionTransaction build() {
-        return new AccountOperationRestrictionTransaction(this);
-    }
+  public AccountOperationRestrictionTransaction build() {
+    return new AccountOperationRestrictionTransaction(this);
+  }
 }

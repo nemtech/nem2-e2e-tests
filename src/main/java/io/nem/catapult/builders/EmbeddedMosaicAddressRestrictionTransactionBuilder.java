@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for an embedded mosaic address restriction transaction. */
 public final class EmbeddedMosaicAddressRestrictionTransactionBuilder extends EmbeddedTransactionBuilder {
@@ -32,7 +32,7 @@ public final class EmbeddedMosaicAddressRestrictionTransactionBuilder extends Em
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedMosaicAddressRestrictionTransactionBuilder(final DataInput stream) {
+    protected EmbeddedMosaicAddressRestrictionTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.mosaicAddressRestrictionTransactionBody = MosaicAddressRestrictionTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -40,35 +40,37 @@ public final class EmbeddedMosaicAddressRestrictionTransactionBuilder extends Em
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param mosaicId Identifier of the mosaic to which the restriction applies.
      * @param restrictionKey Restriction key.
-     * @param targetAddress Address being restricted.
      * @param previousRestrictionValue Previous restriction value.
      * @param newRestrictionValue New restriction value.
+     * @param targetAddress Address being restricted.
      */
-    protected EmbeddedMosaicAddressRestrictionTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final UnresolvedAddressDto targetAddress, final long previousRestrictionValue, final long newRestrictionValue) {
-        super(signer, version, type);
-        this.mosaicAddressRestrictionTransactionBody = MosaicAddressRestrictionTransactionBodyBuilder.create(mosaicId, restrictionKey, targetAddress, previousRestrictionValue, newRestrictionValue);
+    protected EmbeddedMosaicAddressRestrictionTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final long previousRestrictionValue, final long newRestrictionValue, final UnresolvedAddressDto targetAddress) {
+        super(signerPublicKey, version, network, type);
+        this.mosaicAddressRestrictionTransactionBody = MosaicAddressRestrictionTransactionBodyBuilder.create(mosaicId, restrictionKey, previousRestrictionValue, newRestrictionValue, targetAddress);
     }
 
     /**
      * Creates an instance of EmbeddedMosaicAddressRestrictionTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param mosaicId Identifier of the mosaic to which the restriction applies.
      * @param restrictionKey Restriction key.
-     * @param targetAddress Address being restricted.
      * @param previousRestrictionValue Previous restriction value.
      * @param newRestrictionValue New restriction value.
+     * @param targetAddress Address being restricted.
      * @return Instance of EmbeddedMosaicAddressRestrictionTransactionBuilder.
      */
-    public static EmbeddedMosaicAddressRestrictionTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final UnresolvedAddressDto targetAddress, final long previousRestrictionValue, final long newRestrictionValue) {
-        return new EmbeddedMosaicAddressRestrictionTransactionBuilder(signer, version, type, mosaicId, restrictionKey, targetAddress, previousRestrictionValue, newRestrictionValue);
+    public static EmbeddedMosaicAddressRestrictionTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final long restrictionKey, final long previousRestrictionValue, final long newRestrictionValue, final UnresolvedAddressDto targetAddress) {
+        return new EmbeddedMosaicAddressRestrictionTransactionBuilder(signerPublicKey, version, network, type, mosaicId, restrictionKey, previousRestrictionValue, newRestrictionValue, targetAddress);
     }
 
     /**
@@ -90,15 +92,6 @@ public final class EmbeddedMosaicAddressRestrictionTransactionBuilder extends Em
     }
 
     /**
-     * Gets address being restricted.
-     *
-     * @return Address being restricted.
-     */
-    public UnresolvedAddressDto getTargetAddress() {
-        return this.mosaicAddressRestrictionTransactionBody.getTargetAddress();
-    }
-
-    /**
      * Gets previous restriction value.
      *
      * @return Previous restriction value.
@@ -114,6 +107,15 @@ public final class EmbeddedMosaicAddressRestrictionTransactionBuilder extends Em
      */
     public long getNewRestrictionValue() {
         return this.mosaicAddressRestrictionTransactionBody.getNewRestrictionValue();
+    }
+
+    /**
+     * Gets address being restricted.
+     *
+     * @return Address being restricted.
+     */
+    public UnresolvedAddressDto getTargetAddress() {
+        return this.mosaicAddressRestrictionTransactionBody.getTargetAddress();
     }
 
     /**
@@ -134,7 +136,7 @@ public final class EmbeddedMosaicAddressRestrictionTransactionBuilder extends Em
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedMosaicAddressRestrictionTransactionBuilder.
      */
-    public static EmbeddedMosaicAddressRestrictionTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedMosaicAddressRestrictionTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedMosaicAddressRestrictionTransactionBuilder(stream);
     }
 

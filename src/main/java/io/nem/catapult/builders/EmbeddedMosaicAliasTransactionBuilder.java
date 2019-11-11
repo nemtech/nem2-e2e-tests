@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for an embedded mosaic alias transaction. */
 public final class EmbeddedMosaicAliasTransactionBuilder extends EmbeddedTransactionBuilder {
@@ -32,7 +32,7 @@ public final class EmbeddedMosaicAliasTransactionBuilder extends EmbeddedTransac
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedMosaicAliasTransactionBuilder(final DataInput stream) {
+    protected EmbeddedMosaicAliasTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.mosaicAliasTransactionBody = MosaicAliasTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -40,40 +40,33 @@ public final class EmbeddedMosaicAliasTransactionBuilder extends EmbeddedTransac
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param aliasAction Alias action.
      * @param namespaceId Identifier of the namespace that will become an alias.
      * @param mosaicId Aliased mosaic identifier.
+     * @param aliasAction Alias action.
      */
-    protected EmbeddedMosaicAliasTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final AliasActionDto aliasAction, final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId) {
-        super(signer, version, type);
-        this.mosaicAliasTransactionBody = MosaicAliasTransactionBodyBuilder.create(aliasAction, namespaceId, mosaicId);
+    protected EmbeddedMosaicAliasTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId, final AliasActionDto aliasAction) {
+        super(signerPublicKey, version, network, type);
+        this.mosaicAliasTransactionBody = MosaicAliasTransactionBodyBuilder.create(namespaceId, mosaicId, aliasAction);
     }
 
     /**
      * Creates an instance of EmbeddedMosaicAliasTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param aliasAction Alias action.
      * @param namespaceId Identifier of the namespace that will become an alias.
      * @param mosaicId Aliased mosaic identifier.
+     * @param aliasAction Alias action.
      * @return Instance of EmbeddedMosaicAliasTransactionBuilder.
      */
-    public static EmbeddedMosaicAliasTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final AliasActionDto aliasAction, final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId) {
-        return new EmbeddedMosaicAliasTransactionBuilder(signer, version, type, aliasAction, namespaceId, mosaicId);
-    }
-
-    /**
-     * Gets alias action.
-     *
-     * @return Alias action.
-     */
-    public AliasActionDto getAliasAction() {
-        return this.mosaicAliasTransactionBody.getAliasAction();
+    public static EmbeddedMosaicAliasTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId, final AliasActionDto aliasAction) {
+        return new EmbeddedMosaicAliasTransactionBuilder(signerPublicKey, version, network, type, namespaceId, mosaicId, aliasAction);
     }
 
     /**
@@ -95,6 +88,15 @@ public final class EmbeddedMosaicAliasTransactionBuilder extends EmbeddedTransac
     }
 
     /**
+     * Gets alias action.
+     *
+     * @return Alias action.
+     */
+    public AliasActionDto getAliasAction() {
+        return this.mosaicAliasTransactionBody.getAliasAction();
+    }
+
+    /**
      * Gets the size of the object.
      *
      * @return Size in bytes.
@@ -112,7 +114,7 @@ public final class EmbeddedMosaicAliasTransactionBuilder extends EmbeddedTransac
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedMosaicAliasTransactionBuilder.
      */
-    public static EmbeddedMosaicAliasTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedMosaicAliasTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedMosaicAliasTransactionBuilder(stream);
     }
 

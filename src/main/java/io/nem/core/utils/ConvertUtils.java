@@ -17,7 +17,8 @@
 package io.nem.core.utils;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
@@ -25,6 +26,13 @@ import org.apache.commons.codec.binary.Hex;
  * Static class that contains utility functions for converting hex strings to and from bytes.
  */
 public class ConvertUtils {
+
+    /**
+     * Mask used to fix overflowed longs when they are converted to BigInteger.
+     */
+    private static final BigInteger UNSIGNED_LONG_MASK = BigInteger.ONE.shiftLeft(Long.SIZE)
+        .subtract(BigInteger.ONE);
+
 
     /**
      * Private constructor of this utility class.
@@ -67,6 +75,21 @@ public class ConvertUtils {
     }
 
     /**
+     * Converts an hex back to an byte array.
+     *
+     * @param hexString the hex string input
+     * @return the byte array.
+     */
+    public static byte[] fromHexToBytes(String hexString) {
+        final Hex codec = new Hex();
+        try {
+            return codec.decode(StringEncoder.getBytes(hexString));
+        } catch (DecoderException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
      * Converts hex string to a plain string
      *
      * @param hexString The input string.
@@ -76,20 +99,8 @@ public class ConvertUtils {
         if (hexString == null) {
             return null;
         }
-        byte[] bytes = getBytes(hexString);
-        return new String(bytes, StandardCharsets.UTF_8);
+        return StringEncoder.getString(fromHexToBytes(hexString));
     }
-
-    /**
-     * Converts a number to hex padding zeros up to size 16.
-     *
-     * @param number The input string.
-     * @return the hex 16 characters
-     */
-    public static String toSize16Hex(final BigInteger number) {
-        return String.format("%016x", number);
-    }
-
 
     /**
      * Converts plain string to an hex string
@@ -101,7 +112,106 @@ public class ConvertUtils {
         if (plainText == null) {
             return null;
         }
-        return toHex(plainText.getBytes(StandardCharsets.UTF_8));
+        return toHex(StringEncoder.getBytes(plainText));
     }
 
+
+    /**
+     * Converts a number to hex padding zeros up to size 16.
+     *
+     * @param number The input string.
+     * @return the hex 16 characters
+     */
+    public static String toSize16Hex(final BigInteger number) {
+        return String.format("%016x", number);
+    }
+
+    /**
+     * Converts a BigInteger to an string.
+     *
+     * @param number the input
+     * @return String.
+     */
+    public static String toString(final BigInteger number) {
+        return number.toString();
+    }
+
+
+    /**
+     * It converts a signed long into an unsigned BigInteger. It fixes overflow problems that could
+     * happen when working with unsigned int 64.
+     *
+     * @param value the value, positive or negative.
+     * @return the positive {@link BigInteger}.
+     */
+    public static BigInteger toUnsignedBigInteger(long value) {
+        return BigInteger.valueOf(value).and(UNSIGNED_LONG_MASK);
+    }
+
+    /**
+     * Determines whether or not a string is a hex string.
+     *
+     * @param input The string to test.
+     * @return boolean true if the input is a hex string, false otherwise.
+     */
+    public static boolean isHexString(String input) {
+        if (input == null) {
+            return false;
+        }
+        if (0 != input.length() % 2) {
+            return false;
+        }
+        try {
+            getBytesInternal(input);
+            return true;
+        } catch (DecoderException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Validates that an input is a valid hex . If not, it raises a {@link
+     * IllegalArgumentException}
+     *
+     * @param input the string input
+     * @throws IllegalArgumentException if the input is null or  not an hex.
+     */
+    public static void validateIsHexString(String input) {
+        if (input == null) {
+            throw new IllegalArgumentException("Null is not a valid hex");
+        }
+        if (!isHexString(input)) {
+            throw new IllegalArgumentException(input + " is not a valid hex");
+        }
+    }
+
+
+    /**
+     * Validates that an input is a valid hex and of the given size. If not, it raises a {@link
+     * IllegalArgumentException}
+     *
+     * @param input the string input
+     * @param size the expected hex size.
+     * @throws IllegalArgumentException if the input is null,  not an hex or it has an invalid
+     * size.
+     */
+    public static void validateIsHexString(String input, Integer size) {
+        validateIsHexString(input);
+        if (size != null && input.length() != size) {
+            throw new IllegalArgumentException(input + " is not an hex of size " + size);
+        }
+    }
+
+    /**
+     * Reversed conversion of an hex string to a new hex
+     *
+     * @param hex the hex string.
+     * @return the new hex string.
+     */
+    public static String reverseHexString(String hex) {
+        final ByteBuffer byteBuffer = ByteBuffer.allocate(hex.length() / 2);
+        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        byteBuffer.putLong(new BigInteger(hex, 16).longValue());
+        return Hex.encodeHexString(byteBuffer.array());
+    }
 }

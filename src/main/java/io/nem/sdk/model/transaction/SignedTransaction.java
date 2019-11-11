@@ -60,4 +60,9 @@ public class SignedTransaction {
     public TransactionType getType() {
         return type;
     }
+
+    @Override
+    public String toString() {
+        return "Hash: " + getHash() + " Type: " + getType() + " Payload: " + getPayload();
+    }
 }

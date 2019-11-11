@@ -70,7 +70,7 @@ public enum LockHashAlgorithmType {
         } else if (hashType == LockHashAlgorithmType.KECCAK_256 && input.matches(VALIDATOR_REGEX)) {
             return input.length() == 64;
         } else if (hashType == LockHashAlgorithmType.HASH_160 && input.matches(VALIDATOR_REGEX)) {
-            return input.length() == 40 || input.length() == 64;
+            return input.length() == 40;
         } else if (hashType == LockHashAlgorithmType.HASH_256 && input.matches(VALIDATOR_REGEX)) {
             return input.length() == 64;
         }

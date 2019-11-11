@@ -16,21 +16,11 @@
 
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.AggregateTransactionBuilder;
-import io.nem.catapult.builders.AmountDto;
-import io.nem.catapult.builders.CosignatureBuilder;
-import io.nem.catapult.builders.EntityTypeDto;
-import io.nem.catapult.builders.KeyDto;
-import io.nem.catapult.builders.SignatureDto;
-import io.nem.catapult.builders.TimestampDto;
-import io.nem.core.crypto.CryptoEngines;
-import io.nem.core.crypto.DsaSigner;
-import io.nem.core.utils.ExceptionUtils;
-import io.nem.core.utils.ConvertUtils;
+import io.nem.core.crypto.*;
+import io.nem.sdk.infrastructure.BinarySerializationImpl;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.account.PublicAccount;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.util.encoders.Hex;
@@ -44,8 +34,8 @@ import org.bouncycastle.util.encoders.Hex;
 public class AggregateTransaction extends Transaction {
 
     private final List<Transaction> innerTransactions;
-
     private final List<AggregateTransactionCosignature> cosignatures;
+    private final String transactionsHash;
 
     /**
      * AggregateTransaction constructor using factory.
@@ -54,6 +44,7 @@ public class AggregateTransaction extends Transaction {
         super(factory);
         this.innerTransactions = factory.getInnerTransactions();
         this.cosignatures = factory.getCosignatures();
+        this.transactionsHash = calculateTransactionsHash(this.innerTransactions);
     }
 
     /**
@@ -75,61 +66,21 @@ public class AggregateTransaction extends Transaction {
     }
 
     /**
-     * Serialized the transaction.
+     * Get the bytes required for signing.
      *
-     * @return bytes of the transaction.
+     * @param payloadBytes Payload bytes.
+     * @param generationHashBytes Generation hash bytes.
+     * @return Bytes to sign.
      */
     @Override
-    public byte[] generateBytes() {
-        return ExceptionUtils.propagate(
-            () -> {
-                byte[] transactionsBytes = new byte[0];
-                for (Transaction innerTransaction : innerTransactions) {
-                    final byte[] transactionBytes = innerTransaction.toAggregateTransactionBytes();
-                    transactionsBytes = ArrayUtils.addAll(transactionsBytes, transactionBytes);
-                }
-                final ByteBuffer transactionsBuffer = ByteBuffer.wrap(transactionsBytes);
-
-                byte[] cosignaturesBytes = new byte[0];
-                for (AggregateTransactionCosignature cosignature : cosignatures) {
-                    final byte[] signerBytes = cosignature.getSigner().getPublicKey().getBytes();
-                    final byte[] signatureBytes = ConvertUtils.getBytes(cosignature.getSignature());
-                    final ByteBuffer signerBuffer = ByteBuffer.wrap(signerBytes);
-                    final ByteBuffer signatureBuffer = ByteBuffer.wrap(signatureBytes);
-
-                    final CosignatureBuilder cosignatureBuilder = CosignatureBuilder
-                        .create(new KeyDto(signerBuffer),
-                            new SignatureDto(signatureBuffer));
-                    cosignaturesBytes = ArrayUtils
-                        .addAll(cosignaturesBytes, cosignatureBuilder.serialize());
-                }
-                final ByteBuffer cosignaturesBuffer = ByteBuffer.wrap(cosignaturesBytes);
-
-                // Add place holders to the signer and signature until actually signed
-                final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-                final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-                AggregateTransactionBuilder txBuilder =
-                    AggregateTransactionBuilder.create(
-                        new SignatureDto(signatureBuffer),
-                        new KeyDto(signerBuffer),
-                        getNetworkVersion(),
-                        EntityTypeDto.rawValueOf((short) getType().getValue()),
-                        new AmountDto(getMaxFee().longValue()),
-                        new TimestampDto(getDeadline().getInstant()),
-                        transactionsBuffer,
-                        cosignaturesBuffer);
-                return txBuilder.serialize();
-            });
-    }
-
-    /**
-     * Fail if this method is called.
-     */
-    @Override
-    protected byte[] generateEmbeddedBytes() {
-        throw new IllegalStateException(
-            "Aggregate class cannot generate bytes for an embedded transaction.");
+    protected byte[] getSignBytes(final byte[] payloadBytes, final byte[] generationHashBytes) {
+        final short headerSize = 4 + 32 + 64 + 8;
+        // Aggregate tx only require to sign the body.
+        final short signingBytesSize = 52;
+        final byte[] signingBytes = new byte[signingBytesSize + generationHashBytes.length];
+        System.arraycopy(generationHashBytes, 0, signingBytes, 0, generationHashBytes.length);
+        System.arraycopy(payloadBytes, headerSize, signingBytes, generationHashBytes.length, signingBytesSize);
+        return signingBytes;
     }
 
     /**
@@ -175,5 +126,29 @@ public class AggregateTransaction extends Transaction {
     public boolean signedByAccount(PublicAccount publicAccount) {
         return this.getSigner().filter(a -> a.equals(publicAccount)).isPresent()
             || this.getCosignatures().stream().anyMatch(o -> o.getSigner().equals(publicAccount));
+    }
+
+    /**
+     * Gets the hash of the inner transaction.
+     *
+     * @return Hash of the inner transaction.
+     */
+    public String getTransactionsHash() {
+        return transactionsHash;
+    }
+
+    private String calculateTransactionsHash(final List<Transaction> transactions) {
+        final SignSchema.Hasher hasher = SignSchema.getHasher(SignSchema.SHA3, SignSchema.HashSize.HASH_SIZE_32_BYTES);
+        final MerkleHashBuilder transactionsHashBuilder = new MerkleHashBuilder(hasher, transactions.size());
+        final BinarySerializationImpl transactionSerialization = new BinarySerializationImpl();
+
+        for (final Transaction transaction : transactions) {
+            final byte[] bytes = transactionSerialization.serializeEmbedded(transaction);
+            byte[] transactionHash = Hashes.sha3_256(bytes);
+            transactionsHashBuilder.update(transactionHash);
+        }
+
+        final byte[] hash = transactionsHashBuilder.getRootHash();
+        return Hex.toHexString(hash).toUpperCase();
     }
 }

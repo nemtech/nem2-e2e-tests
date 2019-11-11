@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for an embedded secret proof transaction. */
@@ -33,7 +33,7 @@ public final class EmbeddedSecretProofTransactionBuilder extends EmbeddedTransac
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedSecretProofTransactionBuilder(final DataInput stream) {
+    protected EmbeddedSecretProofTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.secretProofTransactionBody = SecretProofTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,42 +41,35 @@ public final class EmbeddedSecretProofTransactionBuilder extends EmbeddedTransac
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param hashAlgorithm Hash algorithm.
      * @param secret Secret.
-     * @param recipient Recipient.
+     * @param hashAlgorithm Hash algorithm.
+     * @param recipientAddress Locked mosaic recipient address.
      * @param proof Proof data.
      */
-    protected EmbeddedSecretProofTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final LockHashAlgorithmDto hashAlgorithm, final Hash256Dto secret, final UnresolvedAddressDto recipient, final ByteBuffer proof) {
-        super(signer, version, type);
-        this.secretProofTransactionBody = SecretProofTransactionBodyBuilder.create(hashAlgorithm, secret, recipient, proof);
+    protected EmbeddedSecretProofTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final Hash256Dto secret, final LockHashAlgorithmDto hashAlgorithm, final UnresolvedAddressDto recipientAddress, final ByteBuffer proof) {
+        super(signerPublicKey, version, network, type);
+        this.secretProofTransactionBody = SecretProofTransactionBodyBuilder.create(secret, hashAlgorithm, recipientAddress, proof);
     }
 
     /**
      * Creates an instance of EmbeddedSecretProofTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param hashAlgorithm Hash algorithm.
      * @param secret Secret.
-     * @param recipient Recipient.
+     * @param hashAlgorithm Hash algorithm.
+     * @param recipientAddress Locked mosaic recipient address.
      * @param proof Proof data.
      * @return Instance of EmbeddedSecretProofTransactionBuilder.
      */
-    public static EmbeddedSecretProofTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final LockHashAlgorithmDto hashAlgorithm, final Hash256Dto secret, final UnresolvedAddressDto recipient, final ByteBuffer proof) {
-        return new EmbeddedSecretProofTransactionBuilder(signer, version, type, hashAlgorithm, secret, recipient, proof);
-    }
-
-    /**
-     * Gets hash algorithm.
-     *
-     * @return Hash algorithm.
-     */
-    public LockHashAlgorithmDto getHashAlgorithm() {
-        return this.secretProofTransactionBody.getHashAlgorithm();
+    public static EmbeddedSecretProofTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final Hash256Dto secret, final LockHashAlgorithmDto hashAlgorithm, final UnresolvedAddressDto recipientAddress, final ByteBuffer proof) {
+        return new EmbeddedSecretProofTransactionBuilder(signerPublicKey, version, network, type, secret, hashAlgorithm, recipientAddress, proof);
     }
 
     /**
@@ -89,12 +82,21 @@ public final class EmbeddedSecretProofTransactionBuilder extends EmbeddedTransac
     }
 
     /**
-     * Gets recipient.
+     * Gets hash algorithm.
      *
-     * @return Recipient.
+     * @return Hash algorithm.
      */
-    public UnresolvedAddressDto getRecipient() {
-        return this.secretProofTransactionBody.getRecipient();
+    public LockHashAlgorithmDto getHashAlgorithm() {
+        return this.secretProofTransactionBody.getHashAlgorithm();
+    }
+
+    /**
+     * Gets locked mosaic recipient address.
+     *
+     * @return Locked mosaic recipient address.
+     */
+    public UnresolvedAddressDto getRecipientAddress() {
+        return this.secretProofTransactionBody.getRecipientAddress();
     }
 
     /**
@@ -124,7 +126,7 @@ public final class EmbeddedSecretProofTransactionBuilder extends EmbeddedTransac
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedSecretProofTransactionBuilder.
      */
-    public static EmbeddedSecretProofTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedSecretProofTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedSecretProofTransactionBuilder(stream);
     }
 

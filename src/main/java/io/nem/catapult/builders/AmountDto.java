@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Amount. */
 public final class AmountDto {
@@ -41,7 +41,7 @@ public final class AmountDto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public AmountDto(final DataInput stream) {
+    public AmountDto(final DataInputStream stream) {
         try {
             this.amount = Long.reverseBytes(stream.readLong());
         } catch(Exception e) {
@@ -73,7 +73,7 @@ public final class AmountDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AmountDto.
      */
-    public static AmountDto loadFromBinary(final DataInput stream) {
+    public static AmountDto loadFromBinary(final DataInputStream stream) {
         return new AmountDto(stream);
     }
 

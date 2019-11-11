@@ -14,39 +14,36 @@
  * limitations under the License.
  */
 
-package io.nem.sdk.model.transaction;
+package io.nem.sdk.model.message;
 
 import java.util.Arrays;
 
 /**
- * Enum containing multisig cosignatory modification type constants.
- *
- * @since 1.0
+ * The Message type. Supported supply types are: 0: PlainMessage 1: EncryptedMessage. 254:
+ * Persistent harvesting delegation.
  */
-public enum CosignatoryModificationActionType {
-    /**
-     * Add cosignatory.
-     */
-    ADD(1),
+public enum MessageType {
 
-    /**
-     * Remove cosignatory
-     */
-    REMOVE(0);
+    PLAIN_MESSAGE(0),
+
+    ENCRYPTED_MESSAGE(1),
+
+    PERSISTENT_HARVESTING_DELEGATION_MESSAGE(254);
 
     private final int value;
 
-    CosignatoryModificationActionType(int value) {
+    MessageType(int value) {
         this.value = value;
     }
 
+
     /**
-     * Static constructor converting multsig cosignatory modification raw value to enum instance.
+     * Gets enum value based on the int value.
      *
-     * @param value Multisig cosignatory modification type raw value
-     * @return {@link CosignatoryModificationActionType}
+     * @param value Raw value of the enum.
+     * @return Enum value.
      */
-    public static CosignatoryModificationActionType rawValueOf(int value) {
+    public static MessageType rawValueOf(final int value) {
         return Arrays.stream(values()).filter(e -> e.value == value).findFirst()
             .orElseThrow(() -> new IllegalArgumentException(value + " is not a valid value"));
     }

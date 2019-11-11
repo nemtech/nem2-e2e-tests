@@ -16,15 +16,7 @@
 
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.AccountLinkActionDto;
-import io.nem.catapult.builders.AccountLinkTransactionBuilder;
-import io.nem.catapult.builders.AmountDto;
-import io.nem.catapult.builders.EmbeddedAccountLinkTransactionBuilder;
-import io.nem.catapult.builders.KeyDto;
-import io.nem.catapult.builders.SignatureDto;
-import io.nem.catapult.builders.TimestampDto;
 import io.nem.sdk.model.account.PublicAccount;
-import java.nio.ByteBuffer;
 
 /**
  *
@@ -59,44 +51,4 @@ public class AccountLinkTransaction extends Transaction {
         return linkAction;
     }
 
-    /**
-     * Serialized the transaction.
-     *
-     * @return bytes of the transaction.
-     */
-    @Override
-    byte[] generateBytes() {
-        // Add place holders to the signer and signature until actually signed
-        final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-        final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-        final AccountLinkTransactionBuilder txBuilder =
-            AccountLinkTransactionBuilder.create(
-                new SignatureDto(signatureBuffer),
-                new KeyDto(signerBuffer),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new AmountDto(getMaxFee().longValue()),
-                new TimestampDto(getDeadline().getInstant()),
-                new KeyDto(getRemoteAccount().getPublicKey().getByteBuffer()),
-                AccountLinkActionDto.rawValueOf(getLinkAction().getValue()));
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Serialized the transaction to embedded bytes.
-     *
-     * @return bytes of the transaction.
-     */
-    @Override
-    byte[] generateEmbeddedBytes() {
-        final EmbeddedAccountLinkTransactionBuilder txBuilder =
-            EmbeddedAccountLinkTransactionBuilder.create(
-                new KeyDto(getRequiredSignerBytes()),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new KeyDto(getRemoteAccount().getPublicKey().getByteBuffer()),
-                AccountLinkActionDto.rawValueOf(getLinkAction().getValue()));
-        return txBuilder.serialize();
-    }
 }

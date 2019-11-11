@@ -16,19 +16,9 @@
 
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.AliasActionDto;
-import io.nem.catapult.builders.AmountDto;
-import io.nem.catapult.builders.EmbeddedMosaicAliasTransactionBuilder;
-import io.nem.catapult.builders.KeyDto;
-import io.nem.catapult.builders.MosaicAliasTransactionBuilder;
-import io.nem.catapult.builders.MosaicIdDto;
-import io.nem.catapult.builders.NamespaceIdDto;
-import io.nem.catapult.builders.SignatureDto;
-import io.nem.catapult.builders.TimestampDto;
 import io.nem.sdk.model.mosaic.MosaicId;
 import io.nem.sdk.model.namespace.AliasAction;
 import io.nem.sdk.model.namespace.NamespaceId;
-import java.nio.ByteBuffer;
 
 /**
  * Mosaic alias transaction.
@@ -78,46 +68,4 @@ public class MosaicAliasTransaction extends Transaction {
         return this.mosaicId;
     }
 
-    /**
-     * Serialized the transaction.
-     *
-     * @return bytes of the transaction.
-     */
-    @Override
-    byte[] generateBytes() {
-        // Add place holders to the signer and signature until actually signed
-        final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-        final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-        final MosaicAliasTransactionBuilder txBuilder =
-            MosaicAliasTransactionBuilder.create(
-                new SignatureDto(signatureBuffer),
-                new KeyDto(signerBuffer),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                new AmountDto(getMaxFee().longValue()),
-                new TimestampDto(getDeadline().getInstant()),
-                AliasActionDto.rawValueOf(getAliasAction().getValue()),
-                new NamespaceIdDto(getNamespaceId().getIdAsLong()),
-                new MosaicIdDto(getMosaicId().getIdAsLong()));
-        return txBuilder.serialize();
-    }
-
-    /**
-     * Serialized the transaction to embedded bytes.
-     *
-     * @return bytes of the transaction.
-     */
-    @Override
-    byte[] generateEmbeddedBytes() {
-        final EmbeddedMosaicAliasTransactionBuilder txBuilder =
-            EmbeddedMosaicAliasTransactionBuilder.create(
-                new KeyDto(getRequiredSignerBytes()),
-                getNetworkVersion(),
-                getEntityTypeDto(),
-                AliasActionDto.rawValueOf(getAliasAction().getValue()),
-                new NamespaceIdDto(getNamespaceId().getIdAsLong()),
-                new MosaicIdDto(getMosaicId().getIdAsLong()));
-        return txBuilder.serialize();
-    }
 }
