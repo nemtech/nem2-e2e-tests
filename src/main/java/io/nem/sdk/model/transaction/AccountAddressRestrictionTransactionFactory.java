@@ -18,80 +18,81 @@ package io.nem.sdk.model.transaction;
 
 import io.nem.sdk.model.account.UnresolvedAddress;
 import io.nem.sdk.model.blockchain.NetworkType;
+import java.util.List;
 import org.apache.commons.lang3.Validate;
 
-import java.util.List;
+/**
+ * Factory of {@link AccountAddressRestrictionTransaction}
+ */
+public class AccountAddressRestrictionTransactionFactory extends
+    TransactionFactory<AccountAddressRestrictionTransaction> {
 
-/** Factory of {@link AccountAddressRestrictionTransaction} */
-public class AccountAddressRestrictionTransactionFactory
-    extends TransactionFactory<AccountAddressRestrictionTransaction> {
+    private final AccountRestrictionType restrictionType;
 
-  private final AccountRestrictionType restrictionType;
+    private final List<UnresolvedAddress> restrictionAdditions;
 
-  private final List<UnresolvedAddress> restrictionAdditions;
-  private final List<UnresolvedAddress> restrictionDeletions;
+    private final List<UnresolvedAddress> restrictionDeletions;
 
-  private AccountAddressRestrictionTransactionFactory(
-      final NetworkType networkType,
-      final AccountRestrictionType restrictionType,
-      final List<UnresolvedAddress> restrictionAdditions,
-      final List<UnresolvedAddress> restrictionDeletions) {
-    super(TransactionType.ACCOUNT_ADDRESS_RESTRICTION, networkType);
-    Validate.notNull(restrictionType, "RestrictionType must not be null");
-    Validate.notNull(restrictionAdditions, "restrictionAdditions must not be null");
-    Validate.notNull(restrictionDeletions, "restrictionDeletions must not be null");
-    this.restrictionType = restrictionType;
-    this.restrictionAdditions = restrictionAdditions;
-    this.restrictionDeletions = restrictionDeletions;
-  }
+    private AccountAddressRestrictionTransactionFactory(
+        final NetworkType networkType,
+        final AccountRestrictionType restrictionType,
+        List<UnresolvedAddress> restrictionAdditions,
+        List<UnresolvedAddress> restrictionDeletions) {
+        super(TransactionType.ACCOUNT_ADDRESS_RESTRICTION, networkType);
 
-  /**
-   * Static create method for factory.
-   *
-   * @param networkType Network type.
-   * @param restrictionType Restriction type.
-   * @param restrictionAdditions List of account address restriction to add.
-   * @param restrictionDeletions List of account address restriction to delete.
-   * @return Account address restriction transaction.
-   */
-  public static AccountAddressRestrictionTransactionFactory create(
-      NetworkType networkType,
-      AccountRestrictionType restrictionType,
-      final List<UnresolvedAddress> restrictionAdditions,
-      final List<UnresolvedAddress> restrictionDeletions) {
-    return new AccountAddressRestrictionTransactionFactory(
-        networkType, restrictionType, restrictionAdditions, restrictionDeletions);
-  }
+        Validate.notNull(restrictionType, "RestrictionType must not be null");
+        Validate.notNull(restrictionAdditions, "RestrictionAdditions must not be null");
+        Validate.notNull(restrictionDeletions, "RestrictionDeletions must not be null");
 
-  /**
-   * Get account restriction type
-   *
-   * @return {@link AccountRestrictionType}
-   */
-  public AccountRestrictionType getRestrictionType() {
-    return this.restrictionType;
-  }
-
-  /**
-   * Get account address restriction additions list.
-   *
-   * @return List of {@link UnresolvedAddress}
-   */
-  public List<UnresolvedAddress> getRestrictionAdditions() {
-    return this.restrictionAdditions;
-  }
-
-    /**
-     * Get account address restriction deletions list.
-     *
-     * @return List of {@link UnresolvedAddress}
-     */
-    public List<UnresolvedAddress> getRestrictionDeletions() {
-        return this.restrictionDeletions;
+        this.restrictionType = restrictionType;
+        this.restrictionAdditions = restrictionAdditions;
+        this.restrictionDeletions = restrictionDeletions;
     }
 
-  @Override
-  public AccountAddressRestrictionTransaction build() {
-    return new AccountAddressRestrictionTransaction(this);
-  }
+    /**
+     * Static create method for factory.
+     *
+     * @param networkType Network type.
+     * @param restrictionType Restriction type.
+     * @param restrictionAdditions List of addresses that are going to be added to the restriction.
+     * @param restrictionDeletions List of addresses that are going to be removed from the
+     * restriction.
+     * @return Account address restriction transaction.
+     */
+    public static AccountAddressRestrictionTransactionFactory create(NetworkType networkType,
+        AccountRestrictionType restrictionType,
+        List<UnresolvedAddress> restrictionAdditions,
+        List<UnresolvedAddress> restrictionDeletions) {
+        return new AccountAddressRestrictionTransactionFactory(networkType, restrictionType,
+            restrictionAdditions, restrictionDeletions);
+    }
+
+    /**
+     * Get account restriction type
+     *
+     * @return {@link AccountRestrictionType}
+     */
+    public AccountRestrictionType getRestrictionType() {
+        return this.restrictionType;
+    }
+
+
+    @Override
+    public AccountAddressRestrictionTransaction build() {
+        return new AccountAddressRestrictionTransaction(this);
+    }
+
+    /**
+     * @return List of addresses that are going to be added to the restriction.
+     */
+    public List<UnresolvedAddress> getRestrictionAdditions() {
+        return restrictionAdditions;
+    }
+
+    /**
+     * @return List of addresses that are going to be removed from the restriction.
+     */
+    public List<UnresolvedAddress> getRestrictionDeletions() {
+        return restrictionDeletions;
+    }
 }

@@ -30,6 +30,7 @@ public class AccountMosaicRestrictionTransactionFactory extends
     private final AccountRestrictionType restrictionType;
 
     private final List<UnresolvedMosaicId> restrictionAdditions;
+
     private final List<UnresolvedMosaicId> restrictionDeletions;
 
     private AccountMosaicRestrictionTransactionFactory(
@@ -39,8 +40,8 @@ public class AccountMosaicRestrictionTransactionFactory extends
         final List<UnresolvedMosaicId> restrictionDeletions) {
         super(TransactionType.ACCOUNT_MOSAIC_RESTRICTION, networkType);
         Validate.notNull(restrictionType, "RestrictionType must not be null");
-        Validate.notNull(restrictionAdditions, "restrictionAdditions must not be null");
-        Validate.notNull(restrictionDeletions, "restrictionDeletions must not be null");
+        Validate.notNull(restrictionAdditions, "RestrictionAdditions must not be null");
+        Validate.notNull(restrictionDeletions, "RestrictionDeletions must not be null");
         this.restrictionType = restrictionType;
         this.restrictionAdditions = restrictionAdditions;
         this.restrictionDeletions = restrictionDeletions;
@@ -51,13 +52,15 @@ public class AccountMosaicRestrictionTransactionFactory extends
      *
      * @param networkType Network type.
      * @param restrictionType Restriction type.
-     * @param restrictionAdditions List of account mosaic restriction modifications.
-     * @param restrictionDeletions List of account mosaic to delete.
+     * @param restrictionAdditions List of mosaic ids that are going to be added to the restriction.
+     * @param restrictionDeletions List of mosaic ids that are going to be removed from the restriction.
      * @return Account mosaic restriction transaction.
      */
-    public static AccountMosaicRestrictionTransactionFactory create(NetworkType networkType, AccountRestrictionType restrictionType,
-        List<UnresolvedMosaicId> restrictionAdditions, List<UnresolvedMosaicId> restrictionDeletions) {
-        return new AccountMosaicRestrictionTransactionFactory(networkType, restrictionType, restrictionAdditions, restrictionDeletions);
+    public static AccountMosaicRestrictionTransactionFactory create(NetworkType networkType,
+        AccountRestrictionType restrictionType, final List<UnresolvedMosaicId> restrictionAdditions,
+        final List<UnresolvedMosaicId> restrictionDeletions) {
+        return new AccountMosaicRestrictionTransactionFactory(networkType, restrictionType,
+            restrictionAdditions, restrictionDeletions);
     }
 
     /**
@@ -69,26 +72,23 @@ public class AccountMosaicRestrictionTransactionFactory extends
         return this.restrictionType;
     }
 
-    /**
-     * Get account mosaic restriction modifications
-     *
-     * @return list of {@link UnresolvedMosaicId}
-     */
-    public List<UnresolvedMosaicId> getRestrictionAdditions() {
-        return this.restrictionAdditions;
-    }
-
-    /**
-     * Get account mosaic restriction deletions.
-     *
-     * @return list of {@link UnresolvedMosaicId}
-     */
-    public List<UnresolvedMosaicId> getRestrictionDeletions() {
-        return this.restrictionDeletions;
-    }
 
     @Override
     public AccountMosaicRestrictionTransaction build() {
         return new AccountMosaicRestrictionTransaction(this);
+    }
+
+    /**
+     * @return List of mosaic ids that are going to be added to the restriction.
+     */
+    public List<UnresolvedMosaicId> getRestrictionAdditions() {
+        return restrictionAdditions;
+    }
+
+    /**
+     * @return List of mosaic ids that are going to be removed from the restriction.
+     */
+    public List<UnresolvedMosaicId> getRestrictionDeletions() {
+        return restrictionDeletions;
     }
 }

@@ -1066,7 +1066,7 @@ public class BinarySerializationImpl implements BinarySerialization {
               GeneratorUtils.toSet(
                   AccountRestrictionFlagsDto.class, transaction.getRestrictionType().getValue()),
               SerializationUtils.toUnresolvedMosaicIdDtoList(transaction.getRestrictionAdditions()),
-              SerializationUtils.toUnresolvedMosaicIdDtoList(transaction.getRestrictionAdditions()))
+              SerializationUtils.toUnresolvedMosaicIdDtoList(transaction.getRestrictionDeletions()))
           .serialize();
     }
   }

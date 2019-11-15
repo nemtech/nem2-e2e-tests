@@ -40,21 +40,18 @@ public class AccountOperationRestrictionTransaction extends Transaction {
         return this.restrictionType;
     }
 
+
     /**
-     * Get account operation restriction modifications
-     *
-     * @return list of {@link TransactionType}
+     * @return List of transaction types that are going to be added to the restriction.
      */
     public List<TransactionType> getRestrictionAdditions() {
-        return this.restrictionAdditions;
+        return restrictionAdditions;
     }
 
     /**
-     * Get account operation restriction modifications
-     *
-     * @return list of {@link TransactionType}
+     * @return List of transaction types that are going to be removed from the restriction.
      */
     public List<TransactionType> getRestrictionDeletions() {
-        return this.restrictionDeletions;
+        return restrictionDeletions;
     }
 }
