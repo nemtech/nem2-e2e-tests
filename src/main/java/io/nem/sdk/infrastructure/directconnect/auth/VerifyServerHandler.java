@@ -27,6 +27,7 @@ import io.nem.sdk.infrastructure.directconnect.network.SocketClient;
 import io.nem.sdk.infrastructure.directconnect.packet.Packet;
 import io.nem.sdk.infrastructure.directconnect.packet.PacketHeader;
 import io.nem.sdk.infrastructure.directconnect.packet.PacketType;
+import io.nem.sdk.model.blockchain.NetworkType;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
@@ -41,6 +42,7 @@ class VerifyServerHandler {
   private final PublicKey publicKey;
   private final ConnectionSecurityMode securityMode;
   private final List<PacketTraits> packetHandlers;
+  private final NetworkType networkType;
   private ByteBuffer serverChallenge;
 
   /**
@@ -48,19 +50,22 @@ class VerifyServerHandler {
    *
    * @param socket The socket connection to the catapult server.
    * @param clientKeyPair client key pair.
+   * @param networkType Network type.
    * @param publicKey server key pair.
    * @param mode Connection security mode.
    */
   VerifyServerHandler(
-      final SocketClient socket,
-      final KeyPair clientKeyPair,
+          final SocketClient socket,
+          final KeyPair clientKeyPair,
+          final NetworkType networkType,
       final PublicKey publicKey,
-      final ConnectionSecurityMode mode) {
+          final ConnectionSecurityMode mode) {
     this.serverSocket = socket;
     this.clientKeyPair = clientKeyPair;
     this.publicKey = publicKey;
     this.securityMode = mode;
     this.packetHandlers = new LinkedList<>();
+    this.networkType = networkType;
 
     // add handshake requirements for successful processing of
     // a server challenge and a client challenge
@@ -114,7 +119,7 @@ class VerifyServerHandler {
         () -> {
           final ByteBuffer response =
               ChallengeHelper.generateServerChallengeResponse(
-                  packet, this.clientKeyPair, this.securityMode);
+                  packet, this.clientKeyPair, networkType, this.securityMode);
           response.position(PacketHeader.SIZE);
           this.serverChallenge = ByteBuffer.allocate(ChallengeHelper.CHALLENGE_SIZE);
           final byte[] challenge = this.serverChallenge.array();
@@ -131,7 +136,7 @@ class VerifyServerHandler {
   void handleClientChallenge(final ByteBuffer response) {
     final boolean isVerified =
         ChallengeHelper.verifyClientChallengeResponse(
-            response, this.publicKey, this.serverChallenge);
+            response, this.publicKey, networkType, this.serverChallenge);
     if (!isVerified) {
       throw new VerifyPeerException("Server signature verification failed.");
     }

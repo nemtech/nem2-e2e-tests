@@ -28,6 +28,24 @@ import java.util.function.Function;
 
 /** Mosaic mapper. */
 public class MosaicMapper implements Function<JsonObject, Mosaic> {
+  final String mosaicIdPropertyName;
+
+  /**
+   * Constructor.
+   */
+  public  MosaicMapper() {
+    this("id");
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param mosaicIdPropertyName MosaicId property name.
+   */
+  public MosaicMapper(final String mosaicIdPropertyName) {
+    this.mosaicIdPropertyName = mosaicIdPropertyName;
+  }
+
   /**
    * Create a mosaic object from json.
    *
@@ -36,7 +54,7 @@ public class MosaicMapper implements Function<JsonObject, Mosaic> {
    */
   public Mosaic apply(final JsonObject jsonObject) {
     return new Mosaic(
-        new MosaicId(MapperUtils.extractBigInteger(jsonObject, "id")),
+        new MosaicId(MapperUtils.extractBigInteger(jsonObject, mosaicIdPropertyName)),
         MapperUtils.extractBigInteger(jsonObject, "amount"));
   }
 }

@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Unresolved mosaic id. */
 public final class UnresolvedMosaicIdDto {
@@ -41,7 +41,7 @@ public final class UnresolvedMosaicIdDto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public UnresolvedMosaicIdDto(final DataInput stream) {
+    public UnresolvedMosaicIdDto(final DataInputStream stream) {
         try {
             this.unresolvedMosaicId = Long.reverseBytes(stream.readLong());
         } catch(Exception e) {
@@ -73,7 +73,7 @@ public final class UnresolvedMosaicIdDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of UnresolvedMosaicIdDto.
      */
-    public static UnresolvedMosaicIdDto loadFromBinary(final DataInput stream) {
+    public static UnresolvedMosaicIdDto loadFromBinary(final DataInputStream stream) {
         return new UnresolvedMosaicIdDto(stream);
     }
 

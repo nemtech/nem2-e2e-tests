@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Enumeration of lock hash algorithms. */
 public enum LockHashAlgorithmDto {
@@ -32,6 +32,15 @@ public enum LockHashAlgorithmDto {
     HASH_160((byte) 2),
     /** Input is hashed twice with sha-256 (bitcoin's OP_HASH256). */
     HASH_256((byte) 3);
+
+    /**
+     * Gets the value of the enum.
+     *
+     * @return Value of the enum.
+     */
+    public byte getValue() {
+        return this.value;
+    }
 
     /** Enum value. */
     private final byte value;
@@ -75,7 +84,7 @@ public enum LockHashAlgorithmDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of LockHashAlgorithmDto.
      */
-    public static LockHashAlgorithmDto loadFromBinary(final DataInput stream) {
+    public static LockHashAlgorithmDto loadFromBinary(final DataInputStream stream) {
         try {
             final byte streamValue = stream.readByte();
             return rawValueOf(streamValue);

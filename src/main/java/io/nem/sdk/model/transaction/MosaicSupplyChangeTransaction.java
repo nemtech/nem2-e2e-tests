@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 NEM
+ * Copyright 2019 NEM
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,9 @@
 
 package io.nem.sdk.model.transaction;
 
-import io.nem.catapult.builders.*;
-import io.nem.sdk.model.account.PublicAccount;
-import io.nem.sdk.model.blockchain.NetworkType;
-import io.nem.sdk.model.mosaic.MosaicId;
-import io.nem.sdk.model.mosaic.MosaicSupplyType;
-import org.apache.commons.lang3.Validate;
-
+import io.nem.sdk.model.mosaic.MosaicSupplyChangeActionType;
+import io.nem.sdk.model.mosaic.UnresolvedMosaicId;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.Optional;
 
 /**
  * In case a mosaic has the flag 'supplyMutable' set to true, the creator of the mosaic can change
@@ -34,176 +27,43 @@ import java.util.Optional;
  * @since 1.0
  */
 public class MosaicSupplyChangeTransaction extends Transaction {
-  private final MosaicId mosaicId;
-  private final MosaicSupplyType mosaicSupplyType;
-  private final BigInteger delta;
 
-  public MosaicSupplyChangeTransaction(
-      NetworkType networkType,
-      Short version,
-      Deadline deadline,
-      BigInteger maxFee,
-      MosaicId mosaicId,
-      MosaicSupplyType mosaicSupplyType,
-      BigInteger delta,
-      String signature,
-      PublicAccount signer,
-      TransactionInfo transactionInfo) {
-    this(
-        networkType,
-        version,
-        deadline,
-        maxFee,
-        mosaicId,
-        mosaicSupplyType,
-        delta,
-        Optional.of(signature),
-        Optional.of(signer),
-        Optional.of(transactionInfo));
-  }
+    private final UnresolvedMosaicId mosaicId;
+    private final MosaicSupplyChangeActionType action;
+    private final BigInteger delta;
 
-  public MosaicSupplyChangeTransaction(
-      NetworkType networkType,
-      Short version,
-      Deadline deadline,
-      BigInteger maxFee,
-      MosaicId mosaicId,
-      MosaicSupplyType mosaicSupplyType,
-      BigInteger delta) {
-    this(
-        networkType,
-        version,
-        deadline,
-        maxFee,
-        mosaicId,
-        mosaicSupplyType,
-        delta,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty());
-  }
+    MosaicSupplyChangeTransaction(MosaicSupplyChangeTransactionFactory factory) {
+        super(factory);
+        this.mosaicId = factory.getMosaicId();
+        this.action = factory.getAction();
+        this.delta = factory.getDelta();
+    }
 
-  private MosaicSupplyChangeTransaction(
-      NetworkType networkType,
-      Short version,
-      Deadline deadline,
-      BigInteger maxFee,
-      MosaicId mosaicId,
-      MosaicSupplyType mosaicSupplyType,
-      BigInteger delta,
-      Optional<String> signature,
-      Optional<PublicAccount> signer,
-      Optional<TransactionInfo> transactionInfo) {
-    super(
-        TransactionType.MOSAIC_SUPPLY_CHANGE,
-        networkType,
-        version,
-        deadline,
-        maxFee,
-        signature,
-        signer,
-        transactionInfo);
-    Validate.notNull(mosaicId, "MosaicId must not be null");
-    Validate.notNull(mosaicSupplyType, "MosaicSupplyType must not be null");
-    Validate.notNull(delta, "Delta must not be null");
-    this.mosaicId = mosaicId;
-    this.mosaicSupplyType = mosaicSupplyType;
-    this.delta = delta;
-  }
+    /**
+     * Returns mosaic id.
+     *
+     * @return BigInteger
+     */
+    public UnresolvedMosaicId getMosaicId() {
+        return mosaicId;
+    }
 
-  /**
-   * Create a mosaic supply change transaction object.
-   *
-   * @param deadline Deadline to include the transaction.
-   * @param maxFee Max fee to pay to process the tx.
-   * @param mosaicId Mosaic id.
-   * @param mosaicSupplyType Supply type.
-   * @param delta Supply change in units for the mosaic.
-   * @param networkType Network type.
-   * @return {@link MosaicSupplyChangeTransaction}
-   */
-  public static MosaicSupplyChangeTransaction create(
-      Deadline deadline,
-      BigInteger maxFee,
-      MosaicId mosaicId,
-      MosaicSupplyType mosaicSupplyType,
-      BigInteger delta,
-      NetworkType networkType) {
-    return new MosaicSupplyChangeTransaction(
-        networkType,
-        TransactionVersion.MOSAIC_SUPPLY_CHANGE.getValue(),
-        deadline,
-        maxFee,
-        mosaicId,
-        mosaicSupplyType,
-        delta);
-  }
+    /**
+     * Returns mosaic supply type.
+     *
+     * @return {@link MosaicSupplyChangeActionType}
+     */
+    public MosaicSupplyChangeActionType getAction() {
+        return action;
+    }
 
-  /**
-   * Returns mosaic id.
-   *
-   * @return BigInteger
-   */
-  public MosaicId getMosaicId() {
-    return mosaicId;
-  }
+    /**
+     * Returns amount of mosaics added or removed.
+     *
+     * @return BigInteger
+     */
+    public BigInteger getDelta() {
+        return delta;
+    }
 
-  /**
-   * Returns mosaic supply type.
-   *
-   * @return {@link MosaicSupplyType}
-   */
-  public MosaicSupplyType getMosaicSupplyType() {
-    return mosaicSupplyType;
-  }
-
-  /**
-   * Returns amount of mosaics added or removed.
-   *
-   * @return BigInteger
-   */
-  public BigInteger getDelta() {
-    return delta;
-  }
-
-  /**
-   * Gets the serialized bytes.
-   *
-   * @return Serialized bytes
-   */
-  byte[] generateBytes() {
-    // Add place holders to the signer and signature until actually signed
-    final ByteBuffer signerBuffer = ByteBuffer.allocate(32);
-    final ByteBuffer signatureBuffer = ByteBuffer.allocate(64);
-
-    MosaicSupplyChangeTransactionBuilder txBuilder =
-        MosaicSupplyChangeTransactionBuilder.create(
-            new SignatureDto(signatureBuffer),
-            new KeyDto(signerBuffer),
-            getNetworkVersion(),
-            EntityTypeDto.MOSAIC_SUPPLY_CHANGE_TRANSACTION,
-            new AmountDto(getFee().longValue()),
-            new TimestampDto(getDeadline().getInstant()),
-            new UnresolvedMosaicIdDto(getMosaicId().getId().longValue()),
-            MosaicSupplyChangeActionDto.rawValueOf((byte) getMosaicSupplyType().getValue()),
-            new AmountDto(getDelta().longValue()));
-    return txBuilder.serialize();
-  }
-
-  /**
-   * Gets the embedded tx bytes.
-   *
-   * @return Embedded tx bytes
-   */
-  byte[] generateEmbeddedBytes() {
-    EmbeddedMosaicSupplyChangeTransactionBuilder txBuilder =
-        EmbeddedMosaicSupplyChangeTransactionBuilder.create(
-            new KeyDto(getSignerBytes().get()),
-            getNetworkVersion(),
-            EntityTypeDto.MOSAIC_SUPPLY_CHANGE_TRANSACTION,
-            new UnresolvedMosaicIdDto(getMosaicId().getId().longValue()),
-            MosaicSupplyChangeActionDto.rawValueOf((byte) getMosaicSupplyType().getValue()),
-            new AmountDto(getDelta().longValue()));
-    return txBuilder.serialize();
-  }
 }

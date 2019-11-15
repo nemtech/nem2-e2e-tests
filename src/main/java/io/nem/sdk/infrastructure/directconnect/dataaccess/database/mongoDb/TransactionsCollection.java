@@ -20,7 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
-import io.nem.sdk.infrastructure.common.CatapultContext;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.model.transaction.Transaction;
 
 import java.util.List;
@@ -32,7 +32,7 @@ public class TransactionsCollection extends TransactionCollectionBase {
    *
    * @param context Catapult context.
    */
-  public TransactionsCollection(final CatapultContext context) {
+  public TransactionsCollection(final DataAccessContext context) {
     super(context, "transactions");
   }
 

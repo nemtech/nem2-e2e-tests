@@ -1,3 +1,23 @@
+/**
+ * ** Copyright (c) 2016-present,
+ * ** Jaguar0625, gimre, BloodyRookie, Tech Bureau, Corp. All rights reserved.
+ * **
+ * ** This file is part of Catapult.
+ * **
+ * ** Catapult is free software: you can redistribute it and/or modify
+ * ** it under the terms of the GNU Lesser General Public License as published by
+ * ** the Free Software Foundation, either version 3 of the License, or
+ * ** (at your option) any later version.
+ * **
+ * ** Catapult is distributed in the hope that it will be useful,
+ * ** but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * ** GNU Lesser General Public License for more details.
+ * **
+ * ** You should have received a copy of the GNU Lesser General Public License
+ * ** along with Catapult. If not, see <http://www.gnu.org/licenses/>.
+ **/
+
 package io.nem.sdk.infrastructure.directconnect.dataaccess.mappers;
 
 import io.nem.sdk.model.account.Address;
@@ -51,23 +71,23 @@ public class TransactionStatementsMapper implements Function<JsonObject, Transac
 	public Receipt createReceipt(final JsonObject receiptJsonObject, NetworkType networkType) {
 		ReceiptType type = ReceiptType.rawValueOf(receiptJsonObject.getInteger("type"));
 		switch (type) {
-			case Harvest_Fee:
-			case LockHash_Created:
-			case LockHash_Completed:
-			case LockHash_Expired:
-			case LockSecret_Created:
-			case LockSecret_Completed:
-			case LockSecret_Expired:
+			case HARVEST_FEE:
+			case LOCK_HASH_CREATED:
+			case LOCK_HASH_COMPLETED:
+			case LOCK_HASH_EXPIRED:
+			case LOCK_SECRET_COMPLETED:
+			case LOCK_SECRET_CREATED:
+			case LOCK_SECRET_EXPIRED:
 				return createBalanceChangeReceipt(receiptJsonObject, type, networkType);
-			case Mosaic_Rental_Fee:
-			case Namespace_Rental_Fee:
+			case MOSAIC_RENTAL_FEE:
+			case NAMESPACE_RENTAL_FEE:
 				return createBalanceTransferRecipient(receiptJsonObject, type, networkType);
-			case Mosaic_Expired:
+			case MOSAIC_EXPIRED:
 				return createArtifactExpiryReceipt(receiptJsonObject, type, (final BigInteger id) -> new MosaicId(id));
-			case Namespace_Deleted:
-			case Namespace_Expired:
-				return createArtifactExpiryReceipt(receiptJsonObject, type, (final BigInteger id) -> new NamespaceId(id));
-			case Inflation:
+			case NAMESPACE_DELETED:
+			case NAMESPACE_EXPIRED:
+				return createArtifactExpiryReceipt(receiptJsonObject, type, (final BigInteger id) -> NamespaceId.createFromId(id));
+			case INFLATION:
 				return createInflationReceipt(receiptJsonObject, type);
 			default:
 				throw new IllegalArgumentException("Receipt type: " + type.name() + " not valid");
@@ -98,11 +118,11 @@ public class TransactionStatementsMapper implements Function<JsonObject, Transac
 				ReceiptVersion.BALANCE_CHANGE);
 	}
 
-	private BalanceTransferReceipt<Address> createBalanceTransferRecipient(
+	private BalanceTransferReceipt createBalanceTransferRecipient(
 			final JsonObject receiptJsonObject,
 			final ReceiptType type,
 			final NetworkType networkType) {
-		return new BalanceTransferReceipt<>(
+		return new BalanceTransferReceipt(
 				PublicAccount.createFromPublicKey(receiptJsonObject.getString("senderPublicKey"), networkType),
 				Address.createFromEncoded(receiptJsonObject.getString("recipientAddress")),
 				new MosaicId(MapperUtils.extractBigInteger(receiptJsonObject, "mosaicId")),

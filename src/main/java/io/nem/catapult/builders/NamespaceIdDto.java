@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Namespace id. */
 public final class NamespaceIdDto {
@@ -41,7 +41,7 @@ public final class NamespaceIdDto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public NamespaceIdDto(final DataInput stream) {
+    public NamespaceIdDto(final DataInputStream stream) {
         try {
             this.namespaceId = Long.reverseBytes(stream.readLong());
         } catch(Exception e) {
@@ -73,7 +73,7 @@ public final class NamespaceIdDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of NamespaceIdDto.
      */
-    public static NamespaceIdDto loadFromBinary(final DataInput stream) {
+    public static NamespaceIdDto loadFromBinary(final DataInputStream stream) {
         return new NamespaceIdDto(stream);
     }
 

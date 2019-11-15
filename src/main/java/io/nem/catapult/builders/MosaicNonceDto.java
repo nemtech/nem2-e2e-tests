@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Mosaic nonce. */
 public final class MosaicNonceDto {
@@ -41,7 +41,7 @@ public final class MosaicNonceDto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public MosaicNonceDto(final DataInput stream) {
+    public MosaicNonceDto(final DataInputStream stream) {
         try {
             this.mosaicNonce = Integer.reverseBytes(stream.readInt());
         } catch(Exception e) {
@@ -73,7 +73,7 @@ public final class MosaicNonceDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicNonceDto.
      */
-    public static MosaicNonceDto loadFromBinary(final DataInput stream) {
+    public static MosaicNonceDto loadFromBinary(final DataInputStream stream) {
         return new MosaicNonceDto(stream);
     }
 

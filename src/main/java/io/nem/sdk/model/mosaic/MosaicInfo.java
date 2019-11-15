@@ -12,7 +12,6 @@
 package io.nem.sdk.model.mosaic;
 
 import io.nem.sdk.model.account.PublicAccount;
-
 import java.math.BigInteger;
 
 /**
@@ -20,116 +19,126 @@ import java.math.BigInteger;
  * belongs to.
  */
 public class MosaicInfo {
-  private final MosaicId mosaicId;
-  private final BigInteger supply;
-  private final BigInteger height;
-  private final PublicAccount owner;
-  private final Integer revision;
-  private final MosaicProperties properties;
 
-  private MosaicInfo(
-      final MosaicId mosaicId,
-      final BigInteger supply,
-      final BigInteger height,
-      final PublicAccount owner,
-      final Integer revision,
-      final MosaicProperties properties) {
-    this.mosaicId = mosaicId;
-    this.supply = supply;
-    this.height = height;
-    this.owner = owner;
-    this.revision = revision;
-    this.properties = properties;
-  }
+    private final MosaicId mosaicId;
+    private final BigInteger supply;
+    private final BigInteger startHeight;
+    private final PublicAccount owner;
+    private final Integer revision;
+    private final MosaicFlags mosaicFlags;
+    private final int divisibility;
+    private final BigInteger duration;
 
-  public static MosaicInfo create(
-      final MosaicId mosaicId,
-      final BigInteger supply,
-      final BigInteger height,
-      final PublicAccount owner,
-      final Integer revision,
-      final MosaicProperties properties) {
-    return new MosaicInfo(mosaicId, supply, height, owner, revision, properties);
-  }
+    @SuppressWarnings("squid:S00107")
+    private MosaicInfo(final MosaicId mosaicId, final BigInteger supply,
+        final BigInteger startHeight, final PublicAccount owner, final Integer revision,
+        final MosaicFlags mosaicFlags, final int divisibility, final BigInteger duration) {
+        this.mosaicId = mosaicId;
+        this.supply = supply;
+        this.startHeight = startHeight;
+        this.owner = owner;
+        this.revision = revision;
+        this.mosaicFlags = mosaicFlags;
+        this.divisibility = divisibility;
+        this.duration = duration;
+    }
 
-  /**
-   * Returns the mosaic id
-   *
-   * @return mosaic id
-   */
-  public MosaicId getMosaicId() {
-    return mosaicId;
-  }
+    @SuppressWarnings("squid:S00107")
+    public static MosaicInfo create(final MosaicId mosaicId,
+        final BigInteger supply, final BigInteger startHeight,
+        final PublicAccount owner, final Integer revision, final MosaicFlags mosaicFlags,
+        final int divisibility, final BigInteger duration) {
+        return new MosaicInfo(mosaicId, supply, startHeight, owner, revision, mosaicFlags,
+            divisibility, duration);
+    }
 
-  /**
-   * Returns the total mosaic supply
-   *
-   * @return total mosaic supply
-   */
-  public BigInteger getSupply() {
-    return supply;
-  }
+    /**
+     * Returns the mosaic id
+     *
+     * @return mosaic id
+     */
+    public MosaicId getMosaicId() {
+        return mosaicId;
+    }
 
-  /**
-   * Returns the block height it was created
-   *
-   * @return height it was created
-   */
-  public BigInteger getHeight() {
-    return height;
-  }
+    /**
+     * Returns the total mosaic supply
+     *
+     * @return total mosaic supply
+     */
+    public BigInteger getSupply() {
+        return supply;
+    }
 
-  /**
-   * Returns the mosaic account owner
-   *
-   * @return mosaic account owner
-   */
-  public PublicAccount getOwner() {
-    return owner;
-  }
+    /**
+     * Returns the block height it was created
+     *
+     * @return height it was created
+     */
+    public BigInteger getStartHeight() {
+        return startHeight;
+    }
 
-  /**
-   * Returns the revision number
-   *
-   * @return revision
-   */
-  public Integer getRevision() {
-    return revision;
-  }
+    /**
+     * Returns the mosaic account owner
+     *
+     * @return mosaic account owner
+     */
+    public PublicAccount getOwner() {
+        return owner;
+    }
 
-  /**
-   * Returns true if the supply is mutable
-   *
-   * @return if supply is mutable
-   */
-  public boolean isSupplyMutable() {
-    return properties.isSupplyMutable();
-  }
+    /**
+     * Returns the revision number
+     *
+     * @return revision
+     */
+    public Integer getRevision() {
+        return revision;
+    }
 
-  /**
-   * Returns tue if the mosaic is transferable between non-owner accounts
-   *
-   * @return if the mosaic is transferable between non-owner accounts
-   */
-  public boolean isTransferable() {
-    return properties.isTransferable();
-  }
+    /**
+     * Returns true if the supply is mutable
+     *
+     * @return if supply is mutable
+     */
+    public boolean isSupplyMutable() {
+        return mosaicFlags.isSupplyMutable();
+    }
 
-  /**
-   * Return the number of blocks from height it will be active
-   *
-   * @return the number of blocks from height it will be active
-   */
-  public BigInteger getDuration() {
-    return properties.getDuration();
-  }
+    /**
+     * Returns tue if the mosaic is transferable between non-owner accounts
+     *
+     * @return if the mosaic is transferable between non-owner accounts
+     */
+    public boolean isTransferable() {
+        return mosaicFlags.isTransferable();
+    }
 
-  /**
-   * Returns the mosaic divisibility
-   *
-   * @return mosaic divisibility
-   */
-  public int getDivisibility() {
-    return properties.getDivisibility();
-  }
+    /**
+     * Returns tue if the mosaic is restrictable between non-owner accounts
+     *
+     * @return if the mosaic is restrictable between non-owner accounts
+     */
+    public boolean isRestrictable() {
+        return mosaicFlags.isRestrictable();
+    }
+
+    /**
+     * Returns the mosaic divisibility
+     *
+     * @return mosaic divisibility
+     */
+    public int getDivisibility() {
+        return divisibility;
+    }
+
+    /**
+     * Return the number of blocks from height it will be active
+     *
+     * @return the number of blocks from height it will be active
+     */
+    public BigInteger getDuration() {
+        return duration;
+    }
 }

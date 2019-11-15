@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a non-embedded mosaic supply change transaction. */
 public final class MosaicSupplyChangeTransactionBuilder extends TransactionBuilder {
@@ -32,7 +32,7 @@ public final class MosaicSupplyChangeTransactionBuilder extends TransactionBuild
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected MosaicSupplyChangeTransactionBuilder(final DataInput stream) {
+    protected MosaicSupplyChangeTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.mosaicSupplyChangeTransactionBody = MosaicSupplyChangeTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,36 +41,38 @@ public final class MosaicSupplyChangeTransactionBuilder extends TransactionBuild
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
      * @param mosaicId Affected mosaic identifier.
-     * @param action Supply change action.
      * @param delta Change amount.
+     * @param action Supply change action.
      */
-    protected MosaicSupplyChangeTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicIdDto mosaicId, final MosaicSupplyChangeActionDto action, final AmountDto delta) {
-        super(signature, signer, version, type, fee, deadline);
-        this.mosaicSupplyChangeTransactionBody = MosaicSupplyChangeTransactionBodyBuilder.create(mosaicId, action, delta);
+    protected MosaicSupplyChangeTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicIdDto mosaicId, final AmountDto delta, final MosaicSupplyChangeActionDto action) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
+        this.mosaicSupplyChangeTransactionBody = MosaicSupplyChangeTransactionBodyBuilder.create(mosaicId, delta, action);
     }
 
     /**
      * Creates an instance of MosaicSupplyChangeTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
      * @param mosaicId Affected mosaic identifier.
-     * @param action Supply change action.
      * @param delta Change amount.
+     * @param action Supply change action.
      * @return Instance of MosaicSupplyChangeTransactionBuilder.
      */
-    public static MosaicSupplyChangeTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicIdDto mosaicId, final MosaicSupplyChangeActionDto action, final AmountDto delta) {
-        return new MosaicSupplyChangeTransactionBuilder(signature, signer, version, type, fee, deadline, mosaicId, action, delta);
+    public static MosaicSupplyChangeTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicIdDto mosaicId, final AmountDto delta, final MosaicSupplyChangeActionDto action) {
+        return new MosaicSupplyChangeTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, mosaicId, delta, action);
     }
 
     /**
@@ -83,21 +85,21 @@ public final class MosaicSupplyChangeTransactionBuilder extends TransactionBuild
     }
 
     /**
-     * Gets supply change action.
-     *
-     * @return Supply change action.
-     */
-    public MosaicSupplyChangeActionDto getAction() {
-        return this.mosaicSupplyChangeTransactionBody.getAction();
-    }
-
-    /**
      * Gets change amount.
      *
      * @return Change amount.
      */
     public AmountDto getDelta() {
         return this.mosaicSupplyChangeTransactionBody.getDelta();
+    }
+
+    /**
+     * Gets supply change action.
+     *
+     * @return Supply change action.
+     */
+    public MosaicSupplyChangeActionDto getAction() {
+        return this.mosaicSupplyChangeTransactionBody.getAction();
     }
 
     /**
@@ -118,7 +120,7 @@ public final class MosaicSupplyChangeTransactionBuilder extends TransactionBuild
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicSupplyChangeTransactionBuilder.
      */
-    public static MosaicSupplyChangeTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static MosaicSupplyChangeTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new MosaicSupplyChangeTransactionBuilder(stream);
     }
 

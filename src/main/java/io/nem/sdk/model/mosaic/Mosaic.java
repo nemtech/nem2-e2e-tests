@@ -16,8 +16,6 @@
 
 package io.nem.sdk.model.mosaic;
 
-import io.nem.sdk.model.transaction.UInt64Id;
-
 import java.math.BigInteger;
 
 /**
@@ -27,39 +25,42 @@ import java.math.BigInteger;
  * @since 1.0
  */
 public class Mosaic {
-  private final UInt64Id id;
-  private final BigInteger amount;
 
-  public Mosaic(UInt64Id id, BigInteger amount) {
-    this.id = id;
-    this.amount = amount;
-  }
+    private final UnresolvedMosaicId id;
 
-  /**
-   * Returns the mosaic identifier
-   *
-   * @return mosaic identifier
-   */
-  public UInt64Id getId() {
-    return id;
-  }
+    private final BigInteger amount;
 
-  /**
-   * Returns mosaic id as a hexadecimal string
-   *
-   * @return id hex string
-   */
-  public String getIdAsHex() {
-    return id.getIdAsHex();
-  }
+    public Mosaic(UnresolvedMosaicId id, BigInteger amount) {
+        this.id = id;
+        this.amount = amount;
+    }
 
-  /**
-   * Return mosaic amount. The quantity is always given in smallest units for the mosaic i.e. if it
-   * has a divisibility of 3 the quantity is given in millis.
-   *
-   * @return amount of mosaic
-   */
-  public BigInteger getAmount() {
-    return amount;
-  }
+    /**
+     * Returns the mosaic identifier
+     *
+     * @return mosaic identifier
+     */
+    public UnresolvedMosaicId getId() {
+        return id;
+    }
+
+    /**
+     * Returns mosaic id as a hexadecimal string
+     *
+     * @return id hex string
+     */
+    public String getIdAsHex() {
+        return id.getIdAsHex();
+    }
+
+    /**
+     * Return mosaic amount. The quantity is always given in smallest units for the mosaic i.e. if
+     * it has a divisibility of 3 the quantity is given in millis.
+     *
+     * @return amount of mosaic
+     */
+    public BigInteger getAmount() {
+        return amount;
+    }
+
 }

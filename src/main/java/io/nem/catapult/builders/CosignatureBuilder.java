@@ -20,12 +20,12 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Cosignature attached to an aggregate transaction. */
 public class CosignatureBuilder {
     /** Cosigner public key. */
-    private final KeyDto signer;
+    private final KeyDto signerPublicKey;
     /** Cosigner signature. */
     private final SignatureDto signature;
 
@@ -34,33 +34,33 @@ public class CosignatureBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected CosignatureBuilder(final DataInput stream) {
-        this.signer = KeyDto.loadFromBinary(stream);
+    protected CosignatureBuilder(final DataInputStream stream) {
+        this.signerPublicKey = KeyDto.loadFromBinary(stream);
         this.signature = SignatureDto.loadFromBinary(stream);
     }
 
     /**
      * Constructor.
      *
-     * @param signer Cosigner public key.
+     * @param signerPublicKey Cosigner public key.
      * @param signature Cosigner signature.
      */
-    protected CosignatureBuilder(final KeyDto signer, final SignatureDto signature) {
-        GeneratorUtils.notNull(signer, "signer is null");
+    protected CosignatureBuilder(final KeyDto signerPublicKey, final SignatureDto signature) {
+        GeneratorUtils.notNull(signerPublicKey, "signerPublicKey is null");
         GeneratorUtils.notNull(signature, "signature is null");
-        this.signer = signer;
+        this.signerPublicKey = signerPublicKey;
         this.signature = signature;
     }
 
     /**
      * Creates an instance of CosignatureBuilder.
      *
-     * @param signer Cosigner public key.
+     * @param signerPublicKey Cosigner public key.
      * @param signature Cosigner signature.
      * @return Instance of CosignatureBuilder.
      */
-    public static CosignatureBuilder create(final KeyDto signer, final SignatureDto signature) {
-        return new CosignatureBuilder(signer, signature);
+    public static CosignatureBuilder create(final KeyDto signerPublicKey, final SignatureDto signature) {
+        return new CosignatureBuilder(signerPublicKey, signature);
     }
 
     /**
@@ -68,8 +68,8 @@ public class CosignatureBuilder {
      *
      * @return Cosigner public key.
      */
-    public KeyDto getSigner() {
-        return this.signer;
+    public KeyDto getSignerPublicKey() {
+        return this.signerPublicKey;
     }
 
     /**
@@ -88,7 +88,7 @@ public class CosignatureBuilder {
      */
     public int getSize() {
         int size = 0;
-        size += this.signer.getSize();
+        size += this.signerPublicKey.getSize();
         size += this.signature.getSize();
         return size;
     }
@@ -99,7 +99,7 @@ public class CosignatureBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of CosignatureBuilder.
      */
-    public static CosignatureBuilder loadFromBinary(final DataInput stream) {
+    public static CosignatureBuilder loadFromBinary(final DataInputStream stream) {
         return new CosignatureBuilder(stream);
     }
 
@@ -110,8 +110,8 @@ public class CosignatureBuilder {
      */
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
-            final byte[] signerBytes = this.signer.serialize();
-            dataOutputStream.write(signerBytes, 0, signerBytes.length);
+            final byte[] signerPublicKeyBytes = this.signerPublicKey.serialize();
+            dataOutputStream.write(signerPublicKeyBytes, 0, signerPublicKeyBytes.length);
             final byte[] signatureBytes = this.signature.serialize();
             dataOutputStream.write(signatureBytes, 0, signatureBytes.length);
         });

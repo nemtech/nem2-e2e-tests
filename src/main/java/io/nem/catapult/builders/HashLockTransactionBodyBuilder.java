@@ -20,10 +20,10 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a hash lock transaction. */
-final class HashLockTransactionBodyBuilder {
+public final class HashLockTransactionBodyBuilder {
     /** Lock mosaic. */
     private final UnresolvedMosaicBuilder mosaic;
     /** Number of blocks for which a lock should be valid. */
@@ -36,7 +36,7 @@ final class HashLockTransactionBodyBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected HashLockTransactionBodyBuilder(final DataInput stream) {
+    protected HashLockTransactionBodyBuilder(final DataInputStream stream) {
         this.mosaic = UnresolvedMosaicBuilder.loadFromBinary(stream);
         this.duration = BlockDurationDto.loadFromBinary(stream);
         this.hash = Hash256Dto.loadFromBinary(stream);
@@ -116,7 +116,7 @@ final class HashLockTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of HashLockTransactionBodyBuilder.
      */
-    public static HashLockTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static HashLockTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new HashLockTransactionBodyBuilder(stream);
     }
 

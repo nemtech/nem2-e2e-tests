@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Enumeration of alias actions. */
 public enum AliasActionDto {
@@ -28,6 +28,15 @@ public enum AliasActionDto {
     UNLINK((byte) 0),
     /** Link alias. */
     LINK((byte) 1);
+
+    /**
+     * Gets the value of the enum.
+     *
+     * @return Value of the enum.
+     */
+    public byte getValue() {
+        return this.value;
+    }
 
     /** Enum value. */
     private final byte value;
@@ -71,7 +80,7 @@ public enum AliasActionDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AliasActionDto.
      */
-    public static AliasActionDto loadFromBinary(final DataInput stream) {
+    public static AliasActionDto loadFromBinary(final DataInputStream stream) {
         try {
             final byte streamValue = stream.readByte();
             return rawValueOf(streamValue);

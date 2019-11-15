@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a mosaic. */
 public class MosaicBuilder {
@@ -34,7 +34,7 @@ public class MosaicBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected MosaicBuilder(final DataInput stream) {
+    protected MosaicBuilder(final DataInputStream stream) {
         this.mosaicId = MosaicIdDto.loadFromBinary(stream);
         this.amount = AmountDto.loadFromBinary(stream);
     }
@@ -99,7 +99,7 @@ public class MosaicBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicBuilder.
      */
-    public static MosaicBuilder loadFromBinary(final DataInput stream) {
+    public static MosaicBuilder loadFromBinary(final DataInputStream stream) {
         return new MosaicBuilder(stream);
     }
 

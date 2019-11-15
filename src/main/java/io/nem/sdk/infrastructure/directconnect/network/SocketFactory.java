@@ -27,28 +27,31 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 
-/** Create a connection with catapult server. */
+/**
+ * Create a connection with catapult server.
+ */
 public class SocketFactory {
 
-  /**
-   * Open a socket connection to the given server on the given port.
-   *
-   * @param server Server connection.
-   * @param port Server port.
-   * @param timeoutInMilliseconds Timeout in milliseconds.
-   * @return Client socket
-   */
-  public static SocketClient OpenSocket(
-      final String server, final int port, final int timeoutInMilliseconds) {
-    return ExceptionUtils.propagate(
-        () -> {
-          final InetAddress inetAddress = InetAddress.getByName(server);
-          final SocketAddress socketAddress = new InetSocketAddress(inetAddress, port);
-          final Socket socket = new Socket();
+	/**
+	 * Open a socket connection to the given server on the given port.
+	 *
+	 * @param server                Server connection.
+	 * @param port                  Server port.
+	 * @param timeoutInMilliseconds Timeout in milliseconds.
+	 * @return Client socket
+	 */
+	public static SocketClient OpenSocket(
+			final String server, final int port, final int timeoutInMilliseconds) {
+		final Socket socketConnected = ExceptionUtils.propagate(
+				() -> {
+					final InetAddress inetAddress = InetAddress.getByName(server);
+					final SocketAddress socketAddress = new InetSocketAddress(inetAddress, port);
+					final Socket socket = new Socket();
 
-          // this method will block no more than timeout ms.
-          socket.connect(socketAddress, timeoutInMilliseconds);
-          return new SocketClient(socket);
-        });
-  }
+					// this method will block no more than timeout ms.
+					socket.connect(socketAddress, timeoutInMilliseconds);
+					return socket;
+				});
+		return SocketClient.create(socketConnected);
+	}
 }

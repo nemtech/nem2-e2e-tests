@@ -22,40 +22,41 @@ package io.nem.sdk.model.blockchain;
  * @since 1.0
  */
 public class BlockchainStorageInfo {
-  private final Integer numAccounts;
-  private final Integer numBlocks;
-  private final Integer numTransactions;
 
-  public BlockchainStorageInfo(Integer numAccounts, Integer numBlocks, Integer numTransactions) {
-    this.numAccounts = numAccounts;
-    this.numBlocks = numBlocks;
-    this.numTransactions = numTransactions;
-  }
+    private final Long numAccounts;
+    private final Long numBlocks;
+    private final Long numTransactions;
 
-  /**
-   * Returns number of accounts published in the blockchain.
-   *
-   * @return Integer
-   */
-  public Integer getNumAccounts() {
-    return numAccounts;
-  }
+    public BlockchainStorageInfo(Long numAccounts, Long numBlocks, Long numTransactions) {
+        this.numAccounts = numAccounts;
+        this.numBlocks = numBlocks;
+        this.numTransactions = numTransactions;
+    }
 
-  /**
-   * Returns number of confirmed blocks.
-   *
-   * @return Integer
-   */
-  public Integer getNumBlocks() {
-    return numBlocks;
-  }
+    /**
+     * Returns number of accounts published in the blockchain.
+     *
+     * @return Long
+     */
+    public Long getNumAccounts() {
+        return numAccounts;
+    }
 
-  /**
-   * Returns number of confirmed transactions.
-   *
-   * @return Integer
-   */
-  public Integer getNumTransactions() {
-    return numTransactions;
-  }
+    /**
+     * Returns number of confirmed blocks.
+     *
+     * @return Long
+     */
+    public Long getNumBlocks() {
+        return numBlocks;
+    }
+
+    /**
+     * Returns number of confirmed transactions.
+     *
+     * @return Long
+     */
+    public Long getNumTransactions() {
+        return numTransactions;
+    }
 }

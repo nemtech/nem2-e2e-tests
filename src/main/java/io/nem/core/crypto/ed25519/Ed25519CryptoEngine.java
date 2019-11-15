@@ -16,35 +16,43 @@
 
 package io.nem.core.crypto.ed25519;
 
-import io.nem.core.crypto.*;
+import io.nem.core.crypto.BlockCipher;
+import io.nem.core.crypto.CryptoEngine;
+import io.nem.core.crypto.Curve;
+import io.nem.core.crypto.DsaSigner;
+import io.nem.core.crypto.KeyAnalyzer;
+import io.nem.core.crypto.KeyGenerator;
+import io.nem.core.crypto.KeyPair;
+import io.nem.core.crypto.SignSchema;
 
 /**
  * Class that wraps the Ed25519 specific implementation.
  */
 public class Ed25519CryptoEngine implements CryptoEngine {
 
-	@Override
-	public Curve getCurve() {
-		return Ed25519Curve.ed25519();
-	}
+    @Override
+    public Curve getCurve() {
+        return Ed25519Curve.ed25519();
+    }
 
-	@Override
-	public DsaSigner createDsaSigner(final KeyPair keyPair) {
-		return new Ed25519DsaSigner(keyPair);
-	}
+    @Override
+    public DsaSigner createDsaSigner(final KeyPair keyPair, SignSchema signSchema) {
+        return new Ed25519DsaSigner(keyPair, signSchema);
+    }
 
-	@Override
-	public KeyGenerator createKeyGenerator() {
-		return new Ed25519KeyGenerator();
-	}
+    @Override
+    public KeyGenerator createKeyGenerator(SignSchema signSchema) {
+        return new Ed25519KeyGenerator(signSchema);
+    }
 
-	@Override
-	public BlockCipher createBlockCipher(final KeyPair senderKeyPair, final KeyPair recipientKeyPair) {
-		return new Ed25519BlockCipher(senderKeyPair, recipientKeyPair);
-	}
+    @Override
+    public BlockCipher createBlockCipher(final KeyPair senderKeyPair,
+        final KeyPair recipientKeyPair, final SignSchema signSchema) {
+        return new Ed25519BlockCipher(senderKeyPair, recipientKeyPair, signSchema);
+    }
 
-	@Override
-	public KeyAnalyzer createKeyAnalyzer() {
-		return new Ed25519KeyAnalyzer();
-	}
+    @Override
+    public KeyAnalyzer createKeyAnalyzer() {
+        return new Ed25519KeyAnalyzer();
+    }
 }

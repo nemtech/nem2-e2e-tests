@@ -20,7 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.mappers;
 
-import io.nem.core.utils.HexEncoder;
+import io.nem.core.utils.ConvertUtils;
 import io.vertx.core.json.JsonObject;
 import org.bson.Document;
 import org.bson.json.JsonMode;
@@ -42,7 +42,7 @@ public class JsonObjectMapper implements Function<Document, JsonObject> {
         document.toJson(
             JsonWriterSettings.builder()
                 .binaryConverter(
-                    (value, writer) -> writer.writeString(HexEncoder.getString(value.getData())))
+                    (value, writer) -> writer.writeString(ConvertUtils.toHex(value.getData())))
                 .outputMode(JsonMode.RELAXED)
                 .build());
     return new JsonObject(json);

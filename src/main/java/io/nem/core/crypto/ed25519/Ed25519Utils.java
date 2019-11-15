@@ -16,10 +16,9 @@
 
 package io.nem.core.crypto.ed25519;
 
-import io.nem.core.crypto.Hashes;
 import io.nem.core.crypto.PrivateKey;
+import io.nem.core.crypto.SignSchema;
 import io.nem.core.crypto.ed25519.arithmetic.Ed25519EncodedFieldElement;
-
 import java.util.Arrays;
 
 /**
@@ -27,19 +26,27 @@ import java.util.Arrays;
  */
 public class Ed25519Utils {
 
-	/**
-	 * Prepares a private key's raw value for scalar multiplication.
-	 * The hashing is for achieving better randomness and the clamping prevents small subgroup attacks.
-	 *
-	 * @param key The private key.
-	 * @return The prepared encoded field element.
-	 */
-	public static Ed25519EncodedFieldElement prepareForScalarMultiply(final PrivateKey key) {
-		final byte[] hash = Hashes.sha3_512(key.getBytes());
-		final byte[] a = Arrays.copyOfRange(hash, 0, 32);
-		a[31] &= 0x7F;
-		a[31] |= 0x40;
-		a[0] &= 0xF8;
-		return new Ed25519EncodedFieldElement(a);
-	}
+    /**
+     * Private constructor for this utility class.
+     */
+    private Ed25519Utils() {
+    }
+
+    /**
+     * Prepares a private key's raw value for scalar multiplication. The hashing is for achieving
+     * better randomness and the clamping prevents small subgroup attacks.
+     *
+     * @param key The private key.
+     * @param signSchema signSchema.
+     * @return The prepared encoded field element.
+     */
+    public static Ed25519EncodedFieldElement prepareForScalarMultiply(final PrivateKey key,
+        SignSchema signSchema) {
+        final byte[] hash = SignSchema.toHash(key, signSchema);
+        final byte[] a = Arrays.copyOfRange(hash, 0, 32);
+        a[31] &= 0x7F;
+        a[31] |= 0x40;
+        a[0] &= 0xF8;
+        return new Ed25519EncodedFieldElement(a);
+    }
 }

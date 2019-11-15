@@ -21,6 +21,7 @@
 package io.nem.sdk.infrastructure.directconnect.dataaccess.mappers;
 
 import io.nem.sdk.model.account.AccountInfo;
+import io.nem.sdk.model.account.AccountType;
 import io.nem.sdk.model.account.Address;
 import io.nem.sdk.model.account.Importances;
 import io.nem.sdk.model.mosaic.Mosaic;
@@ -52,12 +53,14 @@ public class AccountInfoMapper implements Function<JsonObject, AccountInfo> {
         accountJsonObject.getJsonArray("importances").stream()
             .map(jsonObj -> importancesMapper.apply((JsonObject) jsonObj))
             .collect(Collectors.toList());
+    final Importances importance = importances.size() > 0 ? importances.get(0) : new Importances(BigInteger.ZERO, BigInteger.ZERO);
 
     final MosaicMapper mosaicMapper = new MosaicMapper();
     final List<Mosaic> mosaics =
         accountJsonObject.getJsonArray("mosaics").stream()
             .map(jsonObj -> mosaicMapper.apply((JsonObject) jsonObj))
             .collect(Collectors.toList());
-    return new AccountInfo(address, addressHeight, publicKey, publicHeight, importances, mosaics);
+    return new AccountInfo(address, addressHeight, publicKey, publicHeight, importance.getValue(), importance.getHeight(), mosaics,
+            AccountType.UNLINKED);
   }
 }

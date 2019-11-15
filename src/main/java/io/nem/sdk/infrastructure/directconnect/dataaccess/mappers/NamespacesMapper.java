@@ -45,15 +45,15 @@ public class NamespacesMapper implements Function<JsonObject, NamespaceInfo> {
     final Integer index = metaJsonObject.getInteger("index");
     final JsonObject namespaceJsonObject = jsonObject.getJsonObject("namespace");
     final String metaId = "";
-    final NamespaceType type =
-        NamespaceType.rawValueOf(namespaceJsonObject.getInteger("registrationType"));
+    final NamespaceRegistrationType type =
+            NamespaceRegistrationType.rawValueOf(namespaceJsonObject.getInteger("registrationType"));
     final Integer depth = namespaceJsonObject.getInteger("depth");
     final List<NamespaceId> levels = new ArrayList<>(depth);
     for (int i = 0; i < depth; i++) {
-      levels.add(new NamespaceId(MapperUtils.extractBigInteger(namespaceJsonObject, "level" + i)));
+      levels.add(NamespaceId.createFromId(MapperUtils.extractBigInteger(namespaceJsonObject, "level" + i)));
     }
     final NamespaceId parentId =
-        new NamespaceId(MapperUtils.extractBigInteger(namespaceJsonObject, "parentId"));
+            NamespaceId.createFromId(MapperUtils.extractBigInteger(namespaceJsonObject, "parentId"));
     final Address address =
         Address.createFromEncoded(namespaceJsonObject.getString("ownerAddress"));
     final PublicAccount owner =
@@ -77,12 +77,12 @@ public class NamespacesMapper implements Function<JsonObject, NamespaceInfo> {
     final JsonObject aliasObject = jsonObject.getJsonObject("alias");
     final AliasType aliasType = AliasType.rawValueOf(aliasObject.getInteger("type"));
     switch (aliasType) {
-      case None:
+      case NONE:
         return new EmptyAlias();
-      case Address:
+      case ADDRESS:
         final Address address = Address.createFromEncoded(aliasObject.getString("address"));
         return new AddressAlias(address);
-      case Mosaic:
+      case MOSAIC:
         final MosaicId mosaicId =
             new MosaicId(MapperUtils.extractBigInteger(aliasObject, "mosaicId"));
         return new MosaicAlias(mosaicId);

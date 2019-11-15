@@ -19,30 +19,32 @@ import java.math.BigInteger;
 
 public class NodeTime {
 
-  private final BigInteger sendTimeStamp;
-  private final BigInteger receiveTimeStamp;
+    private final BigInteger sendTimeStamp;
+    private final BigInteger receiveTimeStamp;
 
-  /** Constructor */
-  public NodeTime(BigInteger sendTimeStamp, BigInteger receiveTimeStamp) {
-    this.receiveTimeStamp = receiveTimeStamp;
-    this.sendTimeStamp = sendTimeStamp;
-  }
+    /**
+     * Constructor
+     */
+    public NodeTime(BigInteger sendTimeStamp, BigInteger receiveTimeStamp) {
+        this.receiveTimeStamp = receiveTimeStamp;
+        this.sendTimeStamp = sendTimeStamp;
+    }
 
-  /**
-   * Get send timestamp
-   *
-   * @return BigInteger
-   */
-  public BigInteger getSendTimeStamp() {
-    return this.sendTimeStamp;
-  }
+    /**
+     * Get send timestamp
+     *
+     * @return BigInteger
+     */
+    public BigInteger getSendTimeStamp() {
+        return this.sendTimeStamp;
+    }
 
-  /**
-   * Get receive timestamp
-   *
-   * @return BigInteger
-   */
-  public BigInteger getReceiveTimeStamp() {
-    return this.receiveTimeStamp;
-  }
+    /**
+     * Get receive timestamp
+     *
+     * @return BigInteger
+     */
+    public BigInteger getReceiveTimeStamp() {
+        return this.receiveTimeStamp;
+    }
 }

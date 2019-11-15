@@ -20,16 +20,22 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for an embedded transaction. */
 public class EmbeddedTransactionBuilder {
     /** Entity size. */
     private int size;
+    /** Reserved padding to align end of EmbeddedTransactionHeader on 8-byte boundary. */
+    private final int embeddedTransactionHeader_Reserved1;
     /** Entity signer's public key. */
-    private final KeyDto signer;
+    private final KeyDto signerPublicKey;
+    /** Reserved padding to align end of EntityBody on 8-byte boundary. */
+    private final int entityBody_Reserved1;
     /** Entity version. */
-    private final short version;
+    private final byte version;
+    /** Entity network. */
+    private final NetworkTypeDto network;
     /** Entity type. */
     private final EntityTypeDto type;
 
@@ -38,11 +44,14 @@ public class EmbeddedTransactionBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedTransactionBuilder(final DataInput stream) {
+    protected EmbeddedTransactionBuilder(final DataInputStream stream) {
         try {
             this.size = Integer.reverseBytes(stream.readInt());
-            this.signer = KeyDto.loadFromBinary(stream);
-            this.version = Short.reverseBytes(stream.readShort());
+            this.embeddedTransactionHeader_Reserved1 = Integer.reverseBytes(stream.readInt());
+            this.signerPublicKey = KeyDto.loadFromBinary(stream);
+            this.entityBody_Reserved1 = Integer.reverseBytes(stream.readInt());
+            this.version = stream.readByte();
+            this.network = NetworkTypeDto.loadFromBinary(stream);
             this.type = EntityTypeDto.loadFromBinary(stream);
         } catch(Exception e) {
             throw GeneratorUtils.getExceptionToPropagate(e);
@@ -52,28 +61,34 @@ public class EmbeddedTransactionBuilder {
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      */
-    protected EmbeddedTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type) {
-        GeneratorUtils.notNull(signer, "signer is null");
+    protected EmbeddedTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type) {
+        GeneratorUtils.notNull(signerPublicKey, "signerPublicKey is null");
+        GeneratorUtils.notNull(network, "network is null");
         GeneratorUtils.notNull(type, "type is null");
-        this.signer = signer;
+        this.embeddedTransactionHeader_Reserved1 = 0;
+        this.signerPublicKey = signerPublicKey;
+        this.entityBody_Reserved1 = 0;
         this.version = version;
+        this.network = network;
         this.type = type;
     }
 
     /**
      * Creates an instance of EmbeddedTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @return Instance of EmbeddedTransactionBuilder.
      */
-    public static EmbeddedTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type) {
-        return new EmbeddedTransactionBuilder(signer, version, type);
+    public static EmbeddedTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type) {
+        return new EmbeddedTransactionBuilder(signerPublicKey, version, network, type);
     }
 
     /**
@@ -86,12 +101,30 @@ public class EmbeddedTransactionBuilder {
     }
 
     /**
+     * Gets reserved padding to align end of EmbeddedTransactionHeader on 8-byte boundary.
+     *
+     * @return Reserved padding to align end of EmbeddedTransactionHeader on 8-byte boundary.
+     */
+    private int getEmbeddedTransactionHeader_Reserved1() {
+        return this.embeddedTransactionHeader_Reserved1;
+    }
+
+    /**
      * Gets entity signer's public key.
      *
      * @return Entity signer's public key.
      */
-    public KeyDto getSigner() {
-        return this.signer;
+    public KeyDto getSignerPublicKey() {
+        return this.signerPublicKey;
+    }
+
+    /**
+     * Gets reserved padding to align end of EntityBody on 8-byte boundary.
+     *
+     * @return Reserved padding to align end of EntityBody on 8-byte boundary.
+     */
+    private int getEntityBody_Reserved1() {
+        return this.entityBody_Reserved1;
     }
 
     /**
@@ -99,8 +132,17 @@ public class EmbeddedTransactionBuilder {
      *
      * @return Entity version.
      */
-    public short getVersion() {
+    public byte getVersion() {
         return this.version;
+    }
+
+    /**
+     * Gets entity network.
+     *
+     * @return Entity network.
+     */
+    public NetworkTypeDto getNetwork() {
+        return this.network;
     }
 
     /**
@@ -120,8 +162,11 @@ public class EmbeddedTransactionBuilder {
     public int getSize() {
         int size = 0;
         size += 4; // size
-        size += this.signer.getSize();
-        size += 2; // version
+        size += 4; // embeddedTransactionHeader_Reserved1
+        size += this.signerPublicKey.getSize();
+        size += 4; // entityBody_Reserved1
+        size += 1; // version
+        size += this.network.getSize();
         size += this.type.getSize();
         return size;
     }
@@ -132,7 +177,7 @@ public class EmbeddedTransactionBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedTransactionBuilder.
      */
-    public static EmbeddedTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedTransactionBuilder(stream);
     }
 
@@ -144,9 +189,13 @@ public class EmbeddedTransactionBuilder {
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
             dataOutputStream.writeInt(Integer.reverseBytes(this.getSize()));
-            final byte[] signerBytes = this.signer.serialize();
-            dataOutputStream.write(signerBytes, 0, signerBytes.length);
-            dataOutputStream.writeShort(Short.reverseBytes(this.getVersion()));
+            dataOutputStream.writeInt(Integer.reverseBytes(this.getEmbeddedTransactionHeader_Reserved1()));
+            final byte[] signerPublicKeyBytes = this.signerPublicKey.serialize();
+            dataOutputStream.write(signerPublicKeyBytes, 0, signerPublicKeyBytes.length);
+            dataOutputStream.writeInt(Integer.reverseBytes(this.getEntityBody_Reserved1()));
+            dataOutputStream.writeByte(this.getVersion());
+            final byte[] networkBytes = this.network.serialize();
+            dataOutputStream.write(networkBytes, 0, networkBytes.length);
             final byte[] typeBytes = this.type.serialize();
             dataOutputStream.write(typeBytes, 0, typeBytes.length);
         });

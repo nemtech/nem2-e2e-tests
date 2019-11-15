@@ -20,6 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.dao;
 
+import io.nem.sdk.infrastructure.SerializationUtils;
 import io.nem.sdk.infrastructure.common.CatapultContext;
 import io.nem.sdk.infrastructure.common.NamespaceRepository;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.NamespacesCollection;
@@ -50,17 +51,17 @@ public class NamespaceDao implements NamespaceRepository {
   public Observable<NamespaceInfo> getNamespace(NamespaceId namespaceId) {
     return Observable.fromCallable(
         () ->
-            new NamespacesCollection(catapultContext)
+            new NamespacesCollection(catapultContext.getDataAccessContext())
                 .findById(namespaceId.getId().longValue())
                 .get());
   }
 
   @Override
-  public Observable<List<NamespaceInfo>> getNamespacesFromAccount(Address address) {
+  public Observable<List<NamespaceInfo>> getNamespacesFromAccount(final Address address) {
     return Observable.fromCallable(
         () ->
-            new NamespacesCollection(catapultContext)
-                .findByAddress(address.getByteBuffer().array()));
+            new NamespacesCollection(catapultContext.getDataAccessContext())
+                .findByAddress(SerializationUtils.fromAddressToByteBuffer(address).array()));
   }
 
   /**
@@ -75,7 +76,7 @@ public class NamespaceDao implements NamespaceRepository {
         .map(namespaceInfo -> namespaceInfo.getAlias())
         .map(
             alias -> {
-              if (AliasType.Mosaic == alias.getType()) {
+              if (AliasType.MOSAIC == alias.getType()) {
                 return (MosaicId) alias.getAliasValue();
               }
               throw new IllegalArgumentException(
@@ -95,7 +96,7 @@ public class NamespaceDao implements NamespaceRepository {
         .map(namespaceInfo -> namespaceInfo.getAlias())
         .map(
             alias -> {
-              if (AliasType.Address == alias.getType()) {
+              if (AliasType.ADDRESS == alias.getType()) {
                 return (Address) alias.getAliasValue();
               }
               throw new IllegalArgumentException(

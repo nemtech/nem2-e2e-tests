@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 NEM
+ * Copyright 2019 NEM
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,28 @@
 
 package io.nem.sdk.model.transaction;
 
-/** The transaction response of an announce transaction. */
+/**
+ * The transaction response of an announce transaction.
+ */
 public class TransactionAnnounceResponse {
-  private final String message;
 
-  /**
-   * Constructor
-   *
-   * @param message Success or error message.
-   */
-  public TransactionAnnounceResponse(String message) {
-    this.message = message;
-  }
+    private final String message;
 
-  /**
-   * Returns success or error message.
-   *
-   * @return transaction response message
-   */
-  public String getMessage() {
-    return message;
-  }
+    /**
+     * Constructor
+     *
+     * @param message Success or error message.
+     */
+    public TransactionAnnounceResponse(String message) {
+        this.message = message;
+    }
+
+    /**
+     * Returns success or error message.
+     *
+     * @return transaction response message
+     */
+    public String getMessage() {
+        return message;
+    }
 }

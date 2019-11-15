@@ -47,7 +47,7 @@ public final class MongoClientFactory {
 	 * @return MongoDB client.
 	 */
 	public static MongoClient Create(final String hostname, final int port) {
-		final String key = "hostname" + port;
+		final String key = hostname + port;
 		if (!mongoClientHashMap.containsKey(key)) {
 			mongoClientHashMap.put(key, new MongoClient(hostname, port));
 		}

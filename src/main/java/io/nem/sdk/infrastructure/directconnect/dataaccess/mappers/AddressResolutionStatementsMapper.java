@@ -1,13 +1,34 @@
+/**
+ * ** Copyright (c) 2016-present,
+ * ** Jaguar0625, gimre, BloodyRookie, Tech Bureau, Corp. All rights reserved.
+ * **
+ * ** This file is part of Catapult.
+ * **
+ * ** Catapult is free software: you can redistribute it and/or modify
+ * ** it under the terms of the GNU Lesser General Public License as published by
+ * ** the Free Software Foundation, either version 3 of the License, or
+ * ** (at your option) any later version.
+ * **
+ * ** Catapult is distributed in the hope that it will be useful,
+ * ** but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * ** GNU Lesser General Public License for more details.
+ * **
+ * ** You should have received a copy of the GNU Lesser General Public License
+ * ** along with Catapult. If not, see <http://www.gnu.org/licenses/>.
+ **/
+
 package io.nem.sdk.infrastructure.directconnect.dataaccess.mappers;
 
 import io.nem.sdk.model.account.Address;
+import io.nem.sdk.model.receipt.AddressResolutionStatement;
 import io.nem.sdk.model.receipt.ReceiptType;
 import io.nem.sdk.model.receipt.ResolutionStatement;
 import io.vertx.core.json.JsonObject;
 
 import java.util.function.Function;
 
-public class AddressResolutionStatementsMapper implements Function<JsonObject, ResolutionStatement<Address>> {
+public class AddressResolutionStatementsMapper implements Function<JsonObject, AddressResolutionStatement> {
 	/**
 	 * Converts a json object to resolution statement
 	 *
@@ -15,15 +36,12 @@ public class AddressResolutionStatementsMapper implements Function<JsonObject, R
 	 * @return Resolution statement.
 	 */
 	@Override
-	public ResolutionStatement<Address> apply(final JsonObject jsonObject) {
+	public AddressResolutionStatement apply(final JsonObject jsonObject) {
 		return createAddressResolutionStatement(jsonObject.getJsonObject("statement"));
 	}
 
-	private ResolutionStatement<Address> createAddressResolutionStatement(
+	private AddressResolutionStatement createAddressResolutionStatement(
 			final JsonObject receiptJsonObject) {
-		return MapperUtils.<Address>createResolutionStatement(receiptJsonObject,
-				(final JsonObject jsonObject) -> Address.createFromEncoded(jsonObject.getString("unresolved")),
-				(final JsonObject jsonObject) -> Address.createFromEncoded(jsonObject.getString("resolved")),
-				ReceiptType.Address_Alias_Resolution);
+		return MapperUtils.createAddressResolutionStatement(receiptJsonObject);
 	}
 }

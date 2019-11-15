@@ -50,6 +50,6 @@ public class MosaicsDao implements MosaicRepository {
   @Override
   public Observable<MosaicInfo> getMosaic(final MosaicId mosaicId) {
     return Observable.fromCallable(
-        () -> new MosaicsCollection(catapultContext).find(mosaicId.getIdAsLong()).get());
+        () -> new MosaicsCollection(catapultContext.getDataAccessContext()).find(mosaicId.getIdAsLong()).get());
   }
 }

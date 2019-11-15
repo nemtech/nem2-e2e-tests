@@ -20,7 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
-import io.nem.sdk.infrastructure.common.CatapultContext;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.mappers.BlocksInfoMapper;
 import io.nem.sdk.model.blockchain.BlockInfo;
 
@@ -31,14 +31,14 @@ public class BlocksCollection {
   /** Catapult collection */
   private final CatapultCollection<BlockInfo, BlocksInfoMapper> catapultCollection;
   /* Catapult context. */
-  private final CatapultContext context;
+  private final DataAccessContext context;
 
   /**
    * Constructor.
    *
    * @param context Catapult context.
    */
-  public BlocksCollection(final CatapultContext context) {
+  public BlocksCollection(final DataAccessContext context) {
     catapultCollection =
         new CatapultCollection<>(
             context.getCatapultMongoDbClient(), "blocks", BlocksInfoMapper::new);

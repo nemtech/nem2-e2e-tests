@@ -18,23 +18,18 @@ package io.nem.sdk.model.namespace;
 
 import io.nem.sdk.model.mosaic.MosaicId;
 
-/** Mosaic alias. */
+/**
+ * Mosaic alias.
+ */
 public class MosaicAlias extends AliasBase<MosaicId> {
-  /**
-   * Creates mosaicId alias.
-   *
-   * @param mosaicId Mosaic id.
-   */
-  public MosaicAlias(MosaicId mosaicId) {
-    super(mosaicId);
-  }
 
-  /**
-   * Gets the alias type.
-   *
-   * @return Alias type.
-   */
-  public AliasType getType() {
-    return AliasType.Mosaic;
-  }
+    /**
+     * Creates mosaicId alias.
+     *
+     * @param mosaicId Mosaic id.
+     */
+    public MosaicAlias(MosaicId mosaicId) {
+        super(AliasType.MOSAIC, mosaicId);
+    }
+
 }

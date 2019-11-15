@@ -20,13 +20,17 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.mappers;
 
-import io.nem.sdk.model.receipt.ReceiptSource;
-import io.nem.sdk.model.receipt.ReceiptType;
-import io.nem.sdk.model.receipt.ResolutionEntry;
-import io.nem.sdk.model.receipt.ResolutionStatement;
+import io.nem.sdk.model.account.Address;
+import io.nem.sdk.model.account.UnresolvedAddress;
+import io.nem.sdk.model.mosaic.Mosaic;
+import io.nem.sdk.model.mosaic.MosaicId;
+import io.nem.sdk.model.mosaic.UnresolvedMosaicId;
+import io.nem.sdk.model.receipt.*;
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.math3.analysis.function.Add;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -45,24 +49,49 @@ final class MapperUtils {
 		return BigInteger.valueOf(jsonObject.getLong(name));
 	}
 
-	public static <T> ResolutionStatement<T> createResolutionStatement(final JsonObject receiptJsonObject,
-																	   final Function<JsonObject, T> getUnresolvedEntry,
-																	   final Function<JsonObject, T> getResolvedEntry,
-																	   final ReceiptType receiptType) {
-		return new ResolutionStatement<T>(
-				extractBigInteger(receiptJsonObject, "height"),
-				getUnresolvedEntry.apply(receiptJsonObject),
-				receiptJsonObject.getJsonArray("resolutionEntries").stream()
-						.map(
-								entry -> {
-									final JsonObject entryJsonObject = (JsonObject) entry;
-									final JsonObject sourceJsonObject = entryJsonObject.getJsonObject("source");
-									return new ResolutionEntry<>(
-											getResolvedEntry.apply(entryJsonObject),
-											new ReceiptSource(
-													sourceJsonObject.getInteger("primaryId"),
-													sourceJsonObject.getInteger("secondaryId")),
-											receiptType);
-								}).collect(Collectors.toList()));
+	public static MosaicId getMosaicIdFromJson(final JsonObject jsonObject, final String name) {
+		return new MosaicId(MapperUtils.extractBigInteger(jsonObject, name));
+	}
+
+	public static AddressResolutionStatement createAddressResolutionStatement(final JsonObject receiptJsonObject) {
+		final BigInteger height = extractBigInteger(receiptJsonObject, "height");
+		final UnresolvedAddress unresolved = Address.createFromEncoded(receiptJsonObject.getString("unresolved"));
+		final List<ResolutionEntry<Address>> resolutionEntries = getResolutionEntries(receiptJsonObject,
+				ReceiptType.ADDRESS_ALIAS_RESOLUTION,
+				(final JsonObject entryJsonObject) ->
+				{
+					final JsonObject sourceJsonObject = entryJsonObject.getJsonObject("source");
+					final ReceiptSource receiptSource = getReceiptSource(sourceJsonObject);
+					final Address address = Address.createFromEncoded(entryJsonObject.getString("resolved"));
+					return ResolutionEntry.forAddress(address, receiptSource);
+				});
+		return new AddressResolutionStatement(height, unresolved, resolutionEntries);
+	}
+
+	public static MosaicResolutionStatement createMosaicResolutionStatement(final JsonObject receiptJsonObject) {
+		final BigInteger height = extractBigInteger(receiptJsonObject, "height");
+		final UnresolvedMosaicId unresolved = getMosaicIdFromJson(receiptJsonObject, "unresolved");
+		final List<ResolutionEntry<MosaicId>> resolutionEntries = getResolutionEntries(receiptJsonObject,
+				ReceiptType.MOSAIC_ALIAS_RESOLUTION,
+				(final JsonObject entryJsonObject) ->
+				{
+					final JsonObject sourceJsonObject = entryJsonObject.getJsonObject("source");
+					final ReceiptSource receiptSource = getReceiptSource(sourceJsonObject);
+					final MosaicId mosaicId = getMosaicIdFromJson(entryJsonObject, "resolved");
+					return ResolutionEntry.forMosaicId(mosaicId, receiptSource);
+				});
+		return new MosaicResolutionStatement(height, unresolved, resolutionEntries);
+	}
+
+	private static ReceiptSource getReceiptSource(final JsonObject sourceJsonObject) {
+		return  new ReceiptSource(
+				sourceJsonObject.getInteger("primaryId"),
+				sourceJsonObject.getInteger("secondaryId"));
+	}
+
+	private static <T> List<ResolutionEntry<T>> getResolutionEntries(final JsonObject receiptJsonObject, final ReceiptType receiptType,
+															 final Function<JsonObject, ResolutionEntry<T>> getResolvedEntry) {
+		return receiptJsonObject.getJsonArray("resolutionEntries").stream()
+				.map(entry -> getResolvedEntry.apply((JsonObject) entry)).collect(Collectors.toList());
 	}
 }

@@ -20,31 +20,41 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
-import java.util.ArrayList;
+import java.io.DataInputStream;
+import java.util.List;
 
 /** Binary layout for a multisig account modification transaction. */
-final class MultisigAccountModificationTransactionBodyBuilder {
+public final class MultisigAccountModificationTransactionBodyBuilder {
     /** Relative change of the minimal number of cosignatories required when removing an account. */
     private final byte minRemovalDelta;
     /** Relative change of the minimal number of cosignatories required when approving a transaction. */
     private final byte minApprovalDelta;
-    /** Attached cosignatory modifications. */
-    private final ArrayList<CosignatoryModificationBuilder> modifications;
+    /** Reserved padding to align publicKeyAdditions on 8-byte boundary. */
+    private final int multisigAccountModificationTransactionBody_Reserved1;
+    /** Cosignatory public key additions. */
+    private final List<KeyDto> publicKeyAdditions;
+    /** Cosignatory public key deletions. */
+    private final List<KeyDto> publicKeyDeletions;
 
     /**
      * Constructor - Creates an object from stream.
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected MultisigAccountModificationTransactionBodyBuilder(final DataInput stream) {
+    protected MultisigAccountModificationTransactionBodyBuilder(final DataInputStream stream) {
         try {
             this.minRemovalDelta = stream.readByte();
             this.minApprovalDelta = stream.readByte();
-            final byte modificationsCount = stream.readByte();
-            this.modifications = new java.util.ArrayList<>(modificationsCount);
-            for (int i = 0; i < modificationsCount; i++) {
-                modifications.add(CosignatoryModificationBuilder.loadFromBinary(stream));
+            final byte publicKeyAdditionsCount = stream.readByte();
+            final byte publicKeyDeletionsCount = stream.readByte();
+            this.multisigAccountModificationTransactionBody_Reserved1 = Integer.reverseBytes(stream.readInt());
+            this.publicKeyAdditions = new java.util.ArrayList<>(publicKeyAdditionsCount);
+            for (int i = 0; i < publicKeyAdditionsCount; i++) {
+                publicKeyAdditions.add(KeyDto.loadFromBinary(stream));
+            }
+            this.publicKeyDeletions = new java.util.ArrayList<>(publicKeyDeletionsCount);
+            for (int i = 0; i < publicKeyDeletionsCount; i++) {
+                publicKeyDeletions.add(KeyDto.loadFromBinary(stream));
             }
         } catch(Exception e) {
             throw GeneratorUtils.getExceptionToPropagate(e);
@@ -56,13 +66,17 @@ final class MultisigAccountModificationTransactionBodyBuilder {
      *
      * @param minRemovalDelta Relative change of the minimal number of cosignatories required when removing an account.
      * @param minApprovalDelta Relative change of the minimal number of cosignatories required when approving a transaction.
-     * @param modifications Attached cosignatory modifications.
+     * @param publicKeyAdditions Cosignatory public key additions.
+     * @param publicKeyDeletions Cosignatory public key deletions.
      */
-    protected MultisigAccountModificationTransactionBodyBuilder(final byte minRemovalDelta, final byte minApprovalDelta, final ArrayList<CosignatoryModificationBuilder> modifications) {
-        GeneratorUtils.notNull(modifications, "modifications is null");
+    protected MultisigAccountModificationTransactionBodyBuilder(final byte minRemovalDelta, final byte minApprovalDelta, final List<KeyDto> publicKeyAdditions, final List<KeyDto> publicKeyDeletions) {
+        GeneratorUtils.notNull(publicKeyAdditions, "publicKeyAdditions is null");
+        GeneratorUtils.notNull(publicKeyDeletions, "publicKeyDeletions is null");
         this.minRemovalDelta = minRemovalDelta;
         this.minApprovalDelta = minApprovalDelta;
-        this.modifications = modifications;
+        this.multisigAccountModificationTransactionBody_Reserved1 = 0;
+        this.publicKeyAdditions = publicKeyAdditions;
+        this.publicKeyDeletions = publicKeyDeletions;
     }
 
     /**
@@ -70,11 +84,12 @@ final class MultisigAccountModificationTransactionBodyBuilder {
      *
      * @param minRemovalDelta Relative change of the minimal number of cosignatories required when removing an account.
      * @param minApprovalDelta Relative change of the minimal number of cosignatories required when approving a transaction.
-     * @param modifications Attached cosignatory modifications.
+     * @param publicKeyAdditions Cosignatory public key additions.
+     * @param publicKeyDeletions Cosignatory public key deletions.
      * @return Instance of MultisigAccountModificationTransactionBodyBuilder.
      */
-    public static MultisigAccountModificationTransactionBodyBuilder create(final byte minRemovalDelta, final byte minApprovalDelta, final ArrayList<CosignatoryModificationBuilder> modifications) {
-        return new MultisigAccountModificationTransactionBodyBuilder(minRemovalDelta, minApprovalDelta, modifications);
+    public static MultisigAccountModificationTransactionBodyBuilder create(final byte minRemovalDelta, final byte minApprovalDelta, final List<KeyDto> publicKeyAdditions, final List<KeyDto> publicKeyDeletions) {
+        return new MultisigAccountModificationTransactionBodyBuilder(minRemovalDelta, minApprovalDelta, publicKeyAdditions, publicKeyDeletions);
     }
 
     /**
@@ -96,12 +111,30 @@ final class MultisigAccountModificationTransactionBodyBuilder {
     }
 
     /**
-     * Gets attached cosignatory modifications.
+     * Gets reserved padding to align publicKeyAdditions on 8-byte boundary.
      *
-     * @return Attached cosignatory modifications.
+     * @return Reserved padding to align publicKeyAdditions on 8-byte boundary.
      */
-    public ArrayList<CosignatoryModificationBuilder> getModifications() {
-        return this.modifications;
+    private int getMultisigAccountModificationTransactionBody_Reserved1() {
+        return this.multisigAccountModificationTransactionBody_Reserved1;
+    }
+
+    /**
+     * Gets cosignatory public key additions.
+     *
+     * @return Cosignatory public key additions.
+     */
+    public List<KeyDto> getPublicKeyAdditions() {
+        return this.publicKeyAdditions;
+    }
+
+    /**
+     * Gets cosignatory public key deletions.
+     *
+     * @return Cosignatory public key deletions.
+     */
+    public List<KeyDto> getPublicKeyDeletions() {
+        return this.publicKeyDeletions;
     }
 
     /**
@@ -113,8 +146,11 @@ final class MultisigAccountModificationTransactionBodyBuilder {
         int size = 0;
         size += 1; // minRemovalDelta
         size += 1; // minApprovalDelta
-        size += 1; // modificationsCount
-        size += this.modifications.stream().mapToInt(o -> o.getSize()).sum();
+        size += 1; // publicKeyAdditionsCount
+        size += 1; // publicKeyDeletionsCount
+        size += 4; // multisigAccountModificationTransactionBody_Reserved1
+        size += this.publicKeyAdditions.stream().mapToInt(o -> o.getSize()).sum();
+        size += this.publicKeyDeletions.stream().mapToInt(o -> o.getSize()).sum();
         return size;
     }
 
@@ -124,7 +160,7 @@ final class MultisigAccountModificationTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MultisigAccountModificationTransactionBodyBuilder.
      */
-    public static MultisigAccountModificationTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static MultisigAccountModificationTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new MultisigAccountModificationTransactionBodyBuilder(stream);
     }
 
@@ -137,10 +173,16 @@ final class MultisigAccountModificationTransactionBodyBuilder {
         return GeneratorUtils.serialize(dataOutputStream -> {
             dataOutputStream.writeByte(this.getMinRemovalDelta());
             dataOutputStream.writeByte(this.getMinApprovalDelta());
-            dataOutputStream.writeByte((byte) this.modifications.size());
-            for (int i = 0; i < this.modifications.size(); i++) {
-                final byte[] modificationsBytes = this.modifications.get(i).serialize();
-                dataOutputStream.write(modificationsBytes, 0, modificationsBytes.length);
+            dataOutputStream.writeByte((byte) this.publicKeyAdditions.size());
+            dataOutputStream.writeByte((byte) this.publicKeyDeletions.size());
+            dataOutputStream.writeInt(Integer.reverseBytes(this.getMultisigAccountModificationTransactionBody_Reserved1()));
+            for (int i = 0; i < this.publicKeyAdditions.size(); i++) {
+                final byte[] publicKeyAdditionsBytes = this.publicKeyAdditions.get(i).serialize();
+                dataOutputStream.write(publicKeyAdditionsBytes, 0, publicKeyAdditionsBytes.length);
+            }
+            for (int i = 0; i < this.publicKeyDeletions.size(); i++) {
+                final byte[] publicKeyDeletionsBytes = this.publicKeyDeletions.get(i).serialize();
+                dataOutputStream.write(publicKeyDeletionsBytes, 0, publicKeyDeletionsBytes.length);
             }
         });
     }

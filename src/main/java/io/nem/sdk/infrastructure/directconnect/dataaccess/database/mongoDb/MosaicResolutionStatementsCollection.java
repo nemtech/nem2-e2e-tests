@@ -20,45 +20,42 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
-import io.nem.sdk.infrastructure.common.CatapultContext;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.mappers.MosaicResolutionStatementsMapper;
-import io.nem.sdk.model.mosaic.MosaicId;
-import io.nem.sdk.model.receipt.ResolutionStatement;
+import io.nem.sdk.model.receipt.MosaicResolutionStatement;
 
 import java.util.List;
-import java.util.Optional;
 
 public class MosaicResolutionStatementsCollection {
-	/**
-	 * Catapult collection
-	 */
-	private final CatapultCollection<ResolutionStatement<MosaicId>, MosaicResolutionStatementsMapper> catapultCollection;
-	/* Catapult context. */
-	private final CatapultContext context;
+  /** Catapult collection */
+  private final CatapultCollection<MosaicResolutionStatement, MosaicResolutionStatementsMapper>
+      catapultCollection;
+  /* Catapult context. */
+  private final DataAccessContext context;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param context Catapult context.
-	 */
-	public MosaicResolutionStatementsCollection(final CatapultContext context) {
-		this.context = context;
-		catapultCollection =
-				new CatapultCollection<>(
-						context.getCatapultMongoDbClient(),
-						"mosaicResolutionStatements",
-						MosaicResolutionStatementsMapper::new);
-	}
+  /**
+   * Constructor.
+   *
+   * @param context Catapult context.
+   */
+  public MosaicResolutionStatementsCollection(final DataAccessContext context) {
+    this.context = context;
+    catapultCollection =
+        new CatapultCollection<>(
+            context.getCatapultMongoDbClient(),
+            "mosaicResolutionStatements",
+            MosaicResolutionStatementsMapper::new);
+  }
 
-	/**
-	 * Gets resolution statement for an unresolved mosaic id.
-	 *
-	 * @param height Block height.
-	 * @return Resolution statement.
-	 */
-	public List<ResolutionStatement<MosaicId>> findByHeight(final long height) {
-		final String keyName = "statement.height";
-		final int timeoutInSeconds = 0;
-		return catapultCollection.find(keyName, height, timeoutInSeconds);
-	}
+  /**
+   * Gets resolution statement for an unresolved mosaic id.
+   *
+   * @param height Block height.
+   * @return Resolution statement.
+   */
+  public List<MosaicResolutionStatement> findByHeight(final long height) {
+    final String keyName = "statement.height";
+    final int timeoutInSeconds = 0;
+    return catapultCollection.find(keyName, height, timeoutInSeconds);
+  }
 }

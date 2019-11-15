@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Enumeration of mosaic supply change actions. */
 public enum MosaicSupplyChangeActionDto {
@@ -28,6 +28,15 @@ public enum MosaicSupplyChangeActionDto {
     DECREASE((byte) 0),
     /** Increases the supply. */
     INCREASE((byte) 1);
+
+    /**
+     * Gets the value of the enum.
+     *
+     * @return Value of the enum.
+     */
+    public byte getValue() {
+        return this.value;
+    }
 
     /** Enum value. */
     private final byte value;
@@ -71,7 +80,7 @@ public enum MosaicSupplyChangeActionDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicSupplyChangeActionDto.
      */
-    public static MosaicSupplyChangeActionDto loadFromBinary(final DataInput stream) {
+    public static MosaicSupplyChangeActionDto loadFromBinary(final DataInputStream stream) {
         try {
             final byte streamValue = stream.readByte();
             return rawValueOf(streamValue);

@@ -23,6 +23,7 @@ package io.nem.sdk.infrastructure.directconnect.auth;
 import io.nem.core.crypto.KeyPair;
 import io.nem.core.crypto.PublicKey;
 import io.nem.sdk.infrastructure.directconnect.network.SocketClient;
+import io.nem.sdk.model.blockchain.NetworkType;
 
 /** Verifies a connection with a catapult server. */
 public class VerifyServer {
@@ -34,15 +35,17 @@ public class VerifyServer {
    *
    * @param socket Socket connection to the catapult server.
    * @param clientKeyPair Client key pair.
+   * @param networkType Network type.
    * @param publicKey Server public key.
    * @param mode Connection security mode.
    */
   public VerifyServer(
-      final SocketClient socket,
-      final KeyPair clientKeyPair,
+          final SocketClient socket,
+          final KeyPair clientKeyPair,
+          final NetworkType networkType,
       final PublicKey publicKey,
-      final ConnectionSecurityMode mode) {
-    this.verifyHandler = new VerifyServerHandler(socket, clientKeyPair, publicKey, mode);
+          final ConnectionSecurityMode mode) {
+    this.verifyHandler = new VerifyServerHandler(socket, clientKeyPair, networkType, publicKey, mode);
   }
 
   /** Verify that the socket is connected to a catapult server. */

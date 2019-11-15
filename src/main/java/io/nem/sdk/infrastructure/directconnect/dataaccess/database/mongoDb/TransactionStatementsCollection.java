@@ -20,7 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
-import io.nem.sdk.infrastructure.common.CatapultContext;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.mappers.TransactionStatementsMapper;
 import io.nem.sdk.model.receipt.TransactionStatement;
 
@@ -32,14 +32,14 @@ public class TransactionStatementsCollection {
 	 */
 	private final CatapultCollection<TransactionStatement, TransactionStatementsMapper> catapultCollection;
 	/* Catapult context. */
-	private final CatapultContext context;
+	private final DataAccessContext context;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param context Catapult context.
 	 */
-	public TransactionStatementsCollection(final CatapultContext context) {
+	public TransactionStatementsCollection(final DataAccessContext context) {
 		this.context = context;
 		catapultCollection =
 				new CatapultCollection<>(

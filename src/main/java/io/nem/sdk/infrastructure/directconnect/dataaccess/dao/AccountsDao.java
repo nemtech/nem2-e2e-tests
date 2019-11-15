@@ -20,6 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.dao;
 
+import io.nem.sdk.infrastructure.SerializationUtils;
 import io.nem.sdk.infrastructure.common.AccountRepository;
 import io.nem.sdk.infrastructure.common.CatapultContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.AccountsCollection;
@@ -61,8 +62,8 @@ public class AccountsDao implements AccountRepository {
   public Observable<AccountInfo> getAccountInfo(final Address address) {
     return Observable.fromCallable(
         () ->
-            new AccountsCollection(catapultContext)
-                .findByAddress(address.getByteBuffer().array())
+            new AccountsCollection(catapultContext.getDataAccessContext())
+                .findByAddress(SerializationUtils.fromAddressToByteBuffer(address).array())
                 .get());
   }
 
@@ -76,8 +77,8 @@ public class AccountsDao implements AccountRepository {
   public Observable<MultisigAccountInfo> getMultisigAccountInfo(final Address address) {
     return Observable.fromCallable(
         () ->
-            new MultisigsCollection(catapultContext)
-                .findByAddress(address.getByteBuffer().array())
+            new MultisigsCollection(catapultContext.getDataAccessContext())
+                .findByAddress(SerializationUtils.fromAddressToByteBuffer(address).array())
                 .get());
   }
 
@@ -94,7 +95,7 @@ public class AccountsDao implements AccountRepository {
       PublicAccount publicAccount) {
     return Observable.fromCallable(
         () ->
-            new PartialTransactionsCollection(catapultContext)
+            new PartialTransactionsCollection(catapultContext.getDataAccessContext())
                 .findBySigner(publicAccount.getPublicKey().getBytes()).stream()
                     .map(tx -> (AggregateTransaction) tx)
                     .collect(Collectors.toList()));
@@ -113,7 +114,7 @@ public class AccountsDao implements AccountRepository {
   public Observable<List<Transaction>> unconfirmedTransactions(PublicAccount publicAccount) {
     return Observable.fromCallable(
         () ->
-            new UnconfirmedTransactionsCollection(catapultContext)
+            new UnconfirmedTransactionsCollection(catapultContext.getDataAccessContext())
                 .findBySigner(publicAccount.getPublicKey().getBytes()));
   }
 }

@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Key. */
@@ -44,7 +44,7 @@ public final class KeyDto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public KeyDto(final DataInput stream) {
+    public KeyDto(final DataInputStream stream) {
         try {
             this.key = ByteBuffer.allocate(32);
             stream.readFully(this.key.array());
@@ -77,7 +77,7 @@ public final class KeyDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of KeyDto.
      */
-    public static KeyDto loadFromBinary(final DataInput stream) {
+    public static KeyDto loadFromBinary(final DataInputStream stream) {
         return new KeyDto(stream);
     }
 

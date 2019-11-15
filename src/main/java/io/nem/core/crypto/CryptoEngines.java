@@ -23,29 +23,35 @@ import io.nem.core.crypto.ed25519.Ed25519CryptoEngine;
  */
 public class CryptoEngines {
 
-	private static final CryptoEngine ED25519_ENGINE;
-	private static final CryptoEngine DEFAULT_ENGINE;
+    private static final CryptoEngine ED25519_ENGINE;
+    private static final CryptoEngine DEFAULT_ENGINE;
 
-	static {
-		ED25519_ENGINE = new Ed25519CryptoEngine();
-		DEFAULT_ENGINE = ED25519_ENGINE;
-	}
+    static {
+        ED25519_ENGINE = new Ed25519CryptoEngine();
+        DEFAULT_ENGINE = ED25519_ENGINE;
+    }
 
-	/**
-	 * Gets the default crypto engine.
-	 *
-	 * @return The default crypto engine.
-	 */
-	public static CryptoEngine defaultEngine() {
-		return DEFAULT_ENGINE;
-	}
+    /**
+     * Private constructor for this utility class.
+     */
+    private CryptoEngines() {
+    }
 
-	/**
-	 * Gets the ED25519 crypto engine.
-	 *
-	 * @return The ED25519 crypto engine.
-	 */
-	public static CryptoEngine ed25519Engine() {
-		return ED25519_ENGINE;
-	}
+    /**
+     * Gets the default crypto engine.
+     *
+     * @return The default crypto engine.
+     */
+    public static CryptoEngine defaultEngine() {
+        return DEFAULT_ENGINE;
+    }
+
+    /**
+     * Gets the ED25519 crypto engine.
+     *
+     * @return The ED25519 crypto engine.
+     */
+    public static CryptoEngine ed25519Engine() {
+        return ED25519_ENGINE;
+    }
 }

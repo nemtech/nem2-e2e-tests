@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a non-embedded mosaic alias transaction. */
 public final class MosaicAliasTransactionBuilder extends TransactionBuilder {
@@ -32,7 +32,7 @@ public final class MosaicAliasTransactionBuilder extends TransactionBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected MosaicAliasTransactionBuilder(final DataInput stream) {
+    protected MosaicAliasTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.mosaicAliasTransactionBody = MosaicAliasTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,45 +41,38 @@ public final class MosaicAliasTransactionBuilder extends TransactionBuilder {
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
-     * @param aliasAction Alias action.
      * @param namespaceId Identifier of the namespace that will become an alias.
      * @param mosaicId Aliased mosaic identifier.
+     * @param aliasAction Alias action.
      */
-    protected MosaicAliasTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final AliasActionDto aliasAction, final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId) {
-        super(signature, signer, version, type, fee, deadline);
-        this.mosaicAliasTransactionBody = MosaicAliasTransactionBodyBuilder.create(aliasAction, namespaceId, mosaicId);
+    protected MosaicAliasTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId, final AliasActionDto aliasAction) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
+        this.mosaicAliasTransactionBody = MosaicAliasTransactionBodyBuilder.create(namespaceId, mosaicId, aliasAction);
     }
 
     /**
      * Creates an instance of MosaicAliasTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
-     * @param aliasAction Alias action.
      * @param namespaceId Identifier of the namespace that will become an alias.
      * @param mosaicId Aliased mosaic identifier.
+     * @param aliasAction Alias action.
      * @return Instance of MosaicAliasTransactionBuilder.
      */
-    public static MosaicAliasTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final AliasActionDto aliasAction, final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId) {
-        return new MosaicAliasTransactionBuilder(signature, signer, version, type, fee, deadline, aliasAction, namespaceId, mosaicId);
-    }
-
-    /**
-     * Gets alias action.
-     *
-     * @return Alias action.
-     */
-    public AliasActionDto getAliasAction() {
-        return this.mosaicAliasTransactionBody.getAliasAction();
+    public static MosaicAliasTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final NamespaceIdDto namespaceId, final MosaicIdDto mosaicId, final AliasActionDto aliasAction) {
+        return new MosaicAliasTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, namespaceId, mosaicId, aliasAction);
     }
 
     /**
@@ -101,6 +94,15 @@ public final class MosaicAliasTransactionBuilder extends TransactionBuilder {
     }
 
     /**
+     * Gets alias action.
+     *
+     * @return Alias action.
+     */
+    public AliasActionDto getAliasAction() {
+        return this.mosaicAliasTransactionBody.getAliasAction();
+    }
+
+    /**
      * Gets the size of the object.
      *
      * @return Size in bytes.
@@ -118,7 +120,7 @@ public final class MosaicAliasTransactionBuilder extends TransactionBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicAliasTransactionBuilder.
      */
-    public static MosaicAliasTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static MosaicAliasTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new MosaicAliasTransactionBuilder(stream);
     }
 

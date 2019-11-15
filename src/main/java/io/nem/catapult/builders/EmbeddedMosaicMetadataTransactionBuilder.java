@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for an embedded mosaic metadata transaction. */
@@ -33,7 +33,7 @@ public final class EmbeddedMosaicMetadataTransactionBuilder extends EmbeddedTran
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedMosaicMetadataTransactionBuilder(final DataInput stream) {
+    protected EmbeddedMosaicMetadataTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.mosaicMetadataTransactionBody = MosaicMetadataTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,8 +41,9 @@ public final class EmbeddedMosaicMetadataTransactionBuilder extends EmbeddedTran
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param targetPublicKey Metadata target public key.
      * @param scopedMetadataKey Metadata key scoped to source, target and type.
@@ -50,16 +51,17 @@ public final class EmbeddedMosaicMetadataTransactionBuilder extends EmbeddedTran
      * @param valueSizeDelta Change in value size in bytes.
      * @param value Difference between existing value and new value \note when there is no existing value, new value is same this value \note when there is an existing value, new value is calculated as xor(previous-value, value).
      */
-    protected EmbeddedMosaicMetadataTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final KeyDto targetPublicKey, final long scopedMetadataKey, final UnresolvedMosaicIdDto targetMosaicId, final short valueSizeDelta, final ByteBuffer value) {
-        super(signer, version, type);
+    protected EmbeddedMosaicMetadataTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final KeyDto targetPublicKey, final long scopedMetadataKey, final UnresolvedMosaicIdDto targetMosaicId, final short valueSizeDelta, final ByteBuffer value) {
+        super(signerPublicKey, version, network, type);
         this.mosaicMetadataTransactionBody = MosaicMetadataTransactionBodyBuilder.create(targetPublicKey, scopedMetadataKey, targetMosaicId, valueSizeDelta, value);
     }
 
     /**
      * Creates an instance of EmbeddedMosaicMetadataTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param targetPublicKey Metadata target public key.
      * @param scopedMetadataKey Metadata key scoped to source, target and type.
@@ -68,8 +70,8 @@ public final class EmbeddedMosaicMetadataTransactionBuilder extends EmbeddedTran
      * @param value Difference between existing value and new value \note when there is no existing value, new value is same this value \note when there is an existing value, new value is calculated as xor(previous-value, value).
      * @return Instance of EmbeddedMosaicMetadataTransactionBuilder.
      */
-    public static EmbeddedMosaicMetadataTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final KeyDto targetPublicKey, final long scopedMetadataKey, final UnresolvedMosaicIdDto targetMosaicId, final short valueSizeDelta, final ByteBuffer value) {
-        return new EmbeddedMosaicMetadataTransactionBuilder(signer, version, type, targetPublicKey, scopedMetadataKey, targetMosaicId, valueSizeDelta, value);
+    public static EmbeddedMosaicMetadataTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final KeyDto targetPublicKey, final long scopedMetadataKey, final UnresolvedMosaicIdDto targetMosaicId, final short valueSizeDelta, final ByteBuffer value) {
+        return new EmbeddedMosaicMetadataTransactionBuilder(signerPublicKey, version, network, type, targetPublicKey, scopedMetadataKey, targetMosaicId, valueSizeDelta, value);
     }
 
     /**
@@ -135,7 +137,7 @@ public final class EmbeddedMosaicMetadataTransactionBuilder extends EmbeddedTran
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedMosaicMetadataTransactionBuilder.
      */
-    public static EmbeddedMosaicMetadataTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedMosaicMetadataTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedMosaicMetadataTransactionBuilder(stream);
     }
 

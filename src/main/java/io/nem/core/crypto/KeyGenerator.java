@@ -21,18 +21,18 @@ package io.nem.core.crypto;
  */
 public interface KeyGenerator {
 
-	/**
-	 * Creates a random key pair.
-	 *
-	 * @return The key pair.
-	 */
-	KeyPair generateKeyPair();
+    /**
+     * Creates a random key pair.
+     *
+     * @return The key pair.
+     */
+    KeyPair generateKeyPair();
 
-	/**
-	 * Derives a public key from a private key.
-	 *
-	 * @param privateKey the private key.
-	 * @return The public key.
-	 */
-	PublicKey derivePublicKey(final PrivateKey privateKey);
+    /**
+     * Derives a public key from a private key.
+     *
+     * @param privateKey the private key.
+     * @return The public key.
+     */
+    PublicKey derivePublicKey(final PrivateKey privateKey);
 }

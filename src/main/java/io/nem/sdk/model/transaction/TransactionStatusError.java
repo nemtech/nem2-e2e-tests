@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 NEM
+ * Copyright 2019 NEM
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,42 +16,45 @@
 
 package io.nem.sdk.model.transaction;
 
-/** The transaction status error model returned by listeners. */
+/**
+ * The transaction status error model returned by listeners.
+ */
 public class TransactionStatusError {
-  private final String hash;
-  private final String status;
-  private final Deadline deadline;
 
-  public TransactionStatusError(String hash, String status, Deadline deadline) {
-    this.hash = hash;
-    this.status = status;
-    this.deadline = deadline;
-  }
+    private final String hash;
+    private final String status;
+    private final Deadline deadline;
 
-  /**
-   * Returns transaction hash.
-   *
-   * @return transaction hash
-   */
-  public String getHash() {
-    return hash;
-  }
+    public TransactionStatusError(String hash, String status, Deadline deadline) {
+        this.hash = hash;
+        this.status = status;
+        this.deadline = deadline;
+    }
 
-  /**
-   * Returns transaction status error when transaction fails.
-   *
-   * @return transaction status error
-   */
-  public String getStatus() {
-    return status;
-  }
+    /**
+     * Returns transaction hash.
+     *
+     * @return transaction hash
+     */
+    public String getHash() {
+        return hash;
+    }
 
-  /**
-   * Returns transaction deadline.
-   *
-   * @return transaction deadline
-   */
-  public Deadline getDeadline() {
-    return deadline;
-  }
+    /**
+     * Returns transaction status error when transaction fails.
+     *
+     * @return transaction status error
+     */
+    public String getStatus() {
+        return status;
+    }
+
+    /**
+     * Returns transaction deadline.
+     *
+     * @return transaction deadline
+     */
+    public Deadline getDeadline() {
+        return deadline;
+    }
 }

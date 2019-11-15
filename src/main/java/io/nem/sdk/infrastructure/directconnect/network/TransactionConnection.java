@@ -25,8 +25,8 @@ import io.nem.catapult.builders.Hash256Dto;
 import io.nem.catapult.builders.KeyDto;
 import io.nem.catapult.builders.SignatureDto;
 import io.nem.core.crypto.PublicKey;
+import io.nem.core.utils.ConvertUtils;
 import io.nem.core.utils.ExceptionUtils;
-import io.nem.core.utils.HexEncoder;
 import io.nem.sdk.infrastructure.directconnect.packet.Packet;
 import io.nem.sdk.infrastructure.directconnect.packet.PacketType;
 import io.nem.sdk.model.transaction.CosignatureSignedTransaction;
@@ -57,7 +57,7 @@ public class TransactionConnection {
   public void announce(final SignedTransaction transaction) {
     ExceptionUtils.propagateVoid(
         () ->
-            annouceTransaction(
+            announceTransaction(
                 PacketType.PUSH_TRANSACTIONS, Hex.decodeHex(transaction.getPayload())));
   }
 
@@ -69,7 +69,7 @@ public class TransactionConnection {
   public void announceAggregateBonded(final SignedTransaction transaction) {
     ExceptionUtils.propagateVoid(
         () ->
-            annouceTransaction(
+            announceTransaction(
                 PacketType.PUSH_PARTIAL_TRANSACTIONS, Hex.decodeHex(transaction.getPayload())));
   }
 
@@ -83,27 +83,27 @@ public class TransactionConnection {
     final byte[] signerBytes =
         PublicKey.fromHexString(cosignatureSignedTransaction.getSigner()).getBytes();
     final ByteBuffer signerBuffer = ByteBuffer.wrap(signerBytes);
-    final byte[] signatureBytes = HexEncoder.getBytes(cosignatureSignedTransaction.getSignature());
+    final byte[] signatureBytes = ConvertUtils.getBytes(cosignatureSignedTransaction.getSignature());
     final ByteBuffer signatureBuffer = ByteBuffer.wrap(signatureBytes);
     final byte[] parentHashBytes =
-        HexEncoder.getBytes(cosignatureSignedTransaction.getParentHash());
+            ConvertUtils.getBytes(cosignatureSignedTransaction.getParentHash());
     final ByteBuffer parentHashBuffer = ByteBuffer.wrap(parentHashBytes);
     DetachedCosignatureBuilder detachedCosignatureBuilder =
         DetachedCosignatureBuilder.create(
             new KeyDto(signerBuffer),
             new SignatureDto(signatureBuffer),
             new Hash256Dto(parentHashBuffer));
-    annouceTransaction(
+    announceTransaction(
         PacketType.PUSH_DETACTED_COSIGNATURES, detachedCosignatureBuilder.serialize());
   }
 
   /**
-   * Annouce a request to the network.
+   * Announce a request to the network.
    *
    * @param packetType Packet type.
    * @param transactionBytes Transaction bytes.
    */
-  private void annouceTransaction(final PacketType packetType, final byte[] transactionBytes) {
+  private void announceTransaction(final PacketType packetType, final byte[] transactionBytes) {
     ExceptionUtils.propagateVoid(
         () -> {
           final ByteBuffer ph = Packet.CreatePacketByteBuffer(packetType, transactionBytes);

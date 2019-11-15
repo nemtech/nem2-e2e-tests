@@ -16,53 +16,62 @@
 
 package io.nem.sdk.model.blockchain;
 
+import io.nem.core.crypto.SignSchema;
+import java.util.Arrays;
+
 /**
  * Static class containing network type constants.
  *
  * @since 1.0
  */
 public enum NetworkType {
-  /** Main net network */
-  MAIN_NET(104),
-  /** Test net network */
-  TEST_NET(152),
-  /** Mijin net network */
-  MIJIN(96),
-  /** Mijin test net network */
-  MIJIN_TEST(144);
+    /**
+     * Main net network
+     */
+    MAIN_NET(104),
+    /**
+     * Test net network
+     */
+    TEST_NET(152),
+    /**
+     * Mijin net network
+     */
+    MIJIN(96),
+    /**
+     * Mijin test net network
+     */
+    MIJIN_TEST(144);
 
-  private final int value;
+    private final int value;
 
-  NetworkType(int value) {
-    this.value = value;
-  }
-
-  /**
-   * Static constructor converting network raw value to enum instance.
-   *
-   * @return {@link NetworkType}
-   */
-  public static NetworkType rawValueOf(int value) {
-    switch (value) {
-      case 104:
-        return NetworkType.MAIN_NET;
-      case 152:
-        return NetworkType.TEST_NET;
-      case 96:
-        return NetworkType.MIJIN;
-      case 144:
-        return NetworkType.MIJIN_TEST;
-      default:
-        throw new IllegalArgumentException(value + " is not a valid value");
+    NetworkType(int value) {
+        this.value = value;
     }
-  }
 
-  /**
-   * Returns enum value.
-   *
-   * @return int
-   */
-  public int getValue() {
-    return this.value;
-  }
+    /**
+     * Static constructor converting network raw value to enum instance.
+     *
+     * @return {@link NetworkType}
+     */
+    public static NetworkType rawValueOf(int value) {
+        return Arrays.stream(values()).filter(e -> e.value == value).findFirst()
+            .orElseThrow(() -> new IllegalArgumentException(value + " is not a valid value"));
+    }
+
+    /**
+     * Returns enum value.
+     *
+     * @return int
+     */
+    public int getValue() {
+        return this.value;
+    }
+
+    /**
+     * @return the {@link SignSchema} to be used when working on this network;
+     */
+    public SignSchema resolveSignSchema() {
+        return this == NetworkType.MIJIN_TEST || this == NetworkType.MIJIN
+            ? SignSchema.SHA3 : SignSchema.KECCAK;
+    }
 }

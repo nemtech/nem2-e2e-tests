@@ -20,8 +20,9 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
-import java.util.ArrayList;
+import java.io.DataInputStream;
+import java.util.EnumSet;
+import java.util.List;
 
 /** Binary layout for an embedded account mosaic restriction transaction. */
 public final class EmbeddedAccountMosaicRestrictionTransactionBuilder extends EmbeddedTransactionBuilder {
@@ -33,7 +34,7 @@ public final class EmbeddedAccountMosaicRestrictionTransactionBuilder extends Em
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedAccountMosaicRestrictionTransactionBuilder(final DataInput stream) {
+    protected EmbeddedAccountMosaicRestrictionTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.accountMosaicRestrictionTransactionBody = AccountMosaicRestrictionTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,47 +42,60 @@ public final class EmbeddedAccountMosaicRestrictionTransactionBuilder extends Em
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param restrictionType Account restriction type.
-     * @param modifications Account restriction modifications.
+     * @param restrictionFlags Account restriction flags.
+     * @param restrictionAdditions Account restriction additions.
+     * @param restrictionDeletions Account restriction deletions.
      */
-    protected EmbeddedAccountMosaicRestrictionTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final AccountRestrictionTypeDto restrictionType, final ArrayList<AccountMosaicRestrictionModificationBuilder> modifications) {
-        super(signer, version, type);
-        this.accountMosaicRestrictionTransactionBody = AccountMosaicRestrictionTransactionBodyBuilder.create(restrictionType, modifications);
+    protected EmbeddedAccountMosaicRestrictionTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final EnumSet<AccountRestrictionFlagsDto> restrictionFlags, final List<UnresolvedMosaicIdDto> restrictionAdditions, final List<UnresolvedMosaicIdDto> restrictionDeletions) {
+        super(signerPublicKey, version, network, type);
+        this.accountMosaicRestrictionTransactionBody = AccountMosaicRestrictionTransactionBodyBuilder.create(restrictionFlags, restrictionAdditions, restrictionDeletions);
     }
 
     /**
      * Creates an instance of EmbeddedAccountMosaicRestrictionTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param restrictionType Account restriction type.
-     * @param modifications Account restriction modifications.
+     * @param restrictionFlags Account restriction flags.
+     * @param restrictionAdditions Account restriction additions.
+     * @param restrictionDeletions Account restriction deletions.
      * @return Instance of EmbeddedAccountMosaicRestrictionTransactionBuilder.
      */
-    public static EmbeddedAccountMosaicRestrictionTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final AccountRestrictionTypeDto restrictionType, final ArrayList<AccountMosaicRestrictionModificationBuilder> modifications) {
-        return new EmbeddedAccountMosaicRestrictionTransactionBuilder(signer, version, type, restrictionType, modifications);
+    public static EmbeddedAccountMosaicRestrictionTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final EnumSet<AccountRestrictionFlagsDto> restrictionFlags, final List<UnresolvedMosaicIdDto> restrictionAdditions, final List<UnresolvedMosaicIdDto> restrictionDeletions) {
+        return new EmbeddedAccountMosaicRestrictionTransactionBuilder(signerPublicKey, version, network, type, restrictionFlags, restrictionAdditions, restrictionDeletions);
     }
 
     /**
-     * Gets account restriction type.
+     * Gets account restriction flags.
      *
-     * @return Account restriction type.
+     * @return Account restriction flags.
      */
-    public AccountRestrictionTypeDto getRestrictionType() {
-        return this.accountMosaicRestrictionTransactionBody.getRestrictionType();
+    public EnumSet<AccountRestrictionFlagsDto> getRestrictionFlags() {
+        return this.accountMosaicRestrictionTransactionBody.getRestrictionFlags();
     }
 
     /**
-     * Gets account restriction modifications.
+     * Gets account restriction additions.
      *
-     * @return Account restriction modifications.
+     * @return Account restriction additions.
      */
-    public ArrayList<AccountMosaicRestrictionModificationBuilder> getModifications() {
-        return this.accountMosaicRestrictionTransactionBody.getModifications();
+    public List<UnresolvedMosaicIdDto> getRestrictionAdditions() {
+        return this.accountMosaicRestrictionTransactionBody.getRestrictionAdditions();
+    }
+
+    /**
+     * Gets account restriction deletions.
+     *
+     * @return Account restriction deletions.
+     */
+    public List<UnresolvedMosaicIdDto> getRestrictionDeletions() {
+        return this.accountMosaicRestrictionTransactionBody.getRestrictionDeletions();
     }
 
     /**
@@ -102,7 +116,7 @@ public final class EmbeddedAccountMosaicRestrictionTransactionBuilder extends Em
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedAccountMosaicRestrictionTransactionBuilder.
      */
-    public static EmbeddedAccountMosaicRestrictionTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedAccountMosaicRestrictionTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedAccountMosaicRestrictionTransactionBuilder(stream);
     }
 

@@ -24,96 +24,97 @@ import java.util.List;
  * @since 1.0
  */
 public class MultisigAccountInfo {
-  private final PublicAccount account;
-  private final byte minApproval;
-  private final byte minRemoval;
-  private final List<PublicAccount> cosignatories;
-  private final List<PublicAccount> multisigAccounts;
 
-  public MultisigAccountInfo(
-      PublicAccount account,
-      byte minApproval,
-      byte minRemoval,
-      List<PublicAccount> cosignatories,
-      List<PublicAccount> multisigAccounts) {
-    this.account = account;
-    this.minApproval = minApproval;
-    this.minRemoval = minRemoval;
-    this.cosignatories = cosignatories;
-    this.multisigAccounts = multisigAccounts;
-  }
+    private final PublicAccount account;
+    private final int minApproval;
+    private final int minRemoval;
+    private final List<PublicAccount> cosignatories;
+    private final List<PublicAccount> multisigAccounts;
 
-  /**
-   * Returns account multisig public account.
-   *
-   * @return PublicAccount
-   */
-  public PublicAccount getAccount() {
-    return account;
-  }
+    public MultisigAccountInfo(
+        PublicAccount account,
+        int minApproval,
+        int minRemoval,
+        List<PublicAccount> cosignatories,
+        List<PublicAccount> multisigAccounts) {
+        this.account = account;
+        this.minApproval = minApproval;
+        this.minRemoval = minRemoval;
+        this.cosignatories = cosignatories;
+        this.multisigAccounts = multisigAccounts;
+    }
 
-  /**
-   * Returns number of signatures needed to approve a transaction.
-   *
-   * @return byte
-   */
-  public byte getMinApproval() {
-    return minApproval;
-  }
+    /**
+     * Returns account multisig public account.
+     *
+     * @return PublicAccount
+     */
+    public PublicAccount getAccount() {
+        return account;
+    }
 
-  /**
-   * Returns number of signatures needed to remove a cosignatory.
-   *
-   * @return byte
-   */
-  public byte getMinRemoval() {
-    return minRemoval;
-  }
+    /**
+     * Returns number of signatures needed to approve a transaction.
+     *
+     * @return int
+     */
+    public int getMinApproval() {
+        return minApproval;
+    }
 
-  /**
-   * Returns multisig account cosignatories.
-   *
-   * @return List <{@link PublicAccount}>
-   */
-  public List<PublicAccount> getCosignatories() {
-    return cosignatories;
-  }
+    /**
+     * Returns number of signatures needed to remove a cosignatory.
+     *
+     * @return int
+     */
+    public int getMinRemoval() {
+        return minRemoval;
+    }
 
-  /**
-   * Returns multisig accounts this account is cosigner of.
-   *
-   * @return {List<PublicAccount>}
-   */
-  public List<PublicAccount> getMultisigAccounts() {
-    return multisigAccounts;
-  }
+    /**
+     * Returns multisig account cosignatories.
+     *
+     * @return List of {@link PublicAccount}
+     */
+    public List<PublicAccount> getCosignatories() {
+        return cosignatories;
+    }
 
-  /**
-   * Checks if an account is cosignatory of the multisig account.
-   *
-   * @param account PublicAccount
-   * @return boolean
-   */
-  public boolean hasCosigner(PublicAccount account) {
-    return this.cosignatories.contains(account);
-  }
+    /**
+     * Returns multisig accounts this account is cosigner of.
+     *
+     * @return List of {@link PublicAccount}
+     */
+    public List<PublicAccount> getMultisigAccounts() {
+        return multisigAccounts;
+    }
 
-  /**
-   * Checks if the multisig account is cosignatory of an account.
-   *
-   * @param account PublicAccount
-   * @return boolean
-   */
-  public boolean isCosignerOfMultisigAccount(PublicAccount account) {
-    return this.multisigAccounts.contains(account);
-  }
+    /**
+     * Checks if an account is cosignatory of the multisig account.
+     *
+     * @param account PublicAccount
+     * @return boolean
+     */
+    public boolean hasCosigner(PublicAccount account) {
+        return this.cosignatories.contains(account);
+    }
 
-  /**
-   * Checks if the account is a multisig account.
-   *
-   * @return boolean
-   */
-  public boolean isMultisig() {
-    return minApproval != 0 && minRemoval != 0;
-  }
+    /**
+     * Checks if the multisig account is cosignatory of an account.
+     *
+     * @param account PublicAccount
+     * @return boolean
+     */
+    public boolean isCosignerOfMultisigAccount(PublicAccount account) {
+        return this.multisigAccounts.contains(account);
+    }
+
+    /**
+     * Checks if the account is a multisig account.
+     *
+     * @return boolean
+     */
+    public boolean isMultisig() {
+        return minApproval != 0 && minRemoval != 0;
+    }
 }

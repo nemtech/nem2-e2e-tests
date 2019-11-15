@@ -20,8 +20,8 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
-import java.util.ArrayList;
+import java.io.DataInputStream;
+import java.util.List;
 
 /** Binary layout for an embedded multisig account modification transaction. */
 public final class EmbeddedMultisigAccountModificationTransactionBuilder extends EmbeddedTransactionBuilder {
@@ -33,7 +33,7 @@ public final class EmbeddedMultisigAccountModificationTransactionBuilder extends
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedMultisigAccountModificationTransactionBuilder(final DataInput stream) {
+    protected EmbeddedMultisigAccountModificationTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.multisigAccountModificationTransactionBody = MultisigAccountModificationTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,31 +41,35 @@ public final class EmbeddedMultisigAccountModificationTransactionBuilder extends
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param minRemovalDelta Relative change of the minimal number of cosignatories required when removing an account.
      * @param minApprovalDelta Relative change of the minimal number of cosignatories required when approving a transaction.
-     * @param modifications Attached cosignatory modifications.
+     * @param publicKeyAdditions Cosignatory public key additions.
+     * @param publicKeyDeletions Cosignatory public key deletions.
      */
-    protected EmbeddedMultisigAccountModificationTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final byte minRemovalDelta, final byte minApprovalDelta, final ArrayList<CosignatoryModificationBuilder> modifications) {
-        super(signer, version, type);
-        this.multisigAccountModificationTransactionBody = MultisigAccountModificationTransactionBodyBuilder.create(minRemovalDelta, minApprovalDelta, modifications);
+    protected EmbeddedMultisigAccountModificationTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final byte minRemovalDelta, final byte minApprovalDelta, final List<KeyDto> publicKeyAdditions, final List<KeyDto> publicKeyDeletions) {
+        super(signerPublicKey, version, network, type);
+        this.multisigAccountModificationTransactionBody = MultisigAccountModificationTransactionBodyBuilder.create(minRemovalDelta, minApprovalDelta, publicKeyAdditions, publicKeyDeletions);
     }
 
     /**
      * Creates an instance of EmbeddedMultisigAccountModificationTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param minRemovalDelta Relative change of the minimal number of cosignatories required when removing an account.
      * @param minApprovalDelta Relative change of the minimal number of cosignatories required when approving a transaction.
-     * @param modifications Attached cosignatory modifications.
+     * @param publicKeyAdditions Cosignatory public key additions.
+     * @param publicKeyDeletions Cosignatory public key deletions.
      * @return Instance of EmbeddedMultisigAccountModificationTransactionBuilder.
      */
-    public static EmbeddedMultisigAccountModificationTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final byte minRemovalDelta, final byte minApprovalDelta, final ArrayList<CosignatoryModificationBuilder> modifications) {
-        return new EmbeddedMultisigAccountModificationTransactionBuilder(signer, version, type, minRemovalDelta, minApprovalDelta, modifications);
+    public static EmbeddedMultisigAccountModificationTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final byte minRemovalDelta, final byte minApprovalDelta, final List<KeyDto> publicKeyAdditions, final List<KeyDto> publicKeyDeletions) {
+        return new EmbeddedMultisigAccountModificationTransactionBuilder(signerPublicKey, version, network, type, minRemovalDelta, minApprovalDelta, publicKeyAdditions, publicKeyDeletions);
     }
 
     /**
@@ -87,12 +91,21 @@ public final class EmbeddedMultisigAccountModificationTransactionBuilder extends
     }
 
     /**
-     * Gets attached cosignatory modifications.
+     * Gets cosignatory public key additions.
      *
-     * @return Attached cosignatory modifications.
+     * @return Cosignatory public key additions.
      */
-    public ArrayList<CosignatoryModificationBuilder> getModifications() {
-        return this.multisigAccountModificationTransactionBody.getModifications();
+    public List<KeyDto> getPublicKeyAdditions() {
+        return this.multisigAccountModificationTransactionBody.getPublicKeyAdditions();
+    }
+
+    /**
+     * Gets cosignatory public key deletions.
+     *
+     * @return Cosignatory public key deletions.
+     */
+    public List<KeyDto> getPublicKeyDeletions() {
+        return this.multisigAccountModificationTransactionBody.getPublicKeyDeletions();
     }
 
     /**
@@ -113,7 +126,7 @@ public final class EmbeddedMultisigAccountModificationTransactionBuilder extends
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedMultisigAccountModificationTransactionBuilder.
      */
-    public static EmbeddedMultisigAccountModificationTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedMultisigAccountModificationTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedMultisigAccountModificationTransactionBuilder(stream);
     }
 

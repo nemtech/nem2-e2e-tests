@@ -21,10 +21,11 @@
 package io.nem.sdk.infrastructure.directconnect.dataaccess.mappers;
 
 import io.nem.sdk.model.account.PublicAccount;
+import io.nem.sdk.model.blockchain.BlockDuration;
 import io.nem.sdk.model.blockchain.NetworkType;
+import io.nem.sdk.model.mosaic.MosaicFlags;
 import io.nem.sdk.model.mosaic.MosaicId;
 import io.nem.sdk.model.mosaic.MosaicInfo;
-import io.nem.sdk.model.mosaic.MosaicProperties;
 import io.vertx.core.json.JsonObject;
 
 import java.math.BigInteger;
@@ -59,7 +60,10 @@ public class MosaicInfoMapper implements Function<JsonObject, MosaicInfo> {
         PublicAccount.createFromPublicKey(
             mosaicJsonObject.getString("ownerPublicKey"), networkType);
     final int revision = mosaicJsonObject.getInteger("revision");
-    final MosaicProperties properties = new MosaicPropertiesMapper().apply(mosaicJsonObject);
-    return MosaicInfo.create(mosaicId, supply, height, owner, revision, properties);
+    final int flags = mosaicJsonObject.getLong("flags").intValue();
+    final MosaicFlags mosaicFlags = MosaicFlags.create(flags);
+    final int divisibility = mosaicJsonObject.getInteger("divisibility");
+    final Long duration = mosaicJsonObject.getLong("duration");
+    return MosaicInfo.create(mosaicId, supply, height, owner, revision, mosaicFlags, divisibility, BigInteger.valueOf(duration));
   }
 }

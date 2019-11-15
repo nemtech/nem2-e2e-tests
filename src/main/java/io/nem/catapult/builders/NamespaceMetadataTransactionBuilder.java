@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for a non-embedded namespace metadata transaction. */
@@ -33,7 +33,7 @@ public final class NamespaceMetadataTransactionBuilder extends TransactionBuilde
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected NamespaceMetadataTransactionBuilder(final DataInput stream) {
+    protected NamespaceMetadataTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.namespaceMetadataTransactionBody = NamespaceMetadataTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -42,8 +42,9 @@ public final class NamespaceMetadataTransactionBuilder extends TransactionBuilde
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
@@ -53,8 +54,8 @@ public final class NamespaceMetadataTransactionBuilder extends TransactionBuilde
      * @param valueSizeDelta Change in value size in bytes.
      * @param value Difference between existing value and new value \note when there is no existing value, new value is same this value \note when there is an existing value, new value is calculated as xor(previous-value, value).
      */
-    protected NamespaceMetadataTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto targetPublicKey, final long scopedMetadataKey, final NamespaceIdDto targetNamespaceId, final short valueSizeDelta, final ByteBuffer value) {
-        super(signature, signer, version, type, fee, deadline);
+    protected NamespaceMetadataTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto targetPublicKey, final long scopedMetadataKey, final NamespaceIdDto targetNamespaceId, final short valueSizeDelta, final ByteBuffer value) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
         this.namespaceMetadataTransactionBody = NamespaceMetadataTransactionBodyBuilder.create(targetPublicKey, scopedMetadataKey, targetNamespaceId, valueSizeDelta, value);
     }
 
@@ -62,8 +63,9 @@ public final class NamespaceMetadataTransactionBuilder extends TransactionBuilde
      * Creates an instance of NamespaceMetadataTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
@@ -74,8 +76,8 @@ public final class NamespaceMetadataTransactionBuilder extends TransactionBuilde
      * @param value Difference between existing value and new value \note when there is no existing value, new value is same this value \note when there is an existing value, new value is calculated as xor(previous-value, value).
      * @return Instance of NamespaceMetadataTransactionBuilder.
      */
-    public static NamespaceMetadataTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto targetPublicKey, final long scopedMetadataKey, final NamespaceIdDto targetNamespaceId, final short valueSizeDelta, final ByteBuffer value) {
-        return new NamespaceMetadataTransactionBuilder(signature, signer, version, type, fee, deadline, targetPublicKey, scopedMetadataKey, targetNamespaceId, valueSizeDelta, value);
+    public static NamespaceMetadataTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final KeyDto targetPublicKey, final long scopedMetadataKey, final NamespaceIdDto targetNamespaceId, final short valueSizeDelta, final ByteBuffer value) {
+        return new NamespaceMetadataTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, targetPublicKey, scopedMetadataKey, targetNamespaceId, valueSizeDelta, value);
     }
 
     /**
@@ -141,7 +143,7 @@ public final class NamespaceMetadataTransactionBuilder extends TransactionBuilde
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of NamespaceMetadataTransactionBuilder.
      */
-    public static NamespaceMetadataTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static NamespaceMetadataTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new NamespaceMetadataTransactionBuilder(stream);
     }
 

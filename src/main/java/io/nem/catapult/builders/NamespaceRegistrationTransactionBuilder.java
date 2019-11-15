@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for a non-embedded namespace registration transaction. */
@@ -33,7 +33,7 @@ public final class NamespaceRegistrationTransactionBuilder extends TransactionBu
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected NamespaceRegistrationTransactionBuilder(final DataInput stream) {
+    protected NamespaceRegistrationTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.namespaceRegistrationTransactionBody = NamespaceRegistrationTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -42,8 +42,9 @@ public final class NamespaceRegistrationTransactionBuilder extends TransactionBu
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
@@ -51,8 +52,8 @@ public final class NamespaceRegistrationTransactionBuilder extends TransactionBu
      * @param id Namespace identifier.
      * @param name Namespace name.
      */
-    protected NamespaceRegistrationTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final BlockDurationDto duration, final NamespaceIdDto id, final ByteBuffer name) {
-        super(signature, signer, version, type, fee, deadline);
+    protected NamespaceRegistrationTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final BlockDurationDto duration, final NamespaceIdDto id, final ByteBuffer name) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
         this.namespaceRegistrationTransactionBody = NamespaceRegistrationTransactionBodyBuilder.create(duration, id, name);
     }
 
@@ -60,8 +61,9 @@ public final class NamespaceRegistrationTransactionBuilder extends TransactionBu
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
@@ -69,8 +71,8 @@ public final class NamespaceRegistrationTransactionBuilder extends TransactionBu
      * @param id Namespace identifier.
      * @param name Namespace name.
      */
-    protected NamespaceRegistrationTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final NamespaceIdDto parentId, final NamespaceIdDto id, final ByteBuffer name) {
-        super(signature, signer, version, type, fee, deadline);
+    protected NamespaceRegistrationTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final NamespaceIdDto parentId, final NamespaceIdDto id, final ByteBuffer name) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
         this.namespaceRegistrationTransactionBody = NamespaceRegistrationTransactionBodyBuilder.create(parentId, id, name);
     }
 
@@ -78,8 +80,9 @@ public final class NamespaceRegistrationTransactionBuilder extends TransactionBu
      * Creates an instance of NamespaceRegistrationTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
@@ -88,16 +91,17 @@ public final class NamespaceRegistrationTransactionBuilder extends TransactionBu
      * @param name Namespace name.
      * @return Instance of NamespaceRegistrationTransactionBuilder.
      */
-    public static NamespaceRegistrationTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final BlockDurationDto duration, final NamespaceIdDto id, final ByteBuffer name) {
-        return new NamespaceRegistrationTransactionBuilder(signature, signer, version, type, fee, deadline, duration, id, name);
+    public static NamespaceRegistrationTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final BlockDurationDto duration, final NamespaceIdDto id, final ByteBuffer name) {
+        return new NamespaceRegistrationTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, duration, id, name);
     }
 
     /**
      * Creates an instance of NamespaceRegistrationTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
@@ -106,17 +110,8 @@ public final class NamespaceRegistrationTransactionBuilder extends TransactionBu
      * @param name Namespace name.
      * @return Instance of NamespaceRegistrationTransactionBuilder.
      */
-    public static NamespaceRegistrationTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final NamespaceIdDto parentId, final NamespaceIdDto id, final ByteBuffer name) {
-        return new NamespaceRegistrationTransactionBuilder(signature, signer, version, type, fee, deadline, parentId, id, name);
-    }
-
-    /**
-     * Gets namespace registration type.
-     *
-     * @return Namespace registration type.
-     */
-    public NamespaceRegistrationTypeDto getRegistrationType() {
-        return this.namespaceRegistrationTransactionBody.getRegistrationType();
+    public static NamespaceRegistrationTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final NamespaceIdDto parentId, final NamespaceIdDto id, final ByteBuffer name) {
+        return new NamespaceRegistrationTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, parentId, id, name);
     }
 
     /**
@@ -147,6 +142,15 @@ public final class NamespaceRegistrationTransactionBuilder extends TransactionBu
     }
 
     /**
+     * Gets namespace registration type.
+     *
+     * @return Namespace registration type.
+     */
+    public NamespaceRegistrationTypeDto getRegistrationType() {
+        return this.namespaceRegistrationTransactionBody.getRegistrationType();
+    }
+
+    /**
      * Gets namespace name.
      *
      * @return Namespace name.
@@ -173,7 +177,7 @@ public final class NamespaceRegistrationTransactionBuilder extends TransactionBu
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of NamespaceRegistrationTransactionBuilder.
      */
-    public static NamespaceRegistrationTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static NamespaceRegistrationTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new NamespaceRegistrationTransactionBuilder(stream);
     }
 

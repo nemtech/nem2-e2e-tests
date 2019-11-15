@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Enumeration of mosaic property flags. */
 public enum MosaicFlagsDto implements BitMaskable {
@@ -84,7 +84,7 @@ public enum MosaicFlagsDto implements BitMaskable {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicFlagsDto.
      */
-    public static MosaicFlagsDto loadFromBinary(final DataInput stream) {
+    public static MosaicFlagsDto loadFromBinary(final DataInputStream stream) {
         try {
             final byte streamValue = stream.readByte();
             return rawValueOf(streamValue);

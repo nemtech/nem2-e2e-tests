@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for an embedded account metadata transaction. */
@@ -33,7 +33,7 @@ public final class EmbeddedAccountMetadataTransactionBuilder extends EmbeddedTra
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedAccountMetadataTransactionBuilder(final DataInput stream) {
+    protected EmbeddedAccountMetadataTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.accountMetadataTransactionBody = AccountMetadataTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,24 +41,26 @@ public final class EmbeddedAccountMetadataTransactionBuilder extends EmbeddedTra
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param targetPublicKey Metadata target public key.
      * @param scopedMetadataKey Metadata key scoped to source, target and type.
      * @param valueSizeDelta Change in value size in bytes.
      * @param value Difference between existing value and new value \note when there is no existing value, new value is same this value \note when there is an existing value, new value is calculated as xor(previous-value, value).
      */
-    protected EmbeddedAccountMetadataTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final KeyDto targetPublicKey, final long scopedMetadataKey, final short valueSizeDelta, final ByteBuffer value) {
-        super(signer, version, type);
+    protected EmbeddedAccountMetadataTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final KeyDto targetPublicKey, final long scopedMetadataKey, final short valueSizeDelta, final ByteBuffer value) {
+        super(signerPublicKey, version, network, type);
         this.accountMetadataTransactionBody = AccountMetadataTransactionBodyBuilder.create(targetPublicKey, scopedMetadataKey, valueSizeDelta, value);
     }
 
     /**
      * Creates an instance of EmbeddedAccountMetadataTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param targetPublicKey Metadata target public key.
      * @param scopedMetadataKey Metadata key scoped to source, target and type.
@@ -66,8 +68,8 @@ public final class EmbeddedAccountMetadataTransactionBuilder extends EmbeddedTra
      * @param value Difference between existing value and new value \note when there is no existing value, new value is same this value \note when there is an existing value, new value is calculated as xor(previous-value, value).
      * @return Instance of EmbeddedAccountMetadataTransactionBuilder.
      */
-    public static EmbeddedAccountMetadataTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final KeyDto targetPublicKey, final long scopedMetadataKey, final short valueSizeDelta, final ByteBuffer value) {
-        return new EmbeddedAccountMetadataTransactionBuilder(signer, version, type, targetPublicKey, scopedMetadataKey, valueSizeDelta, value);
+    public static EmbeddedAccountMetadataTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final KeyDto targetPublicKey, final long scopedMetadataKey, final short valueSizeDelta, final ByteBuffer value) {
+        return new EmbeddedAccountMetadataTransactionBuilder(signerPublicKey, version, network, type, targetPublicKey, scopedMetadataKey, valueSizeDelta, value);
     }
 
     /**
@@ -124,7 +126,7 @@ public final class EmbeddedAccountMetadataTransactionBuilder extends EmbeddedTra
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedAccountMetadataTransactionBuilder.
      */
-    public static EmbeddedAccountMetadataTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedAccountMetadataTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedAccountMetadataTransactionBuilder(stream);
     }
 

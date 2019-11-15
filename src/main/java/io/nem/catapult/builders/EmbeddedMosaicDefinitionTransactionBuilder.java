@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.util.EnumSet;
 
 /** Binary layout for an embedded mosaic definition transaction. */
@@ -33,7 +33,7 @@ public final class EmbeddedMosaicDefinitionTransactionBuilder extends EmbeddedTr
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedMosaicDefinitionTransactionBuilder(final DataInput stream) {
+    protected EmbeddedMosaicDefinitionTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.mosaicDefinitionTransactionBody = MosaicDefinitionTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,44 +41,37 @@ public final class EmbeddedMosaicDefinitionTransactionBuilder extends EmbeddedTr
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param nonce Mosaic nonce.
      * @param id Mosaic identifier.
+     * @param duration Mosaic duration.
+     * @param nonce Mosaic nonce.
      * @param flags Mosaic flags.
      * @param divisibility Mosaic divisibility.
-     * @param duration Mosaic duration.
      */
-    protected EmbeddedMosaicDefinitionTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final MosaicNonceDto nonce, final MosaicIdDto id, final EnumSet<MosaicFlagsDto> flags, final byte divisibility, final BlockDurationDto duration) {
-        super(signer, version, type);
-        this.mosaicDefinitionTransactionBody = MosaicDefinitionTransactionBodyBuilder.create(nonce, id, flags, divisibility, duration);
+    protected EmbeddedMosaicDefinitionTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final MosaicIdDto id, final BlockDurationDto duration, final MosaicNonceDto nonce, final EnumSet<MosaicFlagsDto> flags, final byte divisibility) {
+        super(signerPublicKey, version, network, type);
+        this.mosaicDefinitionTransactionBody = MosaicDefinitionTransactionBodyBuilder.create(id, duration, nonce, flags, divisibility);
     }
 
     /**
      * Creates an instance of EmbeddedMosaicDefinitionTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param nonce Mosaic nonce.
      * @param id Mosaic identifier.
+     * @param duration Mosaic duration.
+     * @param nonce Mosaic nonce.
      * @param flags Mosaic flags.
      * @param divisibility Mosaic divisibility.
-     * @param duration Mosaic duration.
      * @return Instance of EmbeddedMosaicDefinitionTransactionBuilder.
      */
-    public static EmbeddedMosaicDefinitionTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final MosaicNonceDto nonce, final MosaicIdDto id, final EnumSet<MosaicFlagsDto> flags, final byte divisibility, final BlockDurationDto duration) {
-        return new EmbeddedMosaicDefinitionTransactionBuilder(signer, version, type, nonce, id, flags, divisibility, duration);
-    }
-
-    /**
-     * Gets mosaic nonce.
-     *
-     * @return Mosaic nonce.
-     */
-    public MosaicNonceDto getNonce() {
-        return this.mosaicDefinitionTransactionBody.getNonce();
+    public static EmbeddedMosaicDefinitionTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final MosaicIdDto id, final BlockDurationDto duration, final MosaicNonceDto nonce, final EnumSet<MosaicFlagsDto> flags, final byte divisibility) {
+        return new EmbeddedMosaicDefinitionTransactionBuilder(signerPublicKey, version, network, type, id, duration, nonce, flags, divisibility);
     }
 
     /**
@@ -88,6 +81,24 @@ public final class EmbeddedMosaicDefinitionTransactionBuilder extends EmbeddedTr
      */
     public MosaicIdDto getId() {
         return this.mosaicDefinitionTransactionBody.getId();
+    }
+
+    /**
+     * Gets mosaic duration.
+     *
+     * @return Mosaic duration.
+     */
+    public BlockDurationDto getDuration() {
+        return this.mosaicDefinitionTransactionBody.getDuration();
+    }
+
+    /**
+     * Gets mosaic nonce.
+     *
+     * @return Mosaic nonce.
+     */
+    public MosaicNonceDto getNonce() {
+        return this.mosaicDefinitionTransactionBody.getNonce();
     }
 
     /**
@@ -109,15 +120,6 @@ public final class EmbeddedMosaicDefinitionTransactionBuilder extends EmbeddedTr
     }
 
     /**
-     * Gets mosaic duration.
-     *
-     * @return Mosaic duration.
-     */
-    public BlockDurationDto getDuration() {
-        return this.mosaicDefinitionTransactionBody.getDuration();
-    }
-
-    /**
      * Gets the size of the object.
      *
      * @return Size in bytes.
@@ -135,7 +137,7 @@ public final class EmbeddedMosaicDefinitionTransactionBuilder extends EmbeddedTr
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedMosaicDefinitionTransactionBuilder.
      */
-    public static EmbeddedMosaicDefinitionTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedMosaicDefinitionTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedMosaicDefinitionTransactionBuilder(stream);
     }
 

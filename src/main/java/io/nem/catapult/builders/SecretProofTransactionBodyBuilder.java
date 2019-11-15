@@ -20,17 +20,17 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Binary layout for a secret proof transaction. */
-final class SecretProofTransactionBodyBuilder {
-    /** Hash algorithm. */
-    private final LockHashAlgorithmDto hashAlgorithm;
+public final class SecretProofTransactionBodyBuilder {
     /** Secret. */
     private final Hash256Dto secret;
-    /** Recipient. */
-    private final UnresolvedAddressDto recipient;
+    /** Hash algorithm. */
+    private final LockHashAlgorithmDto hashAlgorithm;
+    /** Locked mosaic recipient address. */
+    private final UnresolvedAddressDto recipientAddress;
     /** Proof data. */
     private final ByteBuffer proof;
 
@@ -39,12 +39,12 @@ final class SecretProofTransactionBodyBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected SecretProofTransactionBodyBuilder(final DataInput stream) {
+    protected SecretProofTransactionBodyBuilder(final DataInputStream stream) {
         try {
-            this.hashAlgorithm = LockHashAlgorithmDto.loadFromBinary(stream);
             this.secret = Hash256Dto.loadFromBinary(stream);
-            this.recipient = UnresolvedAddressDto.loadFromBinary(stream);
             final short proofSize = Short.reverseBytes(stream.readShort());
+            this.hashAlgorithm = LockHashAlgorithmDto.loadFromBinary(stream);
+            this.recipientAddress = UnresolvedAddressDto.loadFromBinary(stream);
             this.proof = ByteBuffer.allocate(proofSize);
             stream.readFully(this.proof.array());
         } catch(Exception e) {
@@ -55,42 +55,33 @@ final class SecretProofTransactionBodyBuilder {
     /**
      * Constructor.
      *
-     * @param hashAlgorithm Hash algorithm.
      * @param secret Secret.
-     * @param recipient Recipient.
+     * @param hashAlgorithm Hash algorithm.
+     * @param recipientAddress Locked mosaic recipient address.
      * @param proof Proof data.
      */
-    protected SecretProofTransactionBodyBuilder(final LockHashAlgorithmDto hashAlgorithm, final Hash256Dto secret, final UnresolvedAddressDto recipient, final ByteBuffer proof) {
-        GeneratorUtils.notNull(hashAlgorithm, "hashAlgorithm is null");
+    protected SecretProofTransactionBodyBuilder(final Hash256Dto secret, final LockHashAlgorithmDto hashAlgorithm, final UnresolvedAddressDto recipientAddress, final ByteBuffer proof) {
         GeneratorUtils.notNull(secret, "secret is null");
-        GeneratorUtils.notNull(recipient, "recipient is null");
+        GeneratorUtils.notNull(hashAlgorithm, "hashAlgorithm is null");
+        GeneratorUtils.notNull(recipientAddress, "recipientAddress is null");
         GeneratorUtils.notNull(proof, "proof is null");
-        this.hashAlgorithm = hashAlgorithm;
         this.secret = secret;
-        this.recipient = recipient;
+        this.hashAlgorithm = hashAlgorithm;
+        this.recipientAddress = recipientAddress;
         this.proof = proof;
     }
 
     /**
      * Creates an instance of SecretProofTransactionBodyBuilder.
      *
-     * @param hashAlgorithm Hash algorithm.
      * @param secret Secret.
-     * @param recipient Recipient.
+     * @param hashAlgorithm Hash algorithm.
+     * @param recipientAddress Locked mosaic recipient address.
      * @param proof Proof data.
      * @return Instance of SecretProofTransactionBodyBuilder.
      */
-    public static SecretProofTransactionBodyBuilder create(final LockHashAlgorithmDto hashAlgorithm, final Hash256Dto secret, final UnresolvedAddressDto recipient, final ByteBuffer proof) {
-        return new SecretProofTransactionBodyBuilder(hashAlgorithm, secret, recipient, proof);
-    }
-
-    /**
-     * Gets hash algorithm.
-     *
-     * @return Hash algorithm.
-     */
-    public LockHashAlgorithmDto getHashAlgorithm() {
-        return this.hashAlgorithm;
+    public static SecretProofTransactionBodyBuilder create(final Hash256Dto secret, final LockHashAlgorithmDto hashAlgorithm, final UnresolvedAddressDto recipientAddress, final ByteBuffer proof) {
+        return new SecretProofTransactionBodyBuilder(secret, hashAlgorithm, recipientAddress, proof);
     }
 
     /**
@@ -103,12 +94,21 @@ final class SecretProofTransactionBodyBuilder {
     }
 
     /**
-     * Gets recipient.
+     * Gets hash algorithm.
      *
-     * @return Recipient.
+     * @return Hash algorithm.
      */
-    public UnresolvedAddressDto getRecipient() {
-        return this.recipient;
+    public LockHashAlgorithmDto getHashAlgorithm() {
+        return this.hashAlgorithm;
+    }
+
+    /**
+     * Gets locked mosaic recipient address.
+     *
+     * @return Locked mosaic recipient address.
+     */
+    public UnresolvedAddressDto getRecipientAddress() {
+        return this.recipientAddress;
     }
 
     /**
@@ -127,10 +127,10 @@ final class SecretProofTransactionBodyBuilder {
      */
     public int getSize() {
         int size = 0;
-        size += this.hashAlgorithm.getSize();
         size += this.secret.getSize();
-        size += this.recipient.getSize();
         size += 2; // proofSize
+        size += this.hashAlgorithm.getSize();
+        size += this.recipientAddress.getSize();
         size += this.proof.array().length;
         return size;
     }
@@ -141,7 +141,7 @@ final class SecretProofTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of SecretProofTransactionBodyBuilder.
      */
-    public static SecretProofTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static SecretProofTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new SecretProofTransactionBodyBuilder(stream);
     }
 
@@ -152,13 +152,13 @@ final class SecretProofTransactionBodyBuilder {
      */
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
-            final byte[] hashAlgorithmBytes = this.hashAlgorithm.serialize();
-            dataOutputStream.write(hashAlgorithmBytes, 0, hashAlgorithmBytes.length);
             final byte[] secretBytes = this.secret.serialize();
             dataOutputStream.write(secretBytes, 0, secretBytes.length);
-            final byte[] recipientBytes = this.recipient.serialize();
-            dataOutputStream.write(recipientBytes, 0, recipientBytes.length);
             dataOutputStream.writeShort(Short.reverseBytes((short) this.proof.array().length));
+            final byte[] hashAlgorithmBytes = this.hashAlgorithm.serialize();
+            dataOutputStream.write(hashAlgorithmBytes, 0, hashAlgorithmBytes.length);
+            final byte[] recipientAddressBytes = this.recipientAddress.serialize();
+            dataOutputStream.write(recipientAddressBytes, 0, recipientAddressBytes.length);
             dataOutputStream.write(this.proof.array(), 0, this.proof.array().length);
         });
     }

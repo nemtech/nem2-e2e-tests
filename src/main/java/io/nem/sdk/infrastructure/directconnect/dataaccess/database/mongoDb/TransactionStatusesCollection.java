@@ -20,8 +20,8 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
-import io.nem.core.utils.HexEncoder;
-import io.nem.sdk.infrastructure.common.CatapultContext;
+import io.nem.core.utils.ConvertUtils;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.database.common.TransactionState;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.mappers.TransactionStatusErrorMapper;
 import io.nem.sdk.model.transaction.TransactionStatus;
@@ -33,7 +33,7 @@ import java.util.Optional;
 /** Transaction statuses collection. */
 public class TransactionStatusesCollection implements TransactionState {
   /* Catapult context. */
-  final CatapultContext context;
+  final DataAccessContext context;
   /* Catapult collection */
   private final CatapultCollection<TransactionStatusError, TransactionStatusErrorMapper>
       catapultCollection;
@@ -43,7 +43,7 @@ public class TransactionStatusesCollection implements TransactionState {
    *
    * @param context Catapult context.
    */
-  public TransactionStatusesCollection(final CatapultContext context) {
+  public TransactionStatusesCollection(final DataAccessContext context) {
     catapultCollection =
         new CatapultCollection<>(
             context.getCatapultMongoDbClient(),
@@ -62,7 +62,7 @@ public class TransactionStatusesCollection implements TransactionState {
   public Optional<TransactionStatusError> findOne(
       final String transactionHash, final int timeoutInSeconds) {
     final String keyName = "status.hash";
-    final byte[] keyValuebytes = HexEncoder.getBytes(transactionHash);
+    final byte[] keyValuebytes = ConvertUtils.getBytes(transactionHash);
     return catapultCollection.findOne(keyName, keyValuebytes, timeoutInSeconds);
   }
 

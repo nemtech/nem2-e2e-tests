@@ -17,141 +17,183 @@
 package io.nem.core.crypto;
 
 import io.nem.core.utils.ExceptionUtils;
-import org.bouncycastle.jcajce.provider.digest.Keccak;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.util.encoders.Hex;
-
 import java.security.MessageDigest;
 import java.security.Security;
+import org.bouncycastle.jcajce.provider.digest.Keccak;
+import org.bouncycastle.jcajce.provider.digest.Keccak.DigestKeccak;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.encoders.Hex;
 
 /**
  * Static class that exposes hash functions.
  */
 public class Hashes {
 
-	static {
-		Security.addProvider(new BouncyCastleProvider());
-	}
+    /**
+     * The SHA256 algorithm.
+     */
+    public static final String SHA_256 = "SHA256";
 
-	/**
-	 * Performs a SHA3-256 hash of the concatenated inputs.
-	 *
-	 * @param inputs The byte arrays to concatenate and hash.
-	 * @return The hash of the concatenated inputs.
-	 * @throws CryptoException if the hash operation failed.
-	 */
-	public static byte[] sha3_256(final byte[]... inputs) {
+    /**
+     * The RIPEMD_160 algorithm.
+     */
+    public static final String RIPEMD_160 = "RIPEMD160";
 
-		return hash("SHA3-256", inputs);
-	}
+    /**
+     * The provider.
+     */
+    public static final String BC = "BC";
 
-	/**
-	 * Performs a SHA3-512 hash of the concatenated inputs.
-	 *
-	 * @param inputs The byte arrays to concatenate and hash.
-	 * @return The hash of the concatenated inputs.
-	 * @throws CryptoException if the hash operation failed.
-	 */
-	public static byte[] sha3_512(final byte[]... inputs) {
-		return hash("SHA3-512", inputs);
-	}
+    /**
+     * Private constructor for this utility class.
+     */
+    private Hashes() {
+    }
 
-	/**
-	 * Performs a RIPEMD160 hash of the concatenated inputs.
-	 *
-	 * @param inputs The byte arrays to concatenate and hash.
-	 * @return The hash of the concatenated inputs.
-	 * @throws CryptoException if the hash operation failed.
-	 */
-	public static byte[] ripemd160(final byte[]... inputs) {
-		return hash("RIPEMD160", inputs);
-	}
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
-	/**
-	 * Performs a KECCAK_256 hash of the concatenated inputs.
-	 *
-	 * @param inputs The byte arrays to concatenate and hash.
-	 * @return The hash of the concatenated inputs.
-	 * @throws CryptoException if the hash operation failed.
-	 */
-	public static byte[] keccak256(final byte[] inputs) {
+    /**
+     * Performs a SHA3-256 hash of the concatenated inputs.
+     *
+     * @param inputs The byte arrays to concatenate and hash.
+     * @return The hash of the concatenated inputs.
+     * @throws CryptoException if the hash operation failed.
+     */
+    @SuppressWarnings("squid:S00100")
+    public static byte[] sha3_256(final byte[]... inputs) {
 
-		Keccak.Digest256 keccak = new Keccak.Digest256();
-		keccak.update(inputs);
+        return hash("SHA3-256", inputs);
+    }
 
-		return keccak.digest();
-	}
+    /**
+     * Performs a SHA3-512 hash of the concatenated inputs.
+     *
+     * @param inputs The byte arrays to concatenate and hash.
+     * @return The hash of the concatenated inputs.
+     * @throws CryptoException if the hash operation failed.
+     */
+    @SuppressWarnings("squid:S00100")
+    public static byte[] sha3_512(final byte[]... inputs) {
+        return hash("SHA3-512", inputs);
+    }
 
-	/**
-	 * Performs a KECCAK_256 hash of the concatenated inputs.
-	 *
-	 * @param inputs The byte arrays to concatenate and hash.
-	 * @return The hash of the concatenated inputs.
-	 * @throws CryptoException if the hash operation failed.
-	 */
-	public static byte[] keccak256(final byte[][] inputs) {
+    /**
+     * Performs a RIPEMD160 hash of the concatenated inputs.
+     *
+     * @param inputs The byte arrays to concatenate and hash.
+     * @return The hash of the concatenated inputs.
+     * @throws CryptoException if the hash operation failed.
+     */
+    public static byte[] ripemd160(final byte[]... inputs) {
+        return hash(RIPEMD_160, inputs);
+    }
 
-		Keccak.Digest256 keccak = new Keccak.Digest256();
+    /**
+     * Performs a KECCAK_256 hash of the concatenated inputs.
+     *
+     * @param inputs The byte arrays to concatenate and hash.
+     * @return The hash of the concatenated inputs.
+     * @throws CryptoException if the hash operation failed.
+     */
+    public static byte[] keccak256(final byte[] inputs) {
 
-		byte[] concat_inputs = new byte[0];
-		byte[] concat_inputsCopy;
+        Keccak.Digest256 keccak = new Keccak.Digest256();
+        keccak.update(inputs);
 
-		for (int i = 0; i < inputs.length; i++) {
+        return keccak.digest();
+    }
 
-			concat_inputsCopy = new byte[concat_inputs.length];
+    /**
+     * Performs a KECCAK_512 hash of the concatenated inputs.
+     *
+     * @param inputs The byte arrays to concatenate and hash.
+     * @return The hash of the concatenated inputs.
+     * @throws CryptoException if the hash operation failed.
+     */
+    public static byte[] keccak512(final byte[]... inputs) {
+        return keccak(new Keccak.Digest512(), inputs);
+    }
 
-			System.arraycopy(concat_inputs, 0, concat_inputsCopy, 0, concat_inputs.length);
+    /**
+     * Performs a KECCAK_256 hash of the concatenated inputs.
+     *
+     * @param inputs The byte arrays to concatenate and hash.
+     * @return The hash of the concatenated inputs.
+     * @throws CryptoException if the hash operation failed.
+     */
+    public static byte[] keccak256(final byte[]... inputs) {
+        return keccak(new Keccak.Digest256(), inputs);
+    }
 
-			concat_inputs = new byte[concat_inputsCopy.length + inputs[i].length];
+    /**
+     * Performs a KECCAK_256 hash of the concatenated inputs.
+     *
+     * @param inputs The byte arrays to concatenate and hash.
+     * @return The hash of the concatenated inputs.
+     * @throws CryptoException if the hash operation failed.
+     */
+    public static byte[] keccak(DigestKeccak keccak, final byte[]... inputs) {
 
-			System.arraycopy(concat_inputsCopy, 0, concat_inputs, 0, concat_inputsCopy.length);
-			System.arraycopy(inputs[i], 0, concat_inputs, concat_inputsCopy.length, inputs[i].length);
-		}
-		keccak.update(concat_inputs);
+        byte[] concatInputs = new byte[0];
+        byte[] concatInputsCopy;
 
-		return keccak.digest();
-	}
+        for (int i = 0; i < inputs.length; i++) {
 
-	/**
-	 * Performs a HASH_160 hash of the concatenated inputs.
-	 *
-	 * @param inputs The byte arrays to concatenate and hash.
-	 * @return The hash of the concatenated inputs.
-	 * @throws CryptoException if the hash operation failed.
-	 */
-	public static byte[] hash160(final byte[]... inputs) {
+            concatInputsCopy = new byte[concatInputs.length];
 
-		byte[] hashed_sha256 = hash("SHA256", inputs);
+            System.arraycopy(concatInputs, 0, concatInputsCopy, 0, concatInputs.length);
 
-		return hash("RIPEMD160", Hex.toHexString(hashed_sha256).getBytes());
-	}
+            concatInputs = new byte[concatInputsCopy.length + inputs[i].length];
 
-	/**
-	 * Performs a HASH_256 hash of the concatenated inputs.
-	 *
-	 * @param inputs The byte arrays to concatenate and hash.
-	 * @return The hash of the concatenated inputs.
-	 * @throws CryptoException if the hash operation failed.
-	 */
-	public static byte[] hash256(final byte[]... inputs) {
+            System.arraycopy(concatInputsCopy, 0, concatInputs, 0, concatInputsCopy.length);
+            System.arraycopy(inputs[i], 0, concatInputs, concatInputsCopy.length, inputs[i].length);
+        }
+        keccak.update(concatInputs);
 
-		byte[] hashed_sha256 = hash("SHA256", inputs);
+        return keccak.digest();
+    }
 
-		return hash("SHA256", Hex.toHexString(hashed_sha256).getBytes());
-	}
+    /**
+     * Performs a HASH_160 hash of the concatenated inputs.
+     *
+     * @param inputs The byte arrays to concatenate and hash.
+     * @return The hash of the concatenated inputs.
+     * @throws CryptoException if the hash operation failed.
+     */
+    public static byte[] hash160(final byte[]... inputs) {
 
-	private static byte[] hash(final String algorithm, final byte[]... inputs) {
-		return ExceptionUtils.propagate(
-				() -> {
-					final MessageDigest digest = MessageDigest.getInstance(algorithm, "BC");
+        byte[] hashedSha256 = hash(SHA_256, inputs);
 
-					for (final byte[] input : inputs) {
-						digest.update(input);
-					}
+        return hash(RIPEMD_160, Hex.toHexString(hashedSha256).getBytes());
+    }
 
-					return digest.digest();
-				},
-				CryptoException::new);
-	}
+    /**
+     * Performs a HASH_256 hash of the concatenated inputs.
+     *
+     * @param inputs The byte arrays to concatenate and hash.
+     * @return The hash of the concatenated inputs.
+     * @throws CryptoException if the hash operation failed.
+     */
+    public static byte[] hash256(final byte[]... inputs) {
 
+        byte[] hashedSha256 = hash(SHA_256, inputs);
+
+        return hash(SHA_256, Hex.toHexString(hashedSha256).getBytes());
+    }
+
+    private static byte[] hash(final String algorithm, final byte[]... inputs) {
+        return ExceptionUtils.propagate(
+            () -> {
+                final MessageDigest digest = MessageDigest.getInstance(algorithm, BC);
+
+                for (final byte[] input : inputs) {
+                    digest.update(input);
+                }
+
+                return digest.digest();
+            },
+            CryptoException::new);
+    }
 }

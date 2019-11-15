@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Enumeration of mosaic restriction types. */
 public enum MosaicRestrictionTypeDto {
@@ -38,6 +38,15 @@ public enum MosaicRestrictionTypeDto {
     GT((byte) 5),
     /** Allow if greater than or equal. */
     GE((byte) 6);
+
+    /**
+     * Gets the value of the enum.
+     *
+     * @return Value of the enum.
+     */
+    public byte getValue() {
+        return this.value;
+    }
 
     /** Enum value. */
     private final byte value;
@@ -81,7 +90,7 @@ public enum MosaicRestrictionTypeDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of MosaicRestrictionTypeDto.
      */
-    public static MosaicRestrictionTypeDto loadFromBinary(final DataInput stream) {
+    public static MosaicRestrictionTypeDto loadFromBinary(final DataInputStream stream) {
         try {
             final byte streamValue = stream.readByte();
             return rawValueOf(streamValue);

@@ -16,41 +16,34 @@
 
 package io.nem.sdk.model.namespace;
 
+import java.util.Arrays;
+
 /**
  * The alias type. Supported types are: 0: No alias. 1: Mosaic id alias. 2: Address alias.
  *
- * @since
  */
 public enum AliasType {
-  None(0),
-  Mosaic(1),
-  Address(2);
+    NONE(0),
+    MOSAIC(1),
+    ADDRESS(2);
 
-  private final Integer value;
+    private final Integer value;
 
-  AliasType(int value) {
-    this.value = value;
-  }
-
-  public static AliasType rawValueOf(int value) {
-    switch (value) {
-      case 0:
-        return AliasType.None;
-      case 1:
-        return AliasType.Mosaic;
-      case 2:
-        return AliasType.Address;
-      default:
-        throw new IllegalArgumentException(value + " is not a valid value");
+    AliasType(int value) {
+        this.value = value;
     }
-  }
 
-  /**
-   * Returns enum value.
-   *
-   * @return enum value
-   */
-  public final Integer getValue() {
-    return this.value;
-  }
+    public static AliasType rawValueOf(int value) {
+        return Arrays.stream(values()).filter(e -> e.value == value).findFirst()
+            .orElseThrow(() -> new IllegalArgumentException(value + " is not a valid value"));
+    }
+
+    /**
+     * Returns enum value.
+     *
+     * @return enum value
+     */
+    public final Integer getValue() {
+        return this.value;
+    }
 }

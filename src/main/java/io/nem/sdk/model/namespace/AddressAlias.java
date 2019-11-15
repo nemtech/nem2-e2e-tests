@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-/** The AddressAlias structure describes address aliases */
+/**
+ * The AddressAlias structure describes address aliases
+ */
 package io.nem.sdk.model.namespace;
 
 import io.nem.sdk.model.account.Address;
 
-/** Address alias. */
+/**
+ * Address alias.
+ */
 public class AddressAlias extends AliasBase<Address> {
-  /**
-   * Create AddressAlias from address
-   *
-   * @param address
-   */
-  public AddressAlias(Address address) {
-    super(address);
-  }
 
-  /**
-   * Gets the alias type.
-   *
-   * @return Alias type.
-   */
-  public AliasType getType() {
-    return AliasType.Address;
-  }
+    /**
+     * Create AddressAlias from address
+     */
+    public AddressAlias(Address address) {
+        super(AliasType.ADDRESS, address);
+    }
+
 }

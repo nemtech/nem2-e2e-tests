@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for an embedded mosaic supply change transaction. */
 public final class EmbeddedMosaicSupplyChangeTransactionBuilder extends EmbeddedTransactionBuilder {
@@ -32,7 +32,7 @@ public final class EmbeddedMosaicSupplyChangeTransactionBuilder extends Embedded
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedMosaicSupplyChangeTransactionBuilder(final DataInput stream) {
+    protected EmbeddedMosaicSupplyChangeTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.mosaicSupplyChangeTransactionBody = MosaicSupplyChangeTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -40,31 +40,33 @@ public final class EmbeddedMosaicSupplyChangeTransactionBuilder extends Embedded
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param mosaicId Affected mosaic identifier.
-     * @param action Supply change action.
      * @param delta Change amount.
+     * @param action Supply change action.
      */
-    protected EmbeddedMosaicSupplyChangeTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final MosaicSupplyChangeActionDto action, final AmountDto delta) {
-        super(signer, version, type);
-        this.mosaicSupplyChangeTransactionBody = MosaicSupplyChangeTransactionBodyBuilder.create(mosaicId, action, delta);
+    protected EmbeddedMosaicSupplyChangeTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final AmountDto delta, final MosaicSupplyChangeActionDto action) {
+        super(signerPublicKey, version, network, type);
+        this.mosaicSupplyChangeTransactionBody = MosaicSupplyChangeTransactionBodyBuilder.create(mosaicId, delta, action);
     }
 
     /**
      * Creates an instance of EmbeddedMosaicSupplyChangeTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param mosaicId Affected mosaic identifier.
-     * @param action Supply change action.
      * @param delta Change amount.
+     * @param action Supply change action.
      * @return Instance of EmbeddedMosaicSupplyChangeTransactionBuilder.
      */
-    public static EmbeddedMosaicSupplyChangeTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final MosaicSupplyChangeActionDto action, final AmountDto delta) {
-        return new EmbeddedMosaicSupplyChangeTransactionBuilder(signer, version, type, mosaicId, action, delta);
+    public static EmbeddedMosaicSupplyChangeTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final UnresolvedMosaicIdDto mosaicId, final AmountDto delta, final MosaicSupplyChangeActionDto action) {
+        return new EmbeddedMosaicSupplyChangeTransactionBuilder(signerPublicKey, version, network, type, mosaicId, delta, action);
     }
 
     /**
@@ -77,21 +79,21 @@ public final class EmbeddedMosaicSupplyChangeTransactionBuilder extends Embedded
     }
 
     /**
-     * Gets supply change action.
-     *
-     * @return Supply change action.
-     */
-    public MosaicSupplyChangeActionDto getAction() {
-        return this.mosaicSupplyChangeTransactionBody.getAction();
-    }
-
-    /**
      * Gets change amount.
      *
      * @return Change amount.
      */
     public AmountDto getDelta() {
         return this.mosaicSupplyChangeTransactionBody.getDelta();
+    }
+
+    /**
+     * Gets supply change action.
+     *
+     * @return Supply change action.
+     */
+    public MosaicSupplyChangeActionDto getAction() {
+        return this.mosaicSupplyChangeTransactionBody.getAction();
     }
 
     /**
@@ -112,7 +114,7 @@ public final class EmbeddedMosaicSupplyChangeTransactionBuilder extends Embedded
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedMosaicSupplyChangeTransactionBuilder.
      */
-    public static EmbeddedMosaicSupplyChangeTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedMosaicSupplyChangeTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedMosaicSupplyChangeTransactionBuilder(stream);
     }
 

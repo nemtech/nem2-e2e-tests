@@ -20,7 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
-import io.nem.sdk.infrastructure.common.CatapultContext;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 
 /** Unconfirmed transactions collection. */
 public class UnconfirmedTransactionsCollection extends TransactionCollectionBase {
@@ -29,7 +29,7 @@ public class UnconfirmedTransactionsCollection extends TransactionCollectionBase
    *
    * @param context Catapult context.
    */
-  public UnconfirmedTransactionsCollection(final CatapultContext context) {
+  public UnconfirmedTransactionsCollection(final DataAccessContext context) {
     super(context, "unconfirmedTransactions");
   }
 

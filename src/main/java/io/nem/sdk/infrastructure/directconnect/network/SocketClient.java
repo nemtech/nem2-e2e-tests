@@ -27,54 +27,66 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-/** Connection to the catapult server. */
+/**
+ * Connection to the catapult server.
+ */
 public class SocketClient {
-  /* Server connection. */
-  private final Socket socket;
+	/* Server connection. */
+	private final Socket socket;
 
-  /**
-   * Constructor.
-   *
-   * @param socket Connection to the server.
-   */
-  public SocketClient(final Socket socket) {
-    this.socket = socket;
-  }
+	/**
+	 * Constructor.
+	 *
+	 * @param socket Connection to the server.
+	 */
+	private SocketClient(final Socket socket) {
+		this.socket = socket;
+	}
 
-  /**
-   * Read data from the server
-   *
-   * @param size Size of the data.
-   * @return Byte buffer.
-   */
-  public ByteBuffer Read(final int size) {
-    return ExceptionUtils.propagate(
-        () -> {
-          final ByteBuffer byteBuffer = ByteBuffer.allocate(size);
-          byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-          final byte[] buffer = byteBuffer.array();
+	/**
+	 * Creates a client connection to the server.
+	 *
+	 * @param socket Connection to the server
+	 * @return Client socket.
+	 */
+	public static SocketClient create(final Socket socket) {
+		return new SocketClient(socket);
+	}
 
-          int index = 0;
-          int readSize;
-          do {
-            readSize = socket.getInputStream().read(buffer, index, buffer.length - index);
-            index += readSize;
-          } while ((readSize != -1) && (index < size));
-          byteBuffer.rewind();
-          return byteBuffer;
-        });
-  }
+	/**
+	 * Read data from the server
+	 *
+	 * @param size Size of the data.
+	 * @return Byte buffer.
+	 */
+	public ByteBuffer Read(final int size) {
+		return ExceptionUtils.propagate(
+				() -> {
+					final ByteBuffer byteBuffer = ByteBuffer.allocate(size);
+					byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+					final byte[] buffer = byteBuffer.array();
 
-  /**
-   * Write data to the server
-   *
-   * @param byteBuffer byte buffer
-   */
-  public void Write(final ByteBuffer byteBuffer) {
-    ExceptionUtils.propagateVoid(
-        () -> {
-          final OutputStream outStream = socket.getOutputStream();
-          outStream.write(byteBuffer.array());
-        });
-  }
+					int index = 0;
+					int readSize;
+					do {
+						readSize = socket.getInputStream().read(buffer, index, buffer.length - index);
+						index += readSize;
+					} while ((readSize != -1) && (index < size));
+					byteBuffer.rewind();
+					return byteBuffer;
+				});
+	}
+
+	/**
+	 * Write data to the server
+	 *
+	 * @param byteBuffer byte buffer
+	 */
+	public void Write(final ByteBuffer byteBuffer) {
+		ExceptionUtils.propagateVoid(
+				() -> {
+					final OutputStream outStream = socket.getOutputStream();
+					outStream.write(byteBuffer.array());
+				});
+	}
 }

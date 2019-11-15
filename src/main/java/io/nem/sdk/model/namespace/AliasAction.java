@@ -16,48 +16,49 @@
 
 package io.nem.sdk.model.namespace;
 
-/** The alias action. */
+import java.util.Arrays;
+
+/**
+ * The alias action.
+ */
 public enum AliasAction {
-  /** Unlink an alias. */
-  Unlink((byte) 0),
-  /** Link an alias. */
-  Link((byte) 1);
+    /**
+     * Link an alias.
+     */
+    LINK((byte) 1),
+    /**
+     * Unlink an alias.
+     */
+    UNLINK((byte) 0);
 
-  private byte value;
+    private byte value;
 
-  /**
-   * Constructor.
-   *
-   * @param value Enum value.
-   */
-  AliasAction(final byte value) {
-    this.value = value;
-  }
-
-  /**
-   * Gets the alias action from raw value.
-   *
-   * @param value Raw value.
-   * @return Alias action.
-   */
-  public static AliasAction rawValueOf(final byte value) {
-    switch (value) {
-      case 0:
-        return AliasAction.Unlink;
-      case 1:
-        return AliasAction.Link;
-
-      default:
-        throw new IllegalArgumentException(value + " is not a valid value");
+    /**
+     * Constructor.
+     *
+     * @param value Enum value.
+     */
+    AliasAction(final byte value) {
+        this.value = value;
     }
-  }
 
-  /**
-   * Returns enum value.
-   *
-   * @return enum value
-   */
-  public byte getValue() {
-    return this.value;
-  }
+    /**
+     * Gets the alias action from raw value.
+     *
+     * @param value Raw value.
+     * @return Alias action.
+     */
+    public static AliasAction rawValueOf(final byte value) {
+        return Arrays.stream(values()).filter(e -> e.value == value).findFirst()
+            .orElseThrow(() -> new IllegalArgumentException(value + " is not a valid value"));
+    }
+
+    /**
+     * Returns enum value.
+     *
+     * @return enum value
+     */
+    public byte getValue() {
+        return this.value;
+    }
 }

@@ -16,19 +16,16 @@
 
 package io.nem.sdk.model.namespace;
 
-/** Empty alias */
+/**
+ * Empty alias
+ */
 public class EmptyAlias extends AliasBase<Object> {
-  /** Create AddressAlias from address */
-  public EmptyAlias() {
-    super(null);
-  }
 
-  /**
-   * Gets the alias type.
-   *
-   * @return Alias type.
-   */
-  public AliasType getType() {
-    return AliasType.None;
-  }
+    /**
+     * Create AddressAlias from address
+     */
+    public EmptyAlias() {
+        super(AliasType.NONE, null);
+    }
+
 }

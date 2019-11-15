@@ -20,13 +20,11 @@
 
 package io.nem.sdk.infrastructure.directconnect.auth;
 
-import io.nem.core.crypto.KeyPair;
-import io.nem.core.crypto.PublicKey;
-import io.nem.core.crypto.Signature;
-import io.nem.core.crypto.Signer;
+import io.nem.core.crypto.*;
 import io.nem.core.utils.ExceptionUtils;
 import io.nem.sdk.infrastructure.directconnect.packet.PacketHeader;
 import io.nem.sdk.infrastructure.directconnect.packet.PacketType;
+import io.nem.sdk.model.blockchain.NetworkType;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -58,11 +56,12 @@ public class ChallengeHelper {
    *
    * @param request The parsed server challenge request.
    * @param keyPair The client key pair.
+   * @param networkType Network type.
    * @param securityMode Connection security mode.
    * @returns Buffer composed of the binary response packet.
    */
   static ByteBuffer generateServerChallengeResponse(
-      final ByteBuffer request, final KeyPair keyPair, final ConnectionSecurityMode securityMode) {
+		  final ByteBuffer request, final KeyPair keyPair, final NetworkType networkType, final ConnectionSecurityMode securityMode) {
     // create a new challenge
     final byte[] challenge = GetRandomBytes(CHALLENGE_SIZE);
     // sign the request challenge
@@ -70,7 +69,9 @@ public class ChallengeHelper {
     signedBuffers.rewind();
     signedBuffers.put(request);
     signedBuffers.put(securityMode.getValue());
-    final Signature signature = new Signer(keyPair).sign(signedBuffers.array());
+	  final DsaSigner signer = CryptoEngines.defaultEngine()
+			  .createDsaSigner(keyPair, networkType.resolveSignSchema());
+    final Signature signature = signer.sign(signedBuffers.array());
 
     // create the response header
     final int length =
@@ -98,12 +99,15 @@ public class ChallengeHelper {
    *
    * @param response Parsed client challenge response.
    * @param publicKey Server public key.
+   * @param networkType Network type.
    * @param challenge Challenge presented to the server.
    * @returns True if the response can be verified, false otherwise.
    */
   static boolean verifyClientChallengeResponse(
-      final ByteBuffer response, final PublicKey publicKey, final ByteBuffer challenge) {
-    final KeyPair serverKeyPair = new KeyPair(publicKey);
-    return new Signer(serverKeyPair).verify(challenge.array(), new Signature(response.array()));
+		  final ByteBuffer response, final PublicKey publicKey, final NetworkType networkType, final ByteBuffer challenge) {
+    final KeyPair serverKeyPair = KeyPair.onlyPublic(publicKey);
+	  final DsaSigner signer = CryptoEngines.defaultEngine()
+			  .createDsaSigner(serverKeyPair, networkType.resolveSignSchema());
+    return signer.verify(challenge.array(), new Signature(response.array()));
   }
 }

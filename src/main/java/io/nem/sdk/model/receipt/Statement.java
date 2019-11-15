@@ -16,55 +16,54 @@
 
 package io.nem.sdk.model.receipt;
 
-import io.nem.sdk.model.account.Address;
-import io.nem.sdk.model.mosaic.MosaicId;
-
 import java.util.List;
 
 public class Statement {
-  private final List<TransactionStatement> transactionStatements;
-  private final List<ResolutionStatement<Address>> addressResolutionStatements;
-  private final List<ResolutionStatement<MosaicId>> mosaicResolutionStatement;
-  /**
-   * Constructor
-   *
-   * @param transactionStatements Array of transaction statements.
-   * @param addressResolutionStatements Array of address resolution statements.
-   * @param mosaicResolutionStatement Array of mosaic resolution statements.
-   */
-  public Statement(
-      List<TransactionStatement> transactionStatements,
-      List<ResolutionStatement<Address>> addressResolutionStatements,
-      List<ResolutionStatement<MosaicId>> mosaicResolutionStatement) {
-    this.addressResolutionStatements = addressResolutionStatements;
-    this.mosaicResolutionStatement = mosaicResolutionStatement;
-    this.transactionStatements = transactionStatements;
-  }
 
-  /**
-   * Returns transaction statements
-   *
-   * @return transaction statements
-   */
-  public List<TransactionStatement> getTransactionStatements() {
-    return this.transactionStatements;
-  }
+    private final List<TransactionStatement> transactionStatements;
+    private final List<AddressResolutionStatement> addressResolutionStatements;
+    private final List<MosaicResolutionStatement> mosaicResolutionStatement;
 
-  /**
-   * Returns address resolution statements.
-   *
-   * @return address resolution statements.
-   */
-  public List<ResolutionStatement<Address>> getAddressResolutionStatements() {
-    return this.addressResolutionStatements;
-  }
+    /**
+     * Constructor
+     *
+     * @param transactionStatements Array of transaction statements.
+     * @param addressResolutionStatements Array of address resolution statements.
+     * @param mosaicResolutionStatement Array of mosaic resolution statements.
+     */
+    public Statement(
+        List<TransactionStatement> transactionStatements,
+        List<AddressResolutionStatement> addressResolutionStatements,
+        List<MosaicResolutionStatement> mosaicResolutionStatement) {
+        this.addressResolutionStatements = addressResolutionStatements;
+        this.mosaicResolutionStatement = mosaicResolutionStatement;
+        this.transactionStatements = transactionStatements;
+    }
 
-  /**
-   * Returns mosaic resolution statements.
-   *
-   * @return mosaic resolution statements.
-   */
-  public List<ResolutionStatement<MosaicId>> getMosaicResolutionStatement() {
-    return this.mosaicResolutionStatement;
-  }
+    /**
+     * Returns transaction statements
+     *
+     * @return transaction statements
+     */
+    public List<TransactionStatement> getTransactionStatements() {
+        return this.transactionStatements;
+    }
+
+    /**
+     * Returns address resolution statements.
+     *
+     * @return address resolution statements.
+     */
+    public List<AddressResolutionStatement> getAddressResolutionStatements() {
+        return this.addressResolutionStatements;
+    }
+
+    /**
+     * Returns mosaic resolution statements.
+     *
+     * @return mosaic resolution statements.
+     */
+    public List<MosaicResolutionStatement> getMosaicResolutionStatement() {
+        return this.mosaicResolutionStatement;
+    }
 }

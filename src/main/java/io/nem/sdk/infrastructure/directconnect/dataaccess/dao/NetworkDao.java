@@ -53,17 +53,17 @@ public class NetworkDao implements NetworkRepository {
   public Observable<NetworkType> getNetworkType() {
     return Observable.fromCallable(
         () -> {
-          if (!clientNetworkTypeMap.containsKey(catapultContext.getHostName())) {
+          if (!clientNetworkTypeMap.containsKey(catapultContext.getDataAccessContext().getHostName())) {
             /* Get the network information from the first block */
             clientNetworkTypeMap.put(
-                catapultContext.getHostName(),
+                catapultContext.getDataAccessContext().getHostName(),
                 new BlockchainDao(catapultContext)
                     .getBlockByHeight(BigInteger.valueOf(1))
                     .toFuture()
                     .get()
                     .getNetworkType());
           }
-          return clientNetworkTypeMap.get(catapultContext.getHostName());
+          return clientNetworkTypeMap.get(catapultContext.getDataAccessContext().getHostName());
         });
   }
 }

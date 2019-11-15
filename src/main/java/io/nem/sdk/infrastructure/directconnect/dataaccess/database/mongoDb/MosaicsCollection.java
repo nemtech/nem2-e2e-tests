@@ -20,7 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
-import io.nem.sdk.infrastructure.common.CatapultContext;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.mappers.MosaicInfoMapper;
 import io.nem.sdk.model.mosaic.MosaicInfo;
 
@@ -31,14 +31,14 @@ public class MosaicsCollection {
   /** Catapult collection */
   private final CatapultCollection<MosaicInfo, MosaicInfoMapper> catapultCollection;
   /* Catapult context. */
-  private final CatapultContext context;
+  private final DataAccessContext context;
 
   /**
    * Constructor.
    *
    * @param context Catapult context.
    */
-  public MosaicsCollection(final CatapultContext context) {
+  public MosaicsCollection(final DataAccessContext context) {
     this.context = context;
     catapultCollection =
         new CatapultCollection<>(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 NEM
+ * Copyright 2019 NEM
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,47 +16,49 @@
 
 package io.nem.sdk.model.transaction;
 
-/** Account link action. */
+import java.util.Arrays;
+
+/**
+ * Account link action.
+ */
 public enum AccountLinkAction {
-  /** Unlink account. */
-  UNLINK((byte) 0),
-  /** Link account. */
-  LINK((byte) 1);
+    /**
+     * Link account.
+     */
+    LINK((byte) 1),
+    /**
+     * Unlink account.
+     */
+    UNLINK((byte) 0);
 
-  private final byte value;
+    private final byte value;
 
-  /**
-   * Constructor.
-   *
-   * @param value Link action value.
-   */
-  AccountLinkAction(final byte value) {
-    this.value = value;
-  }
-
-  /**
-   * Gets enum value from raw.
-   *
-   * @param value Raw value.
-   * @return Enum value.
-   */
-  public static AccountLinkAction rawValueOf(final int value) {
-    switch (value) {
-      case 0:
-        return AccountLinkAction.UNLINK;
-      case 1:
-        return AccountLinkAction.LINK;
-      default:
-        throw new IllegalArgumentException(value + " is not a valid value");
+    /**
+     * Constructor.
+     *
+     * @param value Link action value.
+     */
+    AccountLinkAction(final byte value) {
+        this.value = value;
     }
-  }
 
-  /**
-   * Gets the raw value.
-   *
-   * @return Ram value.
-   */
-  public byte getValue() {
-    return value;
-  }
+    /**
+     * Gets enum value from raw.
+     *
+     * @param value Raw value.
+     * @return Enum value.
+     */
+    public static AccountLinkAction rawValueOf(final int value) {
+        return Arrays.stream(values()).filter(e -> e.value == value).findFirst()
+            .orElseThrow(() -> new IllegalArgumentException(value + " is not a valid value"));
+    }
+
+    /**
+     * Gets the raw value.
+     *
+     * @return Ram value.
+     */
+    public byte getValue() {
+        return value;
+    }
 }

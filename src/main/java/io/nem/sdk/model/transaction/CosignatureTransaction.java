@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 NEM
+ * Copyright 2019 NEM
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package io.nem.sdk.model.transaction;
 
-import io.nem.core.crypto.Signer;
+import io.nem.core.crypto.CryptoEngines;
+import io.nem.core.crypto.DsaSigner;
 import io.nem.sdk.model.account.Account;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -26,54 +27,54 @@ import org.bouncycastle.util.encoders.Hex;
  * @since 1.0
  */
 public class CosignatureTransaction {
-  private final AggregateTransaction transactionToCosign;
 
-  /**
-   * Constructor
-   *
-   * @param transactionToCosign Aggregate transaction that will be cosigned.
-   */
-  public CosignatureTransaction(AggregateTransaction transactionToCosign) {
-    if (!transactionToCosign.getTransactionInfo().isPresent()
-        || !transactionToCosign.getTransactionInfo().get().getHash().isPresent()) {
-      throw new IllegalArgumentException(
-          "Transaction to cosign should be announced before being able to cosign it");
+    private final AggregateTransaction transactionToCosign;
+    private final String transactionHash;
+
+    /**
+     * Constructor
+     *
+     * @param transactionToCosign Aggregate transaction that will be cosigned.
+     */
+    public CosignatureTransaction(AggregateTransaction transactionToCosign) {
+        this.transactionToCosign = transactionToCosign;
+        this.transactionHash = transactionToCosign.getTransactionInfo().flatMap(
+            TransactionInfo::getHash)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Transaction to cosign should be announced before being able to cosign it"));
     }
-    this.transactionToCosign = transactionToCosign;
-  }
 
-  /**
-   * Create a cosignature transaction.
-   *
-   * @param transactionToCosign Aggregate transaction that will be cosigned.
-   * @return {@link CosignatureTransaction}
-   */
-  public static CosignatureTransaction create(AggregateTransaction transactionToCosign) {
-    return new CosignatureTransaction(transactionToCosign);
-  }
+    /**
+     * Create a cosignature transaction.
+     *
+     * @param transactionToCosign Aggregate transaction that will be cosigned.
+     * @return {@link CosignatureTransaction}
+     */
+    public static CosignatureTransaction create(AggregateTransaction transactionToCosign) {
+        return new CosignatureTransaction(transactionToCosign);
+    }
 
-  /**
-   * Returns transaction to cosign.
-   *
-   * @return {@link AggregateTransaction}
-   */
-  public AggregateTransaction getTransactionToCosign() {
-    return transactionToCosign;
-  }
+    /**
+     * Returns transaction to cosign.
+     *
+     * @return {@link AggregateTransaction}
+     */
+    public AggregateTransaction getTransactionToCosign() {
+        return transactionToCosign;
+    }
 
-  /**
-   * Serialize and sign transaction creating a new SignedTransaction.
-   *
-   * @param account Account
-   * @return {@link CosignatureSignedTransaction}
-   */
-  public CosignatureSignedTransaction signWith(Account account) {
-    Signer signer = new Signer(account.getKeyPair());
-    byte[] bytes = Hex.decode(this.transactionToCosign.getTransactionInfo().get().getHash().get());
-    byte[] signatureBytes = signer.sign(bytes).getBytes();
-    return new CosignatureSignedTransaction(
-        this.transactionToCosign.getTransactionInfo().get().getHash().get(),
-        Hex.toHexString(signatureBytes),
-        account.getPublicKey());
-  }
+    /**
+     * Serialize and sign transaction creating a new SignedTransaction.
+     *
+     * @param account Account
+     * @return {@link CosignatureSignedTransaction}
+     */
+    public CosignatureSignedTransaction signWith(Account account) {
+        DsaSigner signer = CryptoEngines.defaultEngine().createDsaSigner(account.getKeyPair(),
+            account.getNetworkType().resolveSignSchema());
+        byte[] bytes = Hex.decode(transactionHash);
+        byte[] signatureBytes = signer.sign(bytes).getBytes();
+        return new CosignatureSignedTransaction(transactionHash, Hex.toHexString(signatureBytes),
+            account.getPublicKey());
+    }
 }

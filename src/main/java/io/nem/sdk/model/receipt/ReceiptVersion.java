@@ -19,37 +19,47 @@ package io.nem.sdk.model.receipt;
 /**
  * Enum containing receipt version constants.
  *
- * @see <a https://github.com/nemtech/catapult-server/blob/master/src/catapult/model/ReceiptType.h
- *     />
- * @see <a https://github.com/nemtech/catapult-server/blob/master/src/catapult/model/ReceiptType.cpp
- *     />
+ * @see <a href="https://github.com/nemtech/catapult-server/blob/master/src/catapult/model/ReceiptType.h"></a>
+ * @see <a href="https://github.com/nemtech/catapult-server/blob/master/src/catapult/model/ReceiptType.cpp"></a>
  */
 public enum ReceiptVersion {
-  /** Balance transfer receipt version. */
-  BALANCE_TRANSFER(1),
-  /** Balance change receipt version. */
-  BALANCE_CHANGE(1),
-  /** Artifact expiry receipt version. */
-  ARTIFACT_EXPIRY(1),
-  /** Transaction statement receipt version. */
-  TRANSACTION_STATEMENT(1),
-  /** Resolution statement receipt version. */
-  RESOLUTION_STATEMENT(1),
-  /** Inflation receipt receipt version. */
-  INFLATION_RECEIPT(1);
+    /**
+     * Balance transfer receipt version.
+     */
+    BALANCE_TRANSFER(1),
+    /**
+     * Balance change receipt version.
+     */
+    BALANCE_CHANGE(1),
+    /**
+     * Artifact expiry receipt version.
+     */
+    ARTIFACT_EXPIRY(1),
+    /**
+     * Transaction statement receipt version.
+     */
+    TRANSACTION_STATEMENT(1),
+    /**
+     * Resolution statement receipt version.
+     */
+    RESOLUTION_STATEMENT(1),
+    /**
+     * Inflation receipt receipt version.
+     */
+    INFLATION_RECEIPT(1);
 
-  private int value;
+    private final int value;
 
-  ReceiptVersion(int value) {
-    this.value = value;
-  }
+    ReceiptVersion(int value) {
+        this.value = value;
+    }
 
-  /**
-   * Returns enum value.
-   *
-   * @return enum value
-   */
-  public int getValue() {
-    return this.value;
-  }
+    /**
+     * Returns enum value.
+     *
+     * @return enum value
+     */
+    public int getValue() {
+        return this.value;
+    }
 }

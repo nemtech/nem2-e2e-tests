@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Address. */
@@ -44,7 +44,7 @@ public final class AddressDto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public AddressDto(final DataInput stream) {
+    public AddressDto(final DataInputStream stream) {
         try {
             this.address = ByteBuffer.allocate(25);
             stream.readFully(this.address.array());
@@ -77,7 +77,7 @@ public final class AddressDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AddressDto.
      */
-    public static AddressDto loadFromBinary(final DataInput stream) {
+    public static AddressDto loadFromBinary(final DataInputStream stream) {
         return new AddressDto(stream);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 NEM
+ * Copyright 2019 NEM
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,86 +24,73 @@ import java.math.BigInteger;
  * @since 1.0
  */
 public class TransactionStatus {
-  private final String group;
-  private final String status;
-  private final String hash;
-  private final Deadline deadline;
-  private final BigInteger height;
 
-  public TransactionStatus(
-      final String group,
-      final String status,
-      final String hash,
-      final Deadline deadline,
-      final BigInteger height) {
-    this.group = group;
-    this.status = status;
-    this.hash = hash;
-    this.deadline = deadline;
-    this.height = height;
-  }
+    private final String group;
+    private final String status;
+    private final String hash;
+    private final Deadline deadline;
+    private final BigInteger height;
 
-  /**
-   * Returns transaction status group "failed", "unconfirmed", "confirmed", etc...
-   *
-   * @return transaction group name
-   */
-  public String getGroup() {
-    return group;
-  }
+    public TransactionStatus(
+        final String group,
+        final String status,
+        final String hash,
+        final Deadline deadline,
+        final BigInteger height) {
+        this.group = group;
+        this.status = status;
+        this.hash = hash;
+        this.deadline = deadline;
+        this.height = height;
+    }
 
-  /**
-   * Returns transaction status being the error name in case of failure and success otherwise.
-   *
-   * @return transaction status
-   */
-  public String getStatus() {
-    return status;
-  }
+    /**
+     * Returns transaction status group "failed", "unconfirmed", "confirmed", etc...
+     *
+     * @return transaction group name
+     */
+    public String getGroup() {
+        return group;
+    }
 
-  /**
-   * Returns transaction hash.
-   *
-   * @return transaction hash
-   */
-  public String getHash() {
-    return hash;
-  }
+    /**
+     * Returns transaction status being the error name in case of failure and success otherwise.
+     *
+     * @return transaction status
+     */
+    public String getStatus() {
+        return status;
+    }
 
-  /**
-   * Returns transaction deadline.
-   *
-   * @return transaction deadline
-   */
-  public Deadline getDeadline() {
-    return deadline;
-  }
+    /**
+     * Returns transaction hash.
+     *
+     * @return transaction hash
+     */
+    public String getHash() {
+        return hash;
+    }
 
-  /**
-   * Returns height of the block at which it was confirmed or rejected.
-   *
-   * @return block height
-   */
-  public BigInteger getHeight() {
-    return height;
-  }
-  /**
-   * Gets the string representation.
-   *
-   * @return String.
-   */
-  @Override
-  public String toString() {
-    return "Group: "
-        + getGroup()
-        + " Status: "
-        + getStatus()
-        + " Hash: "
-        + getHash()
-        + " Deadline: "
-        + getDeadline().getInstant()
-        + " "
-        + "Height: "
-        + getHeight();
-  }
+    /**
+     * Returns transaction deadline.
+     *
+     * @return transaction deadline
+     */
+    public Deadline getDeadline() {
+        return deadline;
+    }
+
+    /**
+     * Returns height of the block at which it was confirmed or rejected.
+     *
+     * @return block height
+     */
+    public BigInteger getHeight() {
+        return height;
+    }
+
+    @Override
+    public String toString() {
+        return "Group: " + getGroup() + " Status: " + getStatus() + " height: " + getHeight().toString();
+    }
 }

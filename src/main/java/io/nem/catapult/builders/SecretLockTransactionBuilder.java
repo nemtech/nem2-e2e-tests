@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a non-embedded secret lock transaction. */
 public final class SecretLockTransactionBuilder extends TransactionBuilder {
@@ -32,7 +32,7 @@ public final class SecretLockTransactionBuilder extends TransactionBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected SecretLockTransactionBuilder(final DataInput stream) {
+    protected SecretLockTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.secretLockTransactionBody = SecretLockTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,40 +41,51 @@ public final class SecretLockTransactionBuilder extends TransactionBuilder {
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
+     * @param secret Secret.
      * @param mosaic Locked mosaic.
      * @param duration Number of blocks for which a lock should be valid.
      * @param hashAlgorithm Hash algorithm.
-     * @param secret Secret.
-     * @param recipient Locked mosaic recipient.
+     * @param recipientAddress Locked mosaic recipient address.
      */
-    protected SecretLockTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final LockHashAlgorithmDto hashAlgorithm, final Hash256Dto secret, final UnresolvedAddressDto recipient) {
-        super(signature, signer, version, type, fee, deadline);
-        this.secretLockTransactionBody = SecretLockTransactionBodyBuilder.create(mosaic, duration, hashAlgorithm, secret, recipient);
+    protected SecretLockTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final Hash256Dto secret, final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final LockHashAlgorithmDto hashAlgorithm, final UnresolvedAddressDto recipientAddress) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
+        this.secretLockTransactionBody = SecretLockTransactionBodyBuilder.create(secret, mosaic, duration, hashAlgorithm, recipientAddress);
     }
 
     /**
      * Creates an instance of SecretLockTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
+     * @param secret Secret.
      * @param mosaic Locked mosaic.
      * @param duration Number of blocks for which a lock should be valid.
      * @param hashAlgorithm Hash algorithm.
-     * @param secret Secret.
-     * @param recipient Locked mosaic recipient.
+     * @param recipientAddress Locked mosaic recipient address.
      * @return Instance of SecretLockTransactionBuilder.
      */
-    public static SecretLockTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final LockHashAlgorithmDto hashAlgorithm, final Hash256Dto secret, final UnresolvedAddressDto recipient) {
-        return new SecretLockTransactionBuilder(signature, signer, version, type, fee, deadline, mosaic, duration, hashAlgorithm, secret, recipient);
+    public static SecretLockTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final Hash256Dto secret, final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final LockHashAlgorithmDto hashAlgorithm, final UnresolvedAddressDto recipientAddress) {
+        return new SecretLockTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, secret, mosaic, duration, hashAlgorithm, recipientAddress);
+    }
+
+    /**
+     * Gets secret.
+     *
+     * @return Secret.
+     */
+    public Hash256Dto getSecret() {
+        return this.secretLockTransactionBody.getSecret();
     }
 
     /**
@@ -105,21 +116,12 @@ public final class SecretLockTransactionBuilder extends TransactionBuilder {
     }
 
     /**
-     * Gets secret.
+     * Gets locked mosaic recipient address.
      *
-     * @return Secret.
+     * @return Locked mosaic recipient address.
      */
-    public Hash256Dto getSecret() {
-        return this.secretLockTransactionBody.getSecret();
-    }
-
-    /**
-     * Gets locked mosaic recipient.
-     *
-     * @return Locked mosaic recipient.
-     */
-    public UnresolvedAddressDto getRecipient() {
-        return this.secretLockTransactionBody.getRecipient();
+    public UnresolvedAddressDto getRecipientAddress() {
+        return this.secretLockTransactionBody.getRecipientAddress();
     }
 
     /**
@@ -140,7 +142,7 @@ public final class SecretLockTransactionBuilder extends TransactionBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of SecretLockTransactionBuilder.
      */
-    public static SecretLockTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static SecretLockTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new SecretLockTransactionBuilder(stream);
     }
 

@@ -21,7 +21,7 @@
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
 import com.mongodb.client.model.Filters;
-import io.nem.sdk.infrastructure.common.CatapultContext;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.mappers.NamespacesMapper;
 import io.nem.sdk.model.namespace.NamespaceInfo;
 import org.bson.Document;
@@ -33,7 +33,7 @@ import java.util.Optional;
 
 public class NamespacesCollection {
   /* Catapult context. */
-  final CatapultContext context;
+  final DataAccessContext context;
   /** Catapult collection */
   private final CatapultCollection<NamespaceInfo, NamespacesMapper> catapultCollection;
 
@@ -42,7 +42,7 @@ public class NamespacesCollection {
    *
    * @param context Catapult context.
    */
-  public NamespacesCollection(final CatapultContext context) {
+  public NamespacesCollection(final DataAccessContext context) {
     this.context = context;
     catapultCollection =
         new CatapultCollection<>(

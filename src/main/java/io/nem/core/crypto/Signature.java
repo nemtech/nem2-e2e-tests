@@ -17,8 +17,7 @@
 package io.nem.core.crypto;
 
 import io.nem.core.utils.ArrayUtils;
-import io.nem.core.utils.HexEncoder;
-
+import io.nem.core.utils.ConvertUtils;
 import java.math.BigInteger;
 import java.util.Arrays;
 
@@ -26,118 +25,126 @@ import java.util.Arrays;
  * A EC signature.
  */
 public class Signature {
-	private static final BigInteger MAXIMUM_VALUE = BigInteger.ONE.shiftLeft(256).subtract(BigInteger.ONE);
 
-	private final byte[] r;
-	private final byte[] s;
+    private static final BigInteger MAXIMUM_VALUE =
+        BigInteger.ONE.shiftLeft(256).subtract(BigInteger.ONE);
 
-	/**
-	 * Creates a new signature.
-	 *
-	 * @param r The r-part of the signature.
-	 * @param s The s-part of the signature.
-	 */
-	public Signature(final BigInteger r, final BigInteger s) {
-		if (0 < r.compareTo(MAXIMUM_VALUE) || 0 < s.compareTo(MAXIMUM_VALUE)) {
-			throw new IllegalArgumentException("r and s must fit into 32 bytes");
-		}
+    private final byte[] r;
+    private final byte[] s;
 
-		this.r = ArrayUtils.toByteArray(r, 32);
-		this.s = ArrayUtils.toByteArray(s, 32);
-	}
+    /**
+     * Creates a new signature.
+     *
+     * @param r The r-part of the signature.
+     * @param s The s-part of the signature.
+     */
+    public Signature(final BigInteger r, final BigInteger s) {
+        if (0 < r.compareTo(MAXIMUM_VALUE) || 0 < s.compareTo(MAXIMUM_VALUE)) {
+            throw new IllegalArgumentException("r and s must fit into 32 bytes");
+        }
 
-	/**
-	 * Creates a new signature.
-	 *
-	 * @param bytes The binary representation of the signature.
-	 */
-	public Signature(final byte[] bytes) {
-		if (64 != bytes.length) {
-			throw new IllegalArgumentException("binary signature representation must be 64 bytes");
-		}
+        this.r = ArrayUtils.toByteArray(r, 32);
+        this.s = ArrayUtils.toByteArray(s, 32);
+    }
 
-		final byte[][] parts = ArrayUtils.split(bytes, 32);
-		this.r = parts[0];
-		this.s = parts[1];
-	}
+    /**
+     * Creates a new signature.
+     *
+     * @param bytes The binary representation of the signature.
+     */
+    public Signature(final byte[] bytes) {
+        if (64 != bytes.length) {
+            throw new IllegalArgumentException("binary signature representation must be 64 bytes");
+        }
 
-	/**
-	 * Creates a new signature.
-	 *
-	 * @param r The binary representation of r.
-	 * @param s The binary representation of s.
-	 */
-	public Signature(final byte[] r, final byte[] s) {
-		if (32 != r.length || 32 != s.length) {
-			throw new IllegalArgumentException("binary signature representation of r and s must both have 32 bytes length");
-		}
+        final byte[][] parts = ArrayUtils.split(bytes, 32);
+        this.r = parts[0];
+        this.s = parts[1];
+    }
 
-		this.r = r;
-		this.s = s;
-	}
+    /**
+     * Creates a new signature.
+     *
+     * @param r The binary representation of r.
+     * @param s The binary representation of s.
+     */
+    public Signature(final byte[] r, final byte[] s) {
+        if (32 != r.length || 32 != s.length) {
+            throw new IllegalArgumentException(
+                "binary signature representation of r and s must both have 32 bytes length");
+        }
 
-	/**
-	 * Gets the r-part of the signature.
-	 *
-	 * @return The r-part of the signature.
-	 */
-	public BigInteger getR() {
-		return ArrayUtils.toBigInteger(this.r);
-	}
+        this.r = r;
+        this.s = s;
+    }
 
-	/**
-	 * Gets the r-part of the signature.
-	 *
-	 * @return The r-part of the signature.
-	 */
-	public byte[] getBinaryR() {
-		return this.r;
-	}
+    /**
+     * Gets the r-part of the signature.
+     *
+     * @return The r-part of the signature.
+     */
+    public BigInteger getR() {
+        return ArrayUtils.toBigInteger(this.r);
+    }
 
-	/**
-	 * Gets the s-part of the signature.
-	 *
-	 * @return The s-part of the signature.
-	 */
-	public BigInteger getS() {
-		return ArrayUtils.toBigInteger(this.s);
-	}
+    /**
+     * Gets the r-part of the signature.
+     *
+     * @return The r-part of the signature.
+     */
+    public byte[] getBinaryR() {
+        return this.r;
+    }
 
-	/**
-	 * Gets the s-part of the signature.
-	 *
-	 * @return The s-part of the signature.
-	 */
-	public byte[] getBinaryS() {
-		return this.s;
-	}
+    /**
+     * Gets the s-part of the signature.
+     *
+     * @return The s-part of the signature.
+     */
+    public BigInteger getS() {
+        return ArrayUtils.toBigInteger(this.s);
+    }
 
-	/**
-	 * Gets a little-endian 64-byte representation of the signature.
-	 *
-	 * @return a little-endian 64-byte representation of the signature
-	 */
-	public byte[] getBytes() {
-		return ArrayUtils.concat(this.r, this.s);
-	}
+    /**
+     * Gets the s-part of the signature.
+     *
+     * @return The s-part of the signature.
+     */
+    public byte[] getBinaryS() {
+        return this.s;
+    }
 
-	@Override
-	public int hashCode() {
-		return Arrays.hashCode(this.r) ^ Arrays.hashCode(this.s);
-	}
+    /**
+     * Gets a little-endian 64-byte representation of the signature.
+     *
+     * @return a little-endian 64-byte representation of the signature
+     */
+    public byte[] getBytes() {
+        return ArrayUtils.concat(this.r, this.s);
+    }
 
-	@Override
-	public boolean equals(final Object obj) {
-		if (obj == null || !(obj instanceof Signature)) {
-			return false;
-		}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Signature signature = (Signature) o;
+        return Arrays.equals(r, signature.r) &&
+            Arrays.equals(s, signature.s);
+    }
 
-		final Signature rhs = (Signature) obj;
-		return 1 == ArrayUtils.isEqualConstantTime(this.r, rhs.r) && 1 == ArrayUtils.isEqualConstantTime(this.s, rhs.s);
-	}
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(r);
+        result = 31 * result + Arrays.hashCode(s);
+        return result;
+    }
 
-	@Override
-	public String toString() {
-		return HexEncoder.getString(this.getBytes());
-	}
+    @Override
+    public String toString() {
+        return ConvertUtils.toHex(this.getBytes());
+    }
 }

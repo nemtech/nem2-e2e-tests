@@ -20,8 +20,9 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
-import java.util.ArrayList;
+import java.io.DataInputStream;
+import java.util.EnumSet;
+import java.util.List;
 
 /** Binary layout for a non-embedded account address restriction transaction. */
 public final class AccountAddressRestrictionTransactionBuilder extends TransactionBuilder {
@@ -33,7 +34,7 @@ public final class AccountAddressRestrictionTransactionBuilder extends Transacti
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected AccountAddressRestrictionTransactionBuilder(final DataInput stream) {
+    protected AccountAddressRestrictionTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.accountAddressRestrictionTransactionBody = AccountAddressRestrictionTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -42,52 +43,65 @@ public final class AccountAddressRestrictionTransactionBuilder extends Transacti
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
-     * @param restrictionType Account restriction type.
-     * @param modifications Account restriction modifications.
+     * @param restrictionFlags Account restriction flags.
+     * @param restrictionAdditions Account restriction additions.
+     * @param restrictionDeletions Account restriction deletions.
      */
-    protected AccountAddressRestrictionTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final AccountRestrictionTypeDto restrictionType, final ArrayList<AccountAddressRestrictionModificationBuilder> modifications) {
-        super(signature, signer, version, type, fee, deadline);
-        this.accountAddressRestrictionTransactionBody = AccountAddressRestrictionTransactionBodyBuilder.create(restrictionType, modifications);
+    protected AccountAddressRestrictionTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final EnumSet<AccountRestrictionFlagsDto> restrictionFlags, final List<UnresolvedAddressDto> restrictionAdditions, final List<UnresolvedAddressDto> restrictionDeletions) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
+        this.accountAddressRestrictionTransactionBody = AccountAddressRestrictionTransactionBodyBuilder.create(restrictionFlags, restrictionAdditions, restrictionDeletions);
     }
 
     /**
      * Creates an instance of AccountAddressRestrictionTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
-     * @param restrictionType Account restriction type.
-     * @param modifications Account restriction modifications.
+     * @param restrictionFlags Account restriction flags.
+     * @param restrictionAdditions Account restriction additions.
+     * @param restrictionDeletions Account restriction deletions.
      * @return Instance of AccountAddressRestrictionTransactionBuilder.
      */
-    public static AccountAddressRestrictionTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final AccountRestrictionTypeDto restrictionType, final ArrayList<AccountAddressRestrictionModificationBuilder> modifications) {
-        return new AccountAddressRestrictionTransactionBuilder(signature, signer, version, type, fee, deadline, restrictionType, modifications);
+    public static AccountAddressRestrictionTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final EnumSet<AccountRestrictionFlagsDto> restrictionFlags, final List<UnresolvedAddressDto> restrictionAdditions, final List<UnresolvedAddressDto> restrictionDeletions) {
+        return new AccountAddressRestrictionTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, restrictionFlags, restrictionAdditions, restrictionDeletions);
     }
 
     /**
-     * Gets account restriction type.
+     * Gets account restriction flags.
      *
-     * @return Account restriction type.
+     * @return Account restriction flags.
      */
-    public AccountRestrictionTypeDto getRestrictionType() {
-        return this.accountAddressRestrictionTransactionBody.getRestrictionType();
+    public EnumSet<AccountRestrictionFlagsDto> getRestrictionFlags() {
+        return this.accountAddressRestrictionTransactionBody.getRestrictionFlags();
     }
 
     /**
-     * Gets account restriction modifications.
+     * Gets account restriction additions.
      *
-     * @return Account restriction modifications.
+     * @return Account restriction additions.
      */
-    public ArrayList<AccountAddressRestrictionModificationBuilder> getModifications() {
-        return this.accountAddressRestrictionTransactionBody.getModifications();
+    public List<UnresolvedAddressDto> getRestrictionAdditions() {
+        return this.accountAddressRestrictionTransactionBody.getRestrictionAdditions();
+    }
+
+    /**
+     * Gets account restriction deletions.
+     *
+     * @return Account restriction deletions.
+     */
+    public List<UnresolvedAddressDto> getRestrictionDeletions() {
+        return this.accountAddressRestrictionTransactionBody.getRestrictionDeletions();
     }
 
     /**
@@ -108,7 +122,7 @@ public final class AccountAddressRestrictionTransactionBuilder extends Transacti
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AccountAddressRestrictionTransactionBuilder.
      */
-    public static AccountAddressRestrictionTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static AccountAddressRestrictionTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new AccountAddressRestrictionTransactionBuilder(stream);
     }
 

@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Unresolved address. */
@@ -44,7 +44,7 @@ public final class UnresolvedAddressDto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public UnresolvedAddressDto(final DataInput stream) {
+    public UnresolvedAddressDto(final DataInputStream stream) {
         try {
             this.unresolvedAddress = ByteBuffer.allocate(25);
             stream.readFully(this.unresolvedAddress.array());
@@ -77,7 +77,7 @@ public final class UnresolvedAddressDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of UnresolvedAddressDto.
      */
-    public static UnresolvedAddressDto loadFromBinary(final DataInput stream) {
+    public static UnresolvedAddressDto loadFromBinary(final DataInputStream stream) {
         return new UnresolvedAddressDto(stream);
     }
 

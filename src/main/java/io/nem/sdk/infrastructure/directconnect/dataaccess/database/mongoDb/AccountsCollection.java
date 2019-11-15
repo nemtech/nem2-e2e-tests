@@ -20,7 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
-import io.nem.sdk.infrastructure.common.CatapultContext;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.mappers.AccountInfoMapper;
 import io.nem.sdk.model.account.AccountInfo;
 
@@ -31,14 +31,14 @@ public class AccountsCollection {
   /* Catapult collection */
   private final CatapultCollection<AccountInfo, AccountInfoMapper> accountCollection;
   /* Catapult context. */
-  private final CatapultContext context;
+  private final DataAccessContext context;
 
   /**
    * Constructor.
    *
    * @param context Catapult context.
    */
-  public AccountsCollection(final CatapultContext context) {
+  public AccountsCollection(final DataAccessContext context) {
     accountCollection =
         new CatapultCollection<>(
             context.getCatapultMongoDbClient(), "accounts", AccountInfoMapper::new);

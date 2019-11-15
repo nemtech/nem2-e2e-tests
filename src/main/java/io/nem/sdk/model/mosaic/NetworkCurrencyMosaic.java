@@ -1,7 +1,6 @@
 package io.nem.sdk.model.mosaic;
 
 import io.nem.sdk.model.namespace.NamespaceId;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -15,47 +14,59 @@ import java.math.BigInteger;
  */
 public class NetworkCurrencyMosaic extends Mosaic {
 
-  /** Namespace id of `currency` namespace. */
-  public static final NamespaceId NAMESPACEID = new NamespaceId("cat.currency");
-  /** Divisibility */
-  public static final int DIVISIBILITY = 6;
-  /** Initial supply */
-  public static final BigInteger INITIALSUPPLY = new BigInteger("8999999999");
-  /** Is transferable */
-  public static final boolean TRANSFERABLE = true;
-  /** Is supply mutable */
-  public static final boolean SUPPLYMUTABLE = false;
+    /**
+     * Namespace id of `currency` namespace.
+     */
+    public static final NamespaceId NAMESPACEID = NamespaceId.createFromName("cat.currency");
+//    public static final NamespaceId NAMESPACEID = NamespaceId.createFromName("nem.xem");
+    /**
+     * Divisibility
+     */
+    public static final int DIVISIBILITY = 6;
+    /**
+     * Initial supply
+     */
+    public static final BigInteger INITIALSUPPLY = BigInteger.valueOf(8999999999L);
+    /**
+     * Is transferable
+     */
+    public static final boolean TRANSFERABLE = true;
+    /**
+     * Is supply mutable
+     */
+    public static final boolean SUPPLYMUTABLE = false;
 
-  /** @param amount */
-  public NetworkCurrencyMosaic(BigInteger amount) {
+    /**
+     *
+     */
+    public NetworkCurrencyMosaic(BigInteger amount) {
+        super(NetworkCurrencyMosaic.NAMESPACEID, amount);
+    }
 
-    super(NetworkCurrencyMosaic.NAMESPACEID, amount);
-  }
+    /**
+     * Create xem with using xem as unit.
+     *
+     * @param amount amount to send
+     * @return a NetworkCurrencyMosaic instance
+     */
+    public static NetworkCurrencyMosaic createRelative(BigInteger amount) {
 
-  /**
-   * Create xem with using xem as unit.
-   *
-   * @param amount amount to send
-   * @return a NetworkCurrencyMosaic instance
-   */
-  public static NetworkCurrencyMosaic createRelative(BigInteger amount) {
+        BigInteger relativeAmount =
+            BigDecimal.valueOf(Math.pow(10, NetworkCurrencyMosaic.DIVISIBILITY))
+                .toBigInteger()
+                .multiply(amount);
+        return new NetworkCurrencyMosaic(relativeAmount);
+    }
 
-    BigInteger relativeAmount =
-        new BigDecimal(Math.pow(10, NetworkCurrencyMosaic.DIVISIBILITY))
-            .toBigInteger()
-            .multiply(amount);
-    return new NetworkCurrencyMosaic(relativeAmount);
-  }
+    /**
+     * Create xem with using micro xem as unit, 1 NetworkCurrencyMosaic = 1000000 micro
+     * NetworkCurrencyMosaic.
+     *
+     * @param amount amount to send
+     * @return a NetworkCurrencyMosaic instance
+     */
+    public static NetworkCurrencyMosaic createAbsolute(BigInteger amount) {
 
-  /**
-   * Create xem with using micro xem as unit, 1 NetworkCurrencyMosaic = 1000000 micro
-   * NetworkCurrencyMosaic.
-   *
-   * @param amount amount to send
-   * @return a NetworkCurrencyMosaic instance
-   */
-  public static NetworkCurrencyMosaic createAbsolute(BigInteger amount) {
-
-    return new NetworkCurrencyMosaic(amount);
-  }
+        return new NetworkCurrencyMosaic(amount);
+    }
 }

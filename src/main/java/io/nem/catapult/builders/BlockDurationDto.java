@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Block duration. */
 public final class BlockDurationDto {
@@ -41,7 +41,7 @@ public final class BlockDurationDto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public BlockDurationDto(final DataInput stream) {
+    public BlockDurationDto(final DataInputStream stream) {
         try {
             this.blockDuration = Long.reverseBytes(stream.readLong());
         } catch(Exception e) {
@@ -73,7 +73,7 @@ public final class BlockDurationDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of BlockDurationDto.
      */
-    public static BlockDurationDto loadFromBinary(final DataInput stream) {
+    public static BlockDurationDto loadFromBinary(final DataInputStream stream) {
         return new BlockDurationDto(stream);
     }
 

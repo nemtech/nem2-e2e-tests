@@ -20,7 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
-import io.nem.sdk.infrastructure.common.CatapultContext;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 
 /** Partial transactions collection. */
 public class PartialTransactionsCollection extends TransactionCollectionBase {
@@ -29,7 +29,7 @@ public class PartialTransactionsCollection extends TransactionCollectionBase {
    *
    * @param context Catapult context.
    */
-  public PartialTransactionsCollection(final CatapultContext context) {
+  public PartialTransactionsCollection(final DataAccessContext context) {
     super(context, "partialTransactions");
   }
 

@@ -20,7 +20,7 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
-import io.nem.sdk.infrastructure.common.CatapultContext;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.mappers.MultisigAccountInfoMapper;
 import io.nem.sdk.model.account.MultisigAccountInfo;
 
@@ -29,7 +29,7 @@ import java.util.Optional;
 /** Multisigs collection. */
 public class MultisigsCollection {
   /* Catapult context. */
-  final CatapultContext context;
+  final DataAccessContext context;
   /** Catapult collection. */
   private final CatapultCollection<MultisigAccountInfo, MultisigAccountInfoMapper>
       catapultCollection;
@@ -39,7 +39,7 @@ public class MultisigsCollection {
    *
    * @param context Catapult context.
    */
-  public MultisigsCollection(final CatapultContext context) {
+  public MultisigsCollection(final DataAccessContext context) {
     catapultCollection =
         new CatapultCollection<>(
             context.getCatapultMongoDbClient(), "multisigs", MultisigAccountInfoMapper::new);

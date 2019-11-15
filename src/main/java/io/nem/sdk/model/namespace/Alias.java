@@ -16,36 +16,29 @@
 
 package io.nem.sdk.model.namespace;
 
-/** The alias structure defines an interface for Aliases */
+/**
+ * The alias structure defines an interface for Aliases
+ */
 public interface Alias<T> {
 
-  /**
-   * Gets the alias type
-   *
-   * @return aliasType {@link AliasType}
-   */
-  AliasType getType();
+    /**
+     * Gets the alias type
+     *
+     * @return aliasType {@link AliasType}
+     */
+    AliasType getType();
 
-  /**
-   * Gets the alias.
-   *
-   * @return Alias of type T.
-   */
-  T getAliasValue();
+    /**
+     * Gets the alias.
+     *
+     * @return Alias of type T.
+     */
+    T getAliasValue();
 
-  /**
-   * Compares this alias to specified alias.
-   *
-   * @param alias
-   * @return true if aliases are of the same type; false otherwise
-   */
-  boolean equals(Alias<T> alias);
-
-  /**
-   * Returns true if this alias is anEmptyAlias; false otherwise.
-   *
-   * @param
-   * @return true if alias is empty; false otherwise
-   */
-  boolean isEmpty();
+    /**
+     * Returns true if this alias is anEmptyAlias; false otherwise.
+     *
+     * @return true if alias is empty; false otherwise
+     */
+    boolean isEmpty();
 }

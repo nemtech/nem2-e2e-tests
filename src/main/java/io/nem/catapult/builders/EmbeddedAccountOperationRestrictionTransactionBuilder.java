@@ -20,8 +20,9 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
-import java.util.ArrayList;
+import java.io.DataInputStream;
+import java.util.List;
+import java.util.EnumSet;
 
 /** Binary layout for an embedded account operation restriction transaction. */
 public final class EmbeddedAccountOperationRestrictionTransactionBuilder extends EmbeddedTransactionBuilder {
@@ -33,7 +34,7 @@ public final class EmbeddedAccountOperationRestrictionTransactionBuilder extends
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected EmbeddedAccountOperationRestrictionTransactionBuilder(final DataInput stream) {
+    protected EmbeddedAccountOperationRestrictionTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.accountOperationRestrictionTransactionBody = AccountOperationRestrictionTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,47 +42,60 @@ public final class EmbeddedAccountOperationRestrictionTransactionBuilder extends
     /**
      * Constructor.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param restrictionType Account restriction type.
-     * @param modifications Account restriction modifications.
+     * @param restrictionFlags Account restriction flags.
+     * @param restrictionAdditions Account restriction additions.
+     * @param restrictionDeletions Account restriction deletions.
      */
-    protected EmbeddedAccountOperationRestrictionTransactionBuilder(final KeyDto signer, final short version, final EntityTypeDto type, final AccountRestrictionTypeDto restrictionType, final ArrayList<AccountOperationRestrictionModificationBuilder> modifications) {
-        super(signer, version, type);
-        this.accountOperationRestrictionTransactionBody = AccountOperationRestrictionTransactionBodyBuilder.create(restrictionType, modifications);
+    protected EmbeddedAccountOperationRestrictionTransactionBuilder(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final EnumSet<AccountRestrictionFlagsDto> restrictionFlags, final List<EntityTypeDto> restrictionAdditions, final List<EntityTypeDto> restrictionDeletions) {
+        super(signerPublicKey, version, network, type);
+        this.accountOperationRestrictionTransactionBody = AccountOperationRestrictionTransactionBodyBuilder.create(restrictionFlags, restrictionAdditions, restrictionDeletions);
     }
 
     /**
      * Creates an instance of EmbeddedAccountOperationRestrictionTransactionBuilder.
      *
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
-     * @param restrictionType Account restriction type.
-     * @param modifications Account restriction modifications.
+     * @param restrictionFlags Account restriction flags.
+     * @param restrictionAdditions Account restriction additions.
+     * @param restrictionDeletions Account restriction deletions.
      * @return Instance of EmbeddedAccountOperationRestrictionTransactionBuilder.
      */
-    public static EmbeddedAccountOperationRestrictionTransactionBuilder create(final KeyDto signer, final short version, final EntityTypeDto type, final AccountRestrictionTypeDto restrictionType, final ArrayList<AccountOperationRestrictionModificationBuilder> modifications) {
-        return new EmbeddedAccountOperationRestrictionTransactionBuilder(signer, version, type, restrictionType, modifications);
+    public static EmbeddedAccountOperationRestrictionTransactionBuilder create(final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final EnumSet<AccountRestrictionFlagsDto> restrictionFlags, final List<EntityTypeDto> restrictionAdditions, final List<EntityTypeDto> restrictionDeletions) {
+        return new EmbeddedAccountOperationRestrictionTransactionBuilder(signerPublicKey, version, network, type, restrictionFlags, restrictionAdditions, restrictionDeletions);
     }
 
     /**
-     * Gets account restriction type.
+     * Gets account restriction flags.
      *
-     * @return Account restriction type.
+     * @return Account restriction flags.
      */
-    public AccountRestrictionTypeDto getRestrictionType() {
-        return this.accountOperationRestrictionTransactionBody.getRestrictionType();
+    public EnumSet<AccountRestrictionFlagsDto> getRestrictionFlags() {
+        return this.accountOperationRestrictionTransactionBody.getRestrictionFlags();
     }
 
     /**
-     * Gets account restriction modifications.
+     * Gets account restriction additions.
      *
-     * @return Account restriction modifications.
+     * @return Account restriction additions.
      */
-    public ArrayList<AccountOperationRestrictionModificationBuilder> getModifications() {
-        return this.accountOperationRestrictionTransactionBody.getModifications();
+    public List<EntityTypeDto> getRestrictionAdditions() {
+        return this.accountOperationRestrictionTransactionBody.getRestrictionAdditions();
+    }
+
+    /**
+     * Gets account restriction deletions.
+     *
+     * @return Account restriction deletions.
+     */
+    public List<EntityTypeDto> getRestrictionDeletions() {
+        return this.accountOperationRestrictionTransactionBody.getRestrictionDeletions();
     }
 
     /**
@@ -102,7 +116,7 @@ public final class EmbeddedAccountOperationRestrictionTransactionBuilder extends
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of EmbeddedAccountOperationRestrictionTransactionBuilder.
      */
-    public static EmbeddedAccountOperationRestrictionTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static EmbeddedAccountOperationRestrictionTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new EmbeddedAccountOperationRestrictionTransactionBuilder(stream);
     }
 

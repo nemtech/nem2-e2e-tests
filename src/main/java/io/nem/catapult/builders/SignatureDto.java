@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.nio.ByteBuffer;
 
 /** Signature. */
@@ -44,7 +44,7 @@ public final class SignatureDto {
      *
      * @param stream Byte stream to use to serialize.
      */
-    public SignatureDto(final DataInput stream) {
+    public SignatureDto(final DataInputStream stream) {
         try {
             this.signature = ByteBuffer.allocate(64);
             stream.readFully(this.signature.array());
@@ -77,7 +77,7 @@ public final class SignatureDto {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of SignatureDto.
      */
-    public static SignatureDto loadFromBinary(final DataInput stream) {
+    public static SignatureDto loadFromBinary(final DataInputStream stream) {
         return new SignatureDto(stream);
     }
 

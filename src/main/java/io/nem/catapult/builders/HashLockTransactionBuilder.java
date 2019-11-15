@@ -20,7 +20,7 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for a non-embedded hash lock transaction. */
 public final class HashLockTransactionBuilder extends TransactionBuilder {
@@ -32,7 +32,7 @@ public final class HashLockTransactionBuilder extends TransactionBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected HashLockTransactionBuilder(final DataInput stream) {
+    protected HashLockTransactionBuilder(final DataInputStream stream) {
         super(stream);
         this.hashLockTransactionBody = HashLockTransactionBodyBuilder.loadFromBinary(stream);
     }
@@ -41,8 +41,9 @@ public final class HashLockTransactionBuilder extends TransactionBuilder {
      * Constructor.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
@@ -50,8 +51,8 @@ public final class HashLockTransactionBuilder extends TransactionBuilder {
      * @param duration Number of blocks for which a lock should be valid.
      * @param hash Lock hash.
      */
-    protected HashLockTransactionBuilder(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final Hash256Dto hash) {
-        super(signature, signer, version, type, fee, deadline);
+    protected HashLockTransactionBuilder(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final Hash256Dto hash) {
+        super(signature, signerPublicKey, version, network, type, fee, deadline);
         this.hashLockTransactionBody = HashLockTransactionBodyBuilder.create(mosaic, duration, hash);
     }
 
@@ -59,8 +60,9 @@ public final class HashLockTransactionBuilder extends TransactionBuilder {
      * Creates an instance of HashLockTransactionBuilder.
      *
      * @param signature Entity signature.
-     * @param signer Entity signer's public key.
+     * @param signerPublicKey Entity signer's public key.
      * @param version Entity version.
+     * @param network Entity network.
      * @param type Entity type.
      * @param fee Transaction fee.
      * @param deadline Transaction deadline.
@@ -69,8 +71,8 @@ public final class HashLockTransactionBuilder extends TransactionBuilder {
      * @param hash Lock hash.
      * @return Instance of HashLockTransactionBuilder.
      */
-    public static HashLockTransactionBuilder create(final SignatureDto signature, final KeyDto signer, final short version, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final Hash256Dto hash) {
-        return new HashLockTransactionBuilder(signature, signer, version, type, fee, deadline, mosaic, duration, hash);
+    public static HashLockTransactionBuilder create(final SignatureDto signature, final KeyDto signerPublicKey, final byte version, final NetworkTypeDto network, final EntityTypeDto type, final AmountDto fee, final TimestampDto deadline, final UnresolvedMosaicBuilder mosaic, final BlockDurationDto duration, final Hash256Dto hash) {
+        return new HashLockTransactionBuilder(signature, signerPublicKey, version, network, type, fee, deadline, mosaic, duration, hash);
     }
 
     /**
@@ -118,7 +120,7 @@ public final class HashLockTransactionBuilder extends TransactionBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of HashLockTransactionBuilder.
      */
-    public static HashLockTransactionBuilder loadFromBinary(final DataInput stream) {
+    public static HashLockTransactionBuilder loadFromBinary(final DataInputStream stream) {
         return new HashLockTransactionBuilder(stream);
     }
 

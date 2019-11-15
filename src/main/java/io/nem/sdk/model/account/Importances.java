@@ -13,37 +13,40 @@ package io.nem.sdk.model.account;
 
 import java.math.BigInteger;
 
-/** Importances of the account */
+/**
+ * Importances of the account
+ */
 public class Importances {
-  private BigInteger value;
-  private BigInteger height;
 
-  /**
-   * Constructor.
-   *
-   * @param value Value
-   * @param height Height
-   */
-  public Importances(BigInteger value, BigInteger height) {
-    this.value = value;
-    this.height = height;
-  }
+    private BigInteger value;
+    private BigInteger height;
 
-  /**
-   * Gets height.
-   *
-   * @return Height
-   */
-  public BigInteger getHeight() {
-    return height;
-  }
+    /**
+     * Constructor.
+     *
+     * @param value Value
+     * @param height Height
+     */
+    public Importances(BigInteger value, BigInteger height) {
+        this.value = value;
+        this.height = height;
+    }
 
-  /**
-   * Gets value.
-   *
-   * @return Value.
-   */
-  public BigInteger getValue() {
-    return value;
-  }
+    /**
+     * Gets height.
+     *
+     * @return Height
+     */
+    public BigInteger getHeight() {
+        return height;
+    }
+
+    /**
+     * Gets value.
+     *
+     * @return Value.
+     */
+    public BigInteger getValue() {
+        return value;
+    }
 }

@@ -20,12 +20,12 @@
 
 package io.nem.catapult.builders;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 
 /** Binary layout for an account link transaction. */
-final class AccountLinkTransactionBodyBuilder {
-    /** Remote account public key. */
-    private final KeyDto remoteAccountPublicKey;
+public final class AccountLinkTransactionBodyBuilder {
+    /** Remote public key. */
+    private final KeyDto remotePublicKey;
     /** Account link action. */
     private final AccountLinkActionDto linkAction;
 
@@ -34,42 +34,42 @@ final class AccountLinkTransactionBodyBuilder {
      *
      * @param stream Byte stream to use to serialize the object.
      */
-    protected AccountLinkTransactionBodyBuilder(final DataInput stream) {
-        this.remoteAccountPublicKey = KeyDto.loadFromBinary(stream);
+    protected AccountLinkTransactionBodyBuilder(final DataInputStream stream) {
+        this.remotePublicKey = KeyDto.loadFromBinary(stream);
         this.linkAction = AccountLinkActionDto.loadFromBinary(stream);
     }
 
     /**
      * Constructor.
      *
-     * @param remoteAccountPublicKey Remote account public key.
+     * @param remotePublicKey Remote public key.
      * @param linkAction Account link action.
      */
-    protected AccountLinkTransactionBodyBuilder(final KeyDto remoteAccountPublicKey, final AccountLinkActionDto linkAction) {
-        GeneratorUtils.notNull(remoteAccountPublicKey, "remoteAccountPublicKey is null");
+    protected AccountLinkTransactionBodyBuilder(final KeyDto remotePublicKey, final AccountLinkActionDto linkAction) {
+        GeneratorUtils.notNull(remotePublicKey, "remotePublicKey is null");
         GeneratorUtils.notNull(linkAction, "linkAction is null");
-        this.remoteAccountPublicKey = remoteAccountPublicKey;
+        this.remotePublicKey = remotePublicKey;
         this.linkAction = linkAction;
     }
 
     /**
      * Creates an instance of AccountLinkTransactionBodyBuilder.
      *
-     * @param remoteAccountPublicKey Remote account public key.
+     * @param remotePublicKey Remote public key.
      * @param linkAction Account link action.
      * @return Instance of AccountLinkTransactionBodyBuilder.
      */
-    public static AccountLinkTransactionBodyBuilder create(final KeyDto remoteAccountPublicKey, final AccountLinkActionDto linkAction) {
-        return new AccountLinkTransactionBodyBuilder(remoteAccountPublicKey, linkAction);
+    public static AccountLinkTransactionBodyBuilder create(final KeyDto remotePublicKey, final AccountLinkActionDto linkAction) {
+        return new AccountLinkTransactionBodyBuilder(remotePublicKey, linkAction);
     }
 
     /**
-     * Gets remote account public key.
+     * Gets remote public key.
      *
-     * @return Remote account public key.
+     * @return Remote public key.
      */
-    public KeyDto getRemoteAccountPublicKey() {
-        return this.remoteAccountPublicKey;
+    public KeyDto getRemotePublicKey() {
+        return this.remotePublicKey;
     }
 
     /**
@@ -88,7 +88,7 @@ final class AccountLinkTransactionBodyBuilder {
      */
     public int getSize() {
         int size = 0;
-        size += this.remoteAccountPublicKey.getSize();
+        size += this.remotePublicKey.getSize();
         size += this.linkAction.getSize();
         return size;
     }
@@ -99,7 +99,7 @@ final class AccountLinkTransactionBodyBuilder {
      * @param stream Byte stream to use to serialize the object.
      * @return Instance of AccountLinkTransactionBodyBuilder.
      */
-    public static AccountLinkTransactionBodyBuilder loadFromBinary(final DataInput stream) {
+    public static AccountLinkTransactionBodyBuilder loadFromBinary(final DataInputStream stream) {
         return new AccountLinkTransactionBodyBuilder(stream);
     }
 
@@ -110,8 +110,8 @@ final class AccountLinkTransactionBodyBuilder {
      */
     public byte[] serialize() {
         return GeneratorUtils.serialize(dataOutputStream -> {
-            final byte[] remoteAccountPublicKeyBytes = this.remoteAccountPublicKey.serialize();
-            dataOutputStream.write(remoteAccountPublicKeyBytes, 0, remoteAccountPublicKeyBytes.length);
+            final byte[] remotePublicKeyBytes = this.remotePublicKey.serialize();
+            dataOutputStream.write(remotePublicKeyBytes, 0, remotePublicKeyBytes.length);
             final byte[] linkActionBytes = this.linkAction.serialize();
             dataOutputStream.write(linkActionBytes, 0, linkActionBytes.length);
         });

@@ -16,107 +16,130 @@
 
 package io.nem.core.crypto;
 
+import java.util.Optional;
+import org.apache.commons.lang3.Validate;
+
+/**
+ * It represents an asymmetric private/public encryption key. Public key is always present. Private
+ * key may not be present. If the private key is not preset, the key cannot be used to decrypt
+ * values.
+ */
 public class KeyPair {
 
-	private final PrivateKey privateKey;
-	private final PublicKey publicKey;
+    private final Optional<PrivateKey> privateKey;
 
-	/**
-	 * Creates a random key pair.
-	 */
-	public KeyPair() {
-		final KeyGenerator generator = CryptoEngines.defaultEngine().createKeyGenerator();
-		final KeyPair pair = generator.generateKeyPair();
-		this.privateKey = pair.getPrivateKey();
-		this.publicKey = pair.getPublicKey();
-	}
+    private final PublicKey publicKey;
 
-	/**
-	 * Creates a key pair around a private key.
-	 * The public key is calculated from the private key.
-	 *
-	 * @param privateKey The private key.
-	 */
-	public KeyPair(final PrivateKey privateKey) {
-		this(privateKey, CryptoEngines.defaultEngine());
-	}
+    private KeyPair(final Optional<PrivateKey> privateKey, final PublicKey publicKey,
+        CryptoEngine engine) {
+        Validate.notNull(privateKey, "Optional PrivateKey must not be null");
+        Validate.notNull(publicKey, "PublicKey must not be null");
 
-	/**
-	 * Creates a key pair around a private key.
-	 * The public key is calculated from the private key.
-	 *
-	 * @param privateKey The private key.
-	 * @param engine     The crypto engine.
-	 */
-	public KeyPair(final PrivateKey privateKey, final CryptoEngine engine) {
-		this(privateKey, engine.createKeyGenerator().derivePublicKey(privateKey), engine);
-	}
+        if (!engine.createKeyAnalyzer().isKeyCompressed(publicKey)) {
+            throw new IllegalArgumentException("PublicKey must be in compressed form");
+        }
+        this.privateKey = privateKey;
+        this.publicKey = publicKey;
+    }
 
-	/**
-	 * Creates a key pair around a public key.
-	 * The private key is empty.
-	 *
-	 * @param publicKey The public key.
-	 */
-	public KeyPair(final PublicKey publicKey) {
-		this(publicKey, CryptoEngines.defaultEngine());
-	}
+    /**
+     * Creates a random key pair using the default engine.
+     *
+     * @param signSchema the {@link SignSchema}.
+     * @return a {@link KeyPair} with both public and private keys.
+     */
+    public static KeyPair random(final SignSchema signSchema) {
+        return CryptoEngines.defaultEngine().createKeyGenerator(signSchema).generateKeyPair();
+    }
 
-	/**
-	 * Creates a key pair around a public key.
-	 * The private key is empty.
-	 *
-	 * @param publicKey The public key.
-	 * @param engine    The crypto engine.
-	 */
-	public KeyPair(final PublicKey publicKey, final CryptoEngine engine) {
-		this(null, publicKey, engine);
-	}
+    /**
+     * Creates a random key pair using the provided engine.
+     *
+     * @param engine the engine.
+     * @param signSchema the {@link SignSchema}.
+     * @return a {@link KeyPair} with both public and private keys.
+     */
+    public static KeyPair random(CryptoEngine engine, final SignSchema signSchema) {
+        return engine.createKeyGenerator(signSchema).generateKeyPair();
+    }
 
-	private KeyPair(final PrivateKey privateKey, final PublicKey publicKey, final CryptoEngine engine) {
-		this.privateKey = privateKey;
-		this.publicKey = publicKey;
+    /**
+     * Creates a key pair around a private key. The public key is calculated from the private key.
+     *
+     * @param privateKey The private key.
+     * @param engine the engine.
+     * @param signSchema The signSchema
+     * @return a {@link KeyPair} with both public and private keys.
+     */
+    public static KeyPair fromPrivate(final PrivateKey privateKey, final CryptoEngine engine,
+        final SignSchema signSchema) {
+        PublicKey publicKey = engine.createKeyGenerator(signSchema).derivePublicKey(privateKey);
+        return new KeyPair(Optional.of(privateKey), publicKey, engine);
+    }
 
-		if (!engine.createKeyAnalyzer().isKeyCompressed(this.publicKey)) {
-			throw new IllegalArgumentException("publicKey must be in compressed form");
-		}
-	}
+    /**
+     * Creates a pair that only holds a public key using the default engine. It is good to encrypt
+     * but cannot decrypt values.
+     *
+     * @param publicKey The public key.
+     * @return a {@link KeyPair} with just the public key.
+     */
+    public static KeyPair onlyPublic(final PublicKey publicKey) {
+        return new KeyPair(Optional.empty(), publicKey, CryptoEngines.defaultEngine());
+    }
 
-	/**
-	 * Creates a random key pair that is compatible with the specified engine.
-	 *
-	 * @param engine The crypto engine.
-	 * @return The key pair.
-	 */
-	public static KeyPair random(final CryptoEngine engine) {
-		final KeyPair pair = engine.createKeyGenerator().generateKeyPair();
-		return new KeyPair(pair.getPrivateKey(), pair.getPublicKey(), engine);
-	}
+    /**
+     * Creates a pair that only holds a public key. It is good to encrypt but cannot decrypt
+     * values.
+     *
+     * @param publicKey The public key.
+     * @param engine the engine.
+     * @return a {@link KeyPair} with just the public key.
+     */
+    public static KeyPair onlyPublic(final PublicKey publicKey, final CryptoEngine engine) {
+        return new KeyPair(Optional.empty(), publicKey, engine);
+    }
 
-	/**
-	 * Gets the private key.
-	 *
-	 * @return The private key.
-	 */
-	public PrivateKey getPrivateKey() {
-		return this.privateKey;
-	}
+    /**
+     * Creates a key pair around a private key using the default engine. The public key is
+     * calculated from the private key.
+     *
+     * @param privateKey The private key.
+     * @param signSchema The signSchema
+     * @return a {@link KeyPair} with both public and private keys.
+     */
+    public static KeyPair fromPrivate(final PrivateKey privateKey,
+        final SignSchema signSchema) {
+        return fromPrivate(privateKey, CryptoEngines.defaultEngine(), signSchema);
+    }
 
-	/**
-	 * Gets the public key.
-	 *
-	 * @return the public key.
-	 */
-	public PublicKey getPublicKey() {
-		return this.publicKey;
-	}
 
-	/**
-	 * Determines if the current key pair has a private key.
-	 *
-	 * @return true if the current key pair has a private key.
-	 */
-	public boolean hasPrivateKey() {
-		return null != this.privateKey;
-	}
+    /**
+     * Gets the private key.
+     *
+     * @return The private key raising an {@link IllegalStateException} if the private key hasn't
+     * been set.
+     */
+    public PrivateKey getPrivateKey() {
+        return this.privateKey
+            .orElseThrow(() -> new IllegalStateException("Private Key hasn't been provided."));
+    }
+
+    /**
+     * Gets the public key.
+     *
+     * @return the public key. Never null.
+     */
+    public PublicKey getPublicKey() {
+        return this.publicKey;
+    }
+
+    /**
+     * Determines if the current key pair has a private key.
+     *
+     * @return true if the current key pair has a private key.
+     */
+    public boolean hasPrivateKey() {
+        return privateKey.isPresent();
+    }
 }
