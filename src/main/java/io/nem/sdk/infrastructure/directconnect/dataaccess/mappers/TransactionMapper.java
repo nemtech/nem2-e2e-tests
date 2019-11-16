@@ -496,7 +496,7 @@ class AccountMosaicRestrictionModificationTransactionMapper extends TransactionM
     final AccountMosaicRestrictionTransactionFactory accountMosaicRestrictionTransactionFactory =
         AccountMosaicRestrictionTransactionFactory.create(
             networkType,
-            AccountRestrictionType.rawValueOf(transaction.getInteger("restrictionType")),
+            AccountRestrictionType.rawValueOf(transaction.getInteger("restrictionFlags")),
             restrictionAdditions,
             restrictionDeletions);
     return appendCommonPropertiesAndBuildTransaction(
@@ -505,7 +505,7 @@ class AccountMosaicRestrictionModificationTransactionMapper extends TransactionM
 
   private List<UnresolvedMosaicId> getMosaicIdList(final JsonObject jsonObject, final String name) {
     return jsonObject.getJsonArray(name).stream()
-        .map(item -> new MosaicId(BigInteger.valueOf((long) item)))
+        .map(item -> new MosaicId((String) item))
         .collect(Collectors.toList());
   }
 }
@@ -528,7 +528,7 @@ class AccountAddressRestrictionModificationTransactionMapper extends Transaction
     final AccountAddressRestrictionTransactionFactory accountAddressRestrictionTransactionFactory =
         AccountAddressRestrictionTransactionFactory.create(
             networkType,
-            AccountRestrictionType.rawValueOf(transaction.getInteger("restrictionType")),
+            AccountRestrictionType.rawValueOf(transaction.getInteger("restrictionFlags")),
             restrictionAdditions,
             restrictionDeletions);
     return appendCommonPropertiesAndBuildTransaction(
@@ -561,7 +561,7 @@ class AccountOperationRestrictionModificationTransactionMapper extends Transacti
         accountOperationRestrictionTransactionFactory =
             AccountOperationRestrictionTransactionFactory.create(
                 networkType,
-                AccountRestrictionType.rawValueOf(transaction.getInteger("restrictionType")),
+                AccountRestrictionType.rawValueOf(transaction.getInteger("restrictionFlags")),
                 restrictionAdditions,
                 restrictionDeletions);
     return appendCommonPropertiesAndBuildTransaction(

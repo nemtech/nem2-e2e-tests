@@ -26,9 +26,6 @@ import io.nem.sdk.infrastructure.directconnect.auth.ConnectionSecurityMode;
 import io.nem.sdk.infrastructure.directconnect.auth.VerifyServer;
 import io.nem.sdk.model.blockchain.NetworkType;
 
-import java.net.Socket;
-import java.util.HashMap;
-
 /** Authenticated socket to the catapult server. */
 public class AuthenticatedSocket {
   /* Key pair value use in the server challenge */
