@@ -37,6 +37,7 @@ import io.vertx.core.json.JsonObject;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -505,7 +506,7 @@ class AccountMosaicRestrictionModificationTransactionMapper extends TransactionM
 
   private List<UnresolvedMosaicId> getMosaicIdList(final JsonObject jsonObject, final String name) {
     return jsonObject.getJsonArray(name).stream()
-        .map(item -> new MosaicId((String) item))
+        .map(item -> io.nem.core.utils.MapperUtils.toUnresolvedMosaicId((String) item))
         .collect(Collectors.toList());
   }
 }
@@ -537,7 +538,7 @@ class AccountAddressRestrictionModificationTransactionMapper extends Transaction
 
   private List<UnresolvedAddress> getAddressList(final JsonObject jsonObject, final String name) {
     return jsonObject.getJsonArray(name).stream()
-        .map(item -> new Address((String) item, networkType))
+        .map(item -> io.nem.core.utils.MapperUtils.toUnresolvedAddress((String) item))
         .collect(Collectors.toList());
   }
 }
@@ -571,7 +572,11 @@ class AccountOperationRestrictionModificationTransactionMapper extends Transacti
   private List<TransactionType> getTransactionTypeList(
       final JsonObject jsonObject, final String name) {
     return jsonObject.getJsonArray(name).stream()
-        .map(item -> TransactionType.rawValueOf((short) item))
+        .map(item ->
+        {
+          final Short typeValue = Short.parseShort((String) item, 16);
+          return TransactionType.rawValueOf(Short.reverseBytes(typeValue));
+        })
         .collect(Collectors.toList());
   }
 }

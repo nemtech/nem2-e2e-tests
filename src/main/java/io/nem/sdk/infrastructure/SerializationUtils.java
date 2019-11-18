@@ -368,7 +368,7 @@ public class SerializationUtils {
     /**
      * Convert list of UnresolvedAddress to UnresolvedAddressDto.
      *
-     * @param unresolvedMosaicIdList List of UnresolvedAddress.
+     * @param transactionTypeList List of transaction type.
      * @return List of unresolvedAddressDto.
      */
     public static List<EntityTypeDto> toEntityTypeDtoList(
