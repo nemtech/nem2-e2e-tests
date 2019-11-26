@@ -1023,7 +1023,7 @@ public class BinarySerializationImpl implements BinarySerialization {
               SerializationUtils.toUnresolvedAddressDtoList(
                   transaction.getRestrictionAdditions(), transaction.getNetworkType()),
               SerializationUtils.toUnresolvedAddressDtoList(
-                  transaction.getRestrictionAdditions(), transaction.getNetworkType()))
+                  transaction.getRestrictionDeletions(), transaction.getNetworkType()))
           .serialize();
     }
   }
@@ -1235,7 +1235,7 @@ public class BinarySerializationImpl implements BinarySerialization {
       final List<PublicAccount> publicAccountsAdditions =
           SerializationUtils.toPublicAccountList(builder.getPublicKeyAdditions(), networkType);
       final List<PublicAccount> publicAccountsDeletions =
-          SerializationUtils.toPublicAccountList(builder.getPublicKeyAdditions(), networkType);
+          SerializationUtils.toPublicAccountList(builder.getPublicKeyDeletions(), networkType);
 
       return MultisigAccountModificationTransactionFactory.create(
           networkType,

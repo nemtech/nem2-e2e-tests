@@ -21,6 +21,7 @@
 package io.nem.sdk.infrastructure.directconnect.network;
 
 import io.nem.core.crypto.KeyPair;
+import io.nem.core.crypto.PrivateKey;
 import io.nem.core.crypto.PublicKey;
 import io.nem.sdk.infrastructure.directconnect.auth.ConnectionSecurityMode;
 import io.nem.sdk.infrastructure.directconnect.auth.VerifyServer;
@@ -28,11 +29,12 @@ import io.nem.sdk.model.blockchain.NetworkType;
 
 /** Authenticated socket to the catapult server. */
 public class AuthenticatedSocket {
+  private static AuthenticatedSocket authenticatedSocket = null;
   /* Key pair value use in the server challenge */
   final KeyPair keyPair;
   /* Client socket. */
   final SocketClient socketClient;
-
+  
   /**
    * Constructor
    *
@@ -41,6 +43,7 @@ public class AuthenticatedSocket {
    */
   private AuthenticatedSocket(final SocketClient socket, final PublicKey publicKey, final KeyPair keyPair, final  NetworkType networkType) {
     this.keyPair = keyPair;
+
     final VerifyServer verifyServer =
         new VerifyServer(socket, keyPair, networkType, publicKey, ConnectionSecurityMode.NONE);
     verifyServer.verifyConnection();
