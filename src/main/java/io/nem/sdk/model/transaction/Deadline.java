@@ -34,7 +34,7 @@ public class Deadline {
     /**
      * Nemesis block timestamp.
      */
-    private static final Instant TIMESTAMP_NEMSIS_BLOCK = Instant.ofEpochSecond(1459468800);
+    private static final Instant TIMESTAMP_NEMSIS_BLOCK = Instant.ofEpochSecond(1573430400);
 
     private final Instant instant;
 
