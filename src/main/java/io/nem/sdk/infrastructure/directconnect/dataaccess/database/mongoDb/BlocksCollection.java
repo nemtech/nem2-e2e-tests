@@ -20,10 +20,15 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
+import com.mongodb.client.model.Filters;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.mappers.BlocksInfoMapper;
 import io.nem.sdk.model.blockchain.BlockInfo;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
+import java.math.BigInteger;
+import java.util.List;
 import java.util.Optional;
 
 /** Block collection */
@@ -54,5 +59,23 @@ public class BlocksCollection {
   public Optional<BlockInfo> find(final long height) {
     final String keyName = "block.height";
     return catapultCollection.findOne(keyName, height, context.getDatabaseTimeoutInSeconds());
+  }
+
+  /**
+   * Gets blocks info range.
+   *
+   * @param startHeight Start block height.
+   * @param endHeight End block height
+   * @return List of block info.
+   */
+  public List<BlockInfo> find(final BigInteger startHeight, final BigInteger endHeight) {
+    final String keyName = "block.height";
+    final Bson blockRangeFilters =
+        Filters.and(
+            Filters.gte(keyName, startHeight.longValue()),
+            Filters.lt(keyName, endHeight.longValue()));
+    final List<Document> results =
+        catapultCollection.find(blockRangeFilters, context.getDatabaseTimeoutInSeconds());
+    return catapultCollection.ConvertResult(results);
   }
 }

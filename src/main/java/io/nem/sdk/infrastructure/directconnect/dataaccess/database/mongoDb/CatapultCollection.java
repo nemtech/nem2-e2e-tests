@@ -74,10 +74,21 @@ class CatapultCollection<T, U extends Function<JsonObject, T>>
    * @return List of type T.
    */
   List<T> ConvertResult(final List<Document> documents) {
+    return ConvertResult(documents, mapper.get());
+  }
+
+  /**
+   * Converts the document to the return type.
+   *
+   * @param documents List of document.
+   * @param mapper Mapper.
+   * @return List of type T.
+   */
+  <M extends Function<JsonObject, T>> List<T> ConvertResult(final List<Document> documents, final M mapper) {
     return documents.stream()
-        .map(new JsonObjectMapper())
-        .map(mapper.get())
-        .collect(Collectors.toList());
+            .map(new JsonObjectMapper())
+            .map(mapper)
+            .collect(Collectors.toList());
   }
 
   /**
@@ -159,8 +170,21 @@ class CatapultCollection<T, U extends Function<JsonObject, T>>
    * @return List of T
    */
   public <P> List<T> find(final String keyName, final P keyValue, final int timeoutInSeconds) {
+    return find(keyName, keyValue, mapper.get(), timeoutInSeconds);
+  }
+
+  /**
+   * Find documents.
+   *
+   * @param keyName Key name.
+   * @param keyValue Key value.
+   * @param timeoutInSeconds Timeout in seconds.
+   * @return List of T
+   */
+  public <P, M extends Function<JsonObject, T>> List<T> find(final String keyName, final P keyValue,
+                                                             final M mapper, final int timeoutInSeconds) {
     final List<Document> documents = find(Filters.eq(keyName, keyValue), timeoutInSeconds);
-    return ConvertResult(documents);
+    return ConvertResult(documents, mapper);
   }
 
   /**

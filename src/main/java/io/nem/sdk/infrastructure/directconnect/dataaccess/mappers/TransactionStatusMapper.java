@@ -20,26 +20,31 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.mappers;
 
-import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.ChainStatisticInfo;
+import io.nem.sdk.model.transaction.Deadline;
+import io.nem.sdk.model.transaction.TransactionState;
+import io.nem.sdk.model.transaction.TransactionStatus;
 import io.vertx.core.json.JsonObject;
 
 import java.math.BigInteger;
 import java.util.function.Function;
 
-/** Chain info mapper. */
-public class ChainStatisticInfoMapper implements Function<JsonObject, ChainStatisticInfo> {
+/** Transaction status error mapper */
+public class TransactionStatusMapper implements Function<JsonObject, TransactionStatus> {
+  private static final TransactionState GROUP_NAME = TransactionState.FAILED;
+
   /**
-   * Converts a json object to block info.
+   * Create a transaction status object from json.
    *
    * @param jsonObject Json object.
-   * @return Chain info.
+   * @return Transaction status object.
    */
-  public ChainStatisticInfo apply(final JsonObject jsonObject) {
-    final JsonObject chainStatisticJsonObject = jsonObject.getJsonObject("current");
-    final BigInteger height = MapperUtils.extractBigInteger(chainStatisticJsonObject, "height");
-    final BigInteger scoreHigh =
-        MapperUtils.extractBigInteger(chainStatisticJsonObject, "scoreHigh");
-    final BigInteger scoreLow = MapperUtils.extractBigInteger(chainStatisticJsonObject, "scoreLow");
-    return ChainStatisticInfo.create(height, scoreHigh, scoreLow);
+  public TransactionStatus apply(final JsonObject jsonObject) {
+    final JsonObject jsonStatusObject = jsonObject.getJsonObject("status");
+    return new TransactionStatus(
+        GROUP_NAME,
+        TransactionStatusCode.rawValueOf(jsonStatusObject.getInteger("code")).toString(),
+        jsonStatusObject.getString("hash"),
+        new Deadline(BigInteger.valueOf(jsonStatusObject.getLong("deadline"))),
+        BigInteger.ZERO);
   }
 }

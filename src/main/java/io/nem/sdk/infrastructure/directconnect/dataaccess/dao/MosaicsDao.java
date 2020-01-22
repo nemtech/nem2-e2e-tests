@@ -20,12 +20,15 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.dao;
 
+import io.nem.sdk.api.MosaicRepository;
 import io.nem.sdk.infrastructure.common.CatapultContext;
-import io.nem.sdk.infrastructure.common.MosaicRepository;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.MosaicsCollection;
+import io.nem.sdk.model.account.Address;
 import io.nem.sdk.model.mosaic.MosaicId;
 import io.nem.sdk.model.mosaic.MosaicInfo;
 import io.reactivex.Observable;
+
+import java.util.List;
 
 /** Mosaic dao repository. */
 public class MosaicsDao implements MosaicRepository {
@@ -51,5 +54,26 @@ public class MosaicsDao implements MosaicRepository {
   public Observable<MosaicInfo> getMosaic(final MosaicId mosaicId) {
     return Observable.fromCallable(
         () -> new MosaicsCollection(catapultContext.getDataAccessContext()).find(mosaicId.getIdAsLong()).get());
+  }
+
+  /**
+   * Gets MosaicInfo for different mosaicIds.
+   *
+   * @param mosaicIds {@link List} of {@link MosaicId}
+   * @return {@link Observable} of {@link MosaicInfo} List
+   */
+  @Override
+  public Observable<List<MosaicInfo>> getMosaics(List<MosaicId> mosaicIds) {
+    throw new UnsupportedOperationException("Method not implemented");
+  }
+
+  @Override
+  public Observable<List<MosaicInfo>> getMosaicsFromAccount(Address address) {
+    throw new UnsupportedOperationException("Method not implemented");
+  }
+
+  @Override
+  public Observable<List<MosaicInfo>> getMosaicsFromAccounts(List<Address> list) {
+    throw new UnsupportedOperationException("Method not implemented");
   }
 }

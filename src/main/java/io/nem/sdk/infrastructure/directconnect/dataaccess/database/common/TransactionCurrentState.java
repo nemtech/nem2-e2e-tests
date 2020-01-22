@@ -18,28 +18,19 @@
  * ** along with Catapult. If not, see <http://www.gnu.org/licenses/>.
  **/
 
-package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
+package io.nem.sdk.infrastructure.directconnect.dataaccess.database.common;
 
-import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
+import io.nem.sdk.model.transaction.TransactionStatus;
 
-/** Partial transactions collection. */
-public class PartialTransactionsCollection extends TransactionCurrentCollectionBase {
+import java.util.Optional;
+
+/** Transaction state. */
+public interface TransactionCurrentState {
   /**
-   * Constructor.
+   * Gets the transaction status.
    *
-   * @param context Catapult context.
+   * @param hash Transaction hash.
+   * @return Transaction status if found.
    */
-  public PartialTransactionsCollection(final DataAccessContext context) {
-    super(context, "partialTransactions");
-  }
-
-  /**
-   * Gets transaction status group.
-   *
-   * @return transaction group name of "partial".
-   */
-  @Override
-  protected String getGroupStatus() {
-    return "partial";
-  }
+  Optional<TransactionStatus> getStatus(final String hash);
 }

@@ -22,7 +22,6 @@ package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
 import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.mappers.ChainStatisticInfoMapper;
-import io.nem.sdk.model.blockchain.ChainStatisticInfo;
 
 public class ChainStatisticCollection {
 	/**

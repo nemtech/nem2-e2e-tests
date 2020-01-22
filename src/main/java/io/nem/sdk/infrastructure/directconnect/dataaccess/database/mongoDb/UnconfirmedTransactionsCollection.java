@@ -23,7 +23,7 @@ package io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 
 /** Unconfirmed transactions collection. */
-public class UnconfirmedTransactionsCollection extends TransactionCollectionBase {
+public class UnconfirmedTransactionsCollection extends TransactionCurrentCollectionBase {
   /**
    * Constructor.
    *

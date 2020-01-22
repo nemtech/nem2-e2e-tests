@@ -20,14 +20,11 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.dao;
 
-import io.nem.core.utils.RetryCommand;
+import io.nem.sdk.api.TransactionRepository;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.RetryCommand;
 import io.nem.sdk.infrastructure.common.CatapultContext;
-import io.nem.sdk.infrastructure.common.TransactionRepository;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.database.common.TransactionState;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.PartialTransactionsCollection;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.TransactionStatusesCollection;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.TransactionsCollection;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.UnconfirmedTransactionsCollection;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.database.common.TransactionCurrentState;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.*;
 import io.nem.sdk.infrastructure.directconnect.network.TransactionConnection;
 import io.nem.sdk.model.transaction.*;
 import io.reactivex.Observable;
@@ -62,13 +59,39 @@ public class TransactionDao implements TransactionRepository {
 	public Observable<Transaction> getTransaction(final String transactionHash) {
 		return Observable.fromCallable(
 				() -> {
-					Optional<Transaction> transaction =
-							new TransactionsCollection(catapultContext.getDataAccessContext()).findByHash(transactionHash);
-					if (transaction.isPresent()) {
-						return transaction.get();
-					}
-					throw new IllegalArgumentException("Transaction hash " + transactionHash + " not found.");
+					final List<TransactionCurrentCollectionBase> transactionCollections =
+							Arrays.asList(
+									new UnconfirmedTransactionsCollection(catapultContext.getDataAccessContext()),
+									new PartialTransactionsCollection(catapultContext.getDataAccessContext()),
+									new TransactionsCollection(catapultContext.getDataAccessContext()));
+					final int maxRetries = 3; // Add retry since the tx could be between collections.
+					final int waitTimeInMilliseconds = 1000;
+					return new RetryCommand<Transaction>(
+							maxRetries, waitTimeInMilliseconds, Optional.empty())
+							.run(
+									(final RetryCommand<Transaction> retryCommand) -> {
+										for (final TransactionCurrentCollectionBase transactionState : transactionCollections) {
+											final Optional<Transaction> transactionOptional =
+													transactionState.findByHash(transactionHash);
+											if (transactionOptional.isPresent()) {
+												return transactionOptional.get();
+											}
+										}
+										throw new IllegalArgumentException(
+												"Transaction hash " + transactionHash + " not found.");
+									});
 				});
+	}
+
+	/**
+	 * Gets an list of transactions for different transaction hashes.
+	 *
+	 * @param transactionHashes List of String
+	 * @return {@link Observable} of {@link Transaction} List
+	 */
+	@Override
+	public Observable<List<Transaction>> getTransactions(List<String> transactionHashes) {
+		throw new UnsupportedOperationException("Method not implemented");
 	}
 
 	/**
@@ -81,21 +104,21 @@ public class TransactionDao implements TransactionRepository {
 	public Observable<TransactionStatus> getTransactionStatus(final String transactionHash) {
 		return Observable.fromCallable(
 				() -> {
-					final List<TransactionState> transactionStates =
+					final List<TransactionCurrentState> transactionCurrentStates =
 							Arrays.asList(
 									new UnconfirmedTransactionsCollection(catapultContext.getDataAccessContext()),
 									new PartialTransactionsCollection(catapultContext.getDataAccessContext()),
 									new TransactionsCollection(catapultContext.getDataAccessContext()),
-									new TransactionStatusesCollection(catapultContext.getDataAccessContext()));
-					final int maxRetries = 3; // Add retry since the tx could be between collections.
-					final int waitTimeInMilliseconds = 1000;
+									new TransactionCurrentStatusesCollection(catapultContext.getDataAccessContext()));
+					final int maxRetries = 0;
+					final int waitTimeInMilliseconds = 0;
 					return new RetryCommand<TransactionStatus>(
 							maxRetries, waitTimeInMilliseconds, Optional.empty())
 							.run(
 									(final RetryCommand<TransactionStatus> retryCommand) -> {
-										for (final TransactionState transactionState : transactionStates) {
+										for (final TransactionCurrentState transactionCurrentState : transactionCurrentStates) {
 											final Optional<TransactionStatus> transactionStatus =
-													transactionState.getStatus(transactionHash);
+													transactionCurrentState.getStatus(transactionHash);
 											if (transactionStatus.isPresent()) {
 												return transactionStatus.get();
 											}
@@ -104,6 +127,17 @@ public class TransactionDao implements TransactionRepository {
 												"Transaction hash " + transactionHash + " not found.");
 									});
 				});
+	}
+
+	/**
+	 * Gets an list of transaction status for different transaction hashes.
+	 *
+	 * @param transactionHashes List of String
+	 * @return {@link Observable} of {@link TransactionStatus} List
+	 */
+	@Override
+	public Observable<List<TransactionStatus>> getTransactionStatuses(List<String> transactionHashes) {
+		throw new UnsupportedOperationException("Method not implemented");
 	}
 
 	/**

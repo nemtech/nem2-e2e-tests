@@ -26,7 +26,7 @@ import io.nem.sdk.model.transaction.Transaction;
 import java.util.List;
 
 /** Transactions collection. */
-public class TransactionsCollection extends TransactionCollectionBase {
+public class TransactionsCollection extends TransactionCurrentCollectionBase {
   /**
    * Constructor.
    *

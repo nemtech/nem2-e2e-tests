@@ -20,26 +20,32 @@
 
 package io.nem.sdk.infrastructure.directconnect.dataaccess.mappers;
 
-import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.ChainStatisticInfo;
+import io.nem.sdk.model.account.PublicAccount;
+import io.nem.sdk.model.blockchain.NetworkType;
+import io.nem.sdk.model.transaction.Transaction;
+import io.nem.sdk.model.transaction.TransactionFactory;
 import io.vertx.core.json.JsonObject;
 
-import java.math.BigInteger;
 import java.util.function.Function;
 
-/** Chain info mapper. */
-public class ChainStatisticInfoMapper implements Function<JsonObject, ChainStatisticInfo> {
+public class EmbeddedTransactionMapper extends TransactionMapper
+    implements Function<JsonObject, Transaction> {
+
   /**
-   * Converts a json object to block info.
+   * Gets the common properties for all transactions.
    *
+   * @param factory Transaction factory.
    * @param jsonObject Json object.
-   * @return Chain info.
+   * @return Transaction.
    */
-  public ChainStatisticInfo apply(final JsonObject jsonObject) {
-    final JsonObject chainStatisticJsonObject = jsonObject.getJsonObject("current");
-    final BigInteger height = MapperUtils.extractBigInteger(chainStatisticJsonObject, "height");
-    final BigInteger scoreHigh =
-        MapperUtils.extractBigInteger(chainStatisticJsonObject, "scoreHigh");
-    final BigInteger scoreLow = MapperUtils.extractBigInteger(chainStatisticJsonObject, "scoreLow");
-    return ChainStatisticInfo.create(height, scoreHigh, scoreLow);
+  @Override
+  public <T extends Transaction> T appendCommonPropertiesAndBuildTransaction(
+      final TransactionFactory<T> factory, final JsonObject jsonObject) {
+    final JsonObject transaction = jsonObject.getJsonObject("transaction");
+    final NetworkType networkType = NetworkType.rawValueOf(transaction.getInteger("network"));
+    final Integer version = transaction.getInteger("version");
+    final PublicAccount signer =
+        new PublicAccount(transaction.getString("signerPublicKey"), networkType);
+    return factory.signer(signer).version(version).build();
   }
 }

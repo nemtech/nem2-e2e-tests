@@ -22,14 +22,14 @@ package io.nem.sdk.infrastructure.directconnect.dataaccess.mappers;
 
 import io.nem.sdk.model.account.Address;
 import io.nem.sdk.model.account.UnresolvedAddress;
-import io.nem.sdk.model.mosaic.Mosaic;
 import io.nem.sdk.model.mosaic.MosaicId;
 import io.nem.sdk.model.mosaic.UnresolvedMosaicId;
 import io.nem.sdk.model.receipt.*;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.math3.analysis.function.Add;
+import org.apache.commons.codec.binary.Base32;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 /**
  * Mapper utils.
  */
-final class MapperUtils {
+final public class MapperUtils {
 	/**
 	 * Gets a Biginteger value from json.
 	 *
@@ -93,5 +93,14 @@ final class MapperUtils {
 															 final Function<JsonObject, ResolutionEntry<T>> getResolvedEntry) {
 		return receiptJsonObject.getJsonArray("resolutionEntries").stream()
 				.map(entry -> getResolvedEntry.apply((JsonObject) entry)).collect(Collectors.toList());
+	}
+
+	public static ByteBuffer fromAddressToByteBuffer(final Address address) {
+		return ByteBuffer.wrap(new Base32().decode((address.plain())));
+	}
+
+	public static UnresolvedAddress toUnresolvedAddress(final JsonObject jsonObject, final String name) {
+		final String hexAddress = jsonObject.getString(name);
+		return io.nem.core.utils.MapperUtils.toUnresolvedAddress(hexAddress);
 	}
 }
