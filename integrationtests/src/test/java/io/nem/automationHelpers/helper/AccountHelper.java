@@ -22,108 +22,162 @@ package io.nem.automationHelpers.helper;
 
 import io.nem.automationHelpers.common.TestContext;
 import io.nem.core.utils.ExceptionUtils;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.dao.AccountsDao;
-import io.nem.sdk.model.account.Account;
-import io.nem.sdk.model.account.AccountInfo;
-import io.nem.sdk.model.account.Address;
-import io.nem.sdk.model.account.MultisigAccountInfo;
+import io.nem.sdk.model.account.*;
 import io.nem.sdk.model.blockchain.NetworkType;
+import io.nem.sdk.model.message.PlainMessage;
 import io.nem.sdk.model.mosaic.Mosaic;
 import io.nem.sdk.model.mosaic.MosaicId;
-import io.nem.sdk.model.message.PlainMessage;
+import io.nem.sdk.model.transaction.AggregateTransaction;
+import io.nem.sdk.model.transaction.SignedTransaction;
+import io.nem.sdk.model.transaction.TransactionState;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
-/**
- * Account helper.
- */
+/** Account helper. */
 public class AccountHelper {
-	private final TestContext testContext;
+  private final TestContext testContext;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param testContext Test context.
-	 */
-	public AccountHelper(final TestContext testContext) {
-		this.testContext = testContext;
-	}
+  /**
+   * Constructor.
+   *
+   * @param testContext Test context.
+   */
+  public AccountHelper(final TestContext testContext) {
+    this.testContext = testContext;
+  }
 
-	/**
-	 * Gets account info.
-	 *
-	 * @param address Account's address.
-	 * @return Account info.
-	 */
-	public AccountInfo getAccountInfo(final Address address) {
-		return ExceptionUtils.propagate(
-				() ->
-						new AccountsDao(testContext.getCatapultContext())
-								.getAccountInfo(address)
-								.toFuture()
-								.get());
-	}
+  /**
+   * Gets account info.
+   *
+   * @param address Account's address.
+   * @return Account info.
+   */
+  public AccountInfo getAccountInfo(final Address address) {
+    return ExceptionUtils.propagate(
+        () ->
+            testContext
+                .getRepositoryFactory()
+                .createAccountRepository()
+                .getAccountInfo(address)
+                .toFuture()
+                .get());
+  }
 
-	/**
-	 * Gets account info.
-	 *
-	 * @param address Account's address.
-	 * @return Account info.
-	 */
-	public Optional<AccountInfo> getAccountInfoNoThrow(final Address address) {
-		return CommonHelper.executeCallablenNoThrow(testContext,
-				() -> getAccountInfo(address));
-	}
+  /**
+   * Gets account info.
+   *
+   * @param address Account's address.
+   * @return Account info.
+   */
+  public Optional<AccountInfo> getAccountInfoNoThrow(final Address address) {
+    return CommonHelper.executeCallableNoThrow(testContext, () -> getAccountInfo(address));
+  }
 
-	/**
-	 * Creates an account with asset.
-	 *
-	 * @param mosaicId Mosaic id.
-	 * @param amount   Amount of asset.
-	 * @return Account.
-	 */
-	public Account createAccountWithAsset(final MosaicId mosaicId, final BigInteger amount) {
-		return createAccountWithAsset(new Mosaic(mosaicId, amount));
-	}
+  /**
+   * Creates an account with asset.
+   *
+   * @param mosaicId Mosaic id.
+   * @param amount Amount of asset.
+   * @return Account.
+   */
+  public Account createAccountWithAsset(final MosaicId mosaicId, final BigInteger amount) {
+    return createAccountWithAsset(new Mosaic(mosaicId, amount));
+  }
 
-	/**
-	 * Creates an account with asset.
-	 *
-	 * @param mosaic Mosaic.
-	 * @return Account.
-	 */
-	public Account createAccountWithAsset(final Mosaic mosaic) {
-		final NetworkType networkType = testContext.getNetworkType();
-		final Account account = Account.generateNewAccount(networkType);
-		final TransferHelper transferHelper = new TransferHelper(testContext);
-		transferHelper.submitTransferAndWait(
-				testContext.getDefaultSignerAccount(),
-				account.getAddress(),
-				Arrays.asList(mosaic),
-				PlainMessage.Empty);
-		return account;
-	}
+  /**
+   * Creates an account with asset.
+   *
+   * @param mosaic Mosaic.
+   * @return Account.
+   */
+  public Account createAccountWithAsset(final Mosaic mosaic) {
+    final NetworkType networkType = testContext.getNetworkType();
+    final Account account = Account.generateNewAccount(networkType);
+    final TransferHelper transferHelper = new TransferHelper(testContext);
+    transferHelper.submitTransferAndWait(
+        testContext.getDefaultSignerAccount(),
+        account.getAddress(),
+        Arrays.asList(mosaic),
+        PlainMessage.Empty);
+    return account;
+  }
 
-	/**
-	 * Gets multisig account by address.
-	 *
-	 * @param address Account address.
-	 * @return Multisig account info.
-	 */
-	public MultisigAccountInfo getMultisigAccount(final Address address) {
-		final AccountsDao accountsDao = new AccountsDao(testContext.getCatapultContext());
-		return ExceptionUtils.propagate(() -> accountsDao.getMultisigAccountInfo(address).toFuture().get());
-	}
+  /**
+   * Gets multisig account by address.
+   *
+   * @param address Account address.
+   * @return Multisig account info.
+   */
+  public MultisigAccountInfo getMultisigAccount(final Address address) {
+    return ExceptionUtils.propagate(
+        () ->
+            testContext
+                .getRepositoryFactory()
+                .createMultisigRepository()
+                .getMultisigAccountInfo(address)
+                .toFuture()
+                .get());
+  }
 
-	/**
-	 * Gets multisig account by address.
-	 *
-	 * @param address Account address.
-	 * @return Multisig account info.
-	 */
-	public Optional<MultisigAccountInfo> getMultisigAccountNoThrow(final Address address) {
-		return CommonHelper.executeCallablenNoThrow(testContext, () -> getMultisigAccount(address));
-	}
+  /**
+   * Gets aggregate bonded transactions for an account.
+   *
+   * @param publicAccount Public account.
+   * @return List of aggregate transaction.
+   */
+  public List<AggregateTransaction> getAggregateBondedTransactions(
+      final PublicAccount publicAccount) {
+    return ExceptionUtils.propagate(
+        () ->
+            testContext
+                .getRepositoryFactory()
+                .createAccountRepository()
+                .aggregateBondedTransactions(publicAccount)
+                .toFuture()
+                .get());
+  }
+
+  /**
+   * Gets aggregate bonded transactions for a signed transaction.
+   *
+   * @param signedTransaction Signed transaction.
+   * @return List of aggregate transaction.
+   */
+  public AggregateTransaction getAggregateBondedTransaction(
+      final SignedTransaction signedTransaction) {
+    return getAggregateBondedTransaction(signedTransaction.getSigner(), signedTransaction);
+  }
+
+  /**
+   * Gets aggregate bonded transactions for a signed transaction.
+   *
+   * @param publicAccount Public account.
+   * @param signedTransaction Signed transaction.
+   * @return List of aggregate transaction.
+   */
+  public AggregateTransaction getAggregateBondedTransaction(
+          final PublicAccount publicAccount,
+          final SignedTransaction signedTransaction) {
+    new TransactionHelper(testContext)
+            .waitForTransactionStatus(signedTransaction.getHash(), TransactionState.PARTIAL);
+    final Supplier supplier = () -> new IllegalArgumentException(CommonHelper.toString(signedTransaction));
+    return getAggregateBondedTransactions(publicAccount).stream()
+            .filter(t -> t.getTransactionInfo().get().getHash().orElseGet(supplier).equalsIgnoreCase(signedTransaction.getHash()))
+            .findFirst()
+            .orElseThrow(supplier);
+  }
+
+  /**
+   * Gets multisig account by address.
+   *
+   * @param address Account address.
+   * @return Multisig account info.
+   */
+  public Optional<MultisigAccountInfo> getMultisigAccountNoThrow(final Address address) {
+    return CommonHelper.executeCallableNoThrow(testContext, () -> getMultisigAccount(address));
+  }
 }

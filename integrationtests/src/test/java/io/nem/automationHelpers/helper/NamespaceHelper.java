@@ -23,7 +23,6 @@ package io.nem.automationHelpers.helper;
 import io.nem.automationHelpers.common.TestContext;
 import io.nem.core.utils.ConvertUtils;
 import io.nem.core.utils.ExceptionUtils;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.dao.NamespaceDao;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.account.Address;
 import io.nem.sdk.model.blockchain.NetworkType;
@@ -223,7 +222,7 @@ public class NamespaceHelper {
 	public MosaicId getLinkedMosaicId(final NamespaceId namespaceId) {
 		return ExceptionUtils.propagate(
 				() ->
-						new NamespaceDao(testContext.getCatapultContext())
+						testContext.getRepositoryFactory().createNamespaceRepository()
 								.getLinkedMosaicId(namespaceId)
 								.toFuture()
 								.get());
@@ -236,12 +235,8 @@ public class NamespaceHelper {
 	 * @return Optional mosaic id.
 	 */
 	public Optional<MosaicId> getLinkedMosaicIdNoThrow(final NamespaceId namespaceId) {
-		return CommonHelper.executeCallablenNoThrow(testContext,
-				() ->
-						new NamespaceDao(testContext.getCatapultContext())
-								.getLinkedMosaicId(namespaceId)
-								.toFuture()
-								.get());
+		return CommonHelper.executeCallableNoThrow(testContext,
+				() -> getLinkedMosaicId(namespaceId));
 	}
 
 	/**
@@ -253,7 +248,7 @@ public class NamespaceHelper {
 	public NamespaceInfo getNamesapceInfo(final NamespaceId namespaceId) {
 		return ExceptionUtils.propagate(
 				() ->
-						new NamespaceDao(testContext.getCatapultContext())
+						testContext.getRepositoryFactory().createNamespaceRepository()
 								.getNamespace(namespaceId)
 								.toFuture()
 								.get());
@@ -267,32 +262,13 @@ public class NamespaceHelper {
 	 */
 	public Optional<NamespaceInfo> getNamespaceInfoNoThrow(final NamespaceId namespaceId) {
 		try {
-			final NamespaceInfo namespaceInfo = new NamespaceDao(testContext.getCatapultContext())
-					.getNamespace(namespaceId)
-					.toFuture()
-					.get();
+			final NamespaceInfo namespaceInfo = getNamesapceInfo(namespaceId);
 			return Optional.of(namespaceInfo);
 		}
 		catch (Exception e) {
 			testContext.getLogger().LogException(e);
 			return Optional.empty();
 		}
-	}
-
-	/**
-	 * Tries to get the namespace info.
-	 *
-	 * @param namespaceId Namespace id.
-	 * @return Namespace info if successful.
-	 */
-	public Optional<NamespaceInfo> tryGetNamesapceInfo(final NamespaceId namespaceId) {
-		try {
-			return Optional.of(getNamesapceInfo(namespaceId));
-		}
-		catch (final Exception e) {
-			System.out.println(e.getMessage());
-		}
-		return Optional.empty();
 	}
 
 	/**

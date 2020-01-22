@@ -24,7 +24,8 @@ git clone --recursive https://github.com/nemtech/nem2-e2e-tests.git
     - ``userPrivateKey``: Private key of the user which will be use to sign each transaction. You can find a list of users in ``build/generated-addresses/addresses.yaml`` file under the ``nemesis_addresses`` section.
     - ``automationPrivateKey``: If automation is running on the same host as the api server(i.e. same IP) then the set to api server boot private key.  Otherwise it can be any private key.
 	- ``harvesterPublicKey``: Hasvester's public key of the specified Hasvester in the config-harvesting.properties file.
-
+	- ``restGatewayUrl`` : Restway url. The default is http://localhost:3000
+	- ``RepositoryFactoryType`` : This specify how automation communicates with the catapult server.  ``Direct`` tranactions are sent directly to the server.  ``Vertx`` uses the restway to submit transactions to the catapult server. 
 
 ## Running the tests
 

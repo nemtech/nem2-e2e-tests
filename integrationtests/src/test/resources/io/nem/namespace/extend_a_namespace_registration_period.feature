@@ -41,5 +41,5 @@
 
   Scenario: An account tries to extend a namespace registration period but does not have enough funds
     Given Bob registered the namespace named "bob_nofunds" for 5 block
-    When  Bob tries to extends the registration of the namespace named "bob_nofunds" for 1000 blocks
+    When  Bob tries to extends the registration of the namespace named "bob_nofunds" for 1728000 blocks
     Then  she should receive the error "FAILURE_CORE_INSUFFICIENT_BALANCE"

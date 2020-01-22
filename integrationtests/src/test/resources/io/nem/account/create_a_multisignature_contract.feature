@@ -3,8 +3,8 @@ Feature: Create a multisignature contract
   I want to create a multisignature contract between my phone and my computer,
   so that I have multi factor-authentication.
 
-    Given the maximum number of cosignatories per multisignature contract is 10
-    And the maximum number of multisignature contracts an account can be cosignatory of is 5
+#  Given the maximum number of cosignatories per multisignature contract is 10
+#  And the maximum number of multisignature contracts an account can be cosignatory of is 5
 
   @bvt
   Scenario Outline: An account creates an M-of-N contract

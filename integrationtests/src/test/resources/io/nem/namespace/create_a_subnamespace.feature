@@ -62,6 +62,7 @@ Feature: Create a subnamespace
     And Alice "cat.currency" balance should remain intact
 
   Scenario: An account tries to create a subnamespace but does not have enough funds
-    Given Bob registered the namespace named "bobs" for 5 blocks
-    When Bob tries to creates a subnamespace named "bobs.subnamespace"
-    Then she should receive the error "FAILURE_CORE_INSUFFICIENT_BALANCE"
+    Given Tom has 10 units of the network currency
+    And Tom registered the namespace named "tom" for 5 blocks
+    When Tom tries to creates a subnamespace named "tom.subnamespace"
+    Then Tom should receive the error "FAILURE_CORE_INSUFFICIENT_BALANCE"

@@ -22,7 +22,7 @@ Background: Create assets for transfer.
   Scenario: An account sends an asset to itself
     When Alice sends 1 asset "X" to Alice
     Then she should receive a confirmation message
-    And Alice balance should remain intact
+    And Alice balance should decrease by transaction fee
 
   @bvt
   Scenario Outline: An account tries to send an asset to an invalid account
@@ -69,14 +69,14 @@ Background: Create assets for transfer.
 
   @bvt
   Scenario: An account sends a non-transferable asset to the account that registered the asset
-    Given Alice registers a non transferable asset which she transfer 10 asset to Sue
-    When Sue transfer 1 asset to Alice
+    Given Alice registers a non transferable asset which she transfer 10 asset to Bob
+    When Bob transfer 1 asset to Alice
     Then 1 asset transferred successfully
 
   @bvt
   Scenario: An account tries to send a non-transferable asset to another account
-    Given Alice registers a non transferable asset which she transfer 10 asset to Sue
-    When Sue transfer 1 asset to Bob
+    Given Alice registers a non transferable asset which she transfer 10 asset to Bob
+    When Bob transfer 1 asset to Sue
     Then she should receive the error "Failure_Mosaic_Non_Transferable"
 
   @bvt

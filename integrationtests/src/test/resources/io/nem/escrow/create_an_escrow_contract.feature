@@ -30,6 +30,15 @@ Feature: Create an escrow contract
     Then every sender participant should receive a notification to accept the contract
     And the swap of assets should conclude
 
+  Scenario: An account creates an escrow contract to multiple participants
+    Given Alice defined the following escrow contract:
+      | type           | sender | recipient | data             |
+      | send-an-asset  | Alice  | Bob       | 5 cat.currency   |
+      | send-an-asset  | Alice  | Bob       | 10 cat.currency  |
+    When Alice publishes the contract
+    Then every sender participant should receive a notification to accept the contract
+    And the swap of assets should conclude
+
   Scenario: An account tries to create an escrow already signed by the participants (multisig cosignatory)
     Given Alice created a 2 of 2 multisignature contract called "Tom" with 1 required for removal with cosignatories:
       | cosignatory |
@@ -42,7 +51,7 @@ Feature: Create an escrow contract
     And "Phone" accepted the contract
     And "Computer" accepted the contract
     When Alice publishes the contract
-    And the swap of assets should conclude
+    Then the swap of assets should conclude
 
   Scenario: An account tries to create an escrow already signed by the participants (mlma cosignatory)
     Given Alice created a 1 of 2 multisignature contract called "Computer" with 1 required for removal with cosignatories:
@@ -60,7 +69,7 @@ Feature: Create an escrow contract
     And "Browser" accepted the contract
     And "App" accepted the contract
     When Phone publishes the contract
-    And the swap of assets should conclude
+    Then the swap of assets should conclude
 
   Scenario: An account creates an escrow contract using other types of transactions
     Given Alice defined the following bonded escrow contract:
@@ -89,6 +98,17 @@ Feature: Create an escrow contract
     Then Bob balance should remain intact
     And Sue balance should remain intact
     And Alice "cat.currency" balance should decrease by 10 units
+
+  Scenario: An account submits an incomplete escrow contract then fixes and resubmit
+    Given Alice defined the following escrow contract:
+      | type           | sender | recipient | data             |
+      | send-an-asset  | Alice  | Bob       | 5 cat.currency   |
+      | send-an-asset  | Sue    | Alice     | 2 euros          |
+    And Alice publishes the contract
+    And Alice should receive the error "FAILURE_AGGREGATE_MISSING_COSIGNATURES"
+    And "Sue" accepted the contract
+    When Alice publishes the contract
+    Then the swap of assets should conclude
 
   Scenario: An account creates an escrow contract where one participant have insufficient balance
     Given Alice defined the following bonded escrow contract:
@@ -134,12 +154,13 @@ Feature: Create an escrow contract
     When Alice tries to lock 10 "cat.currency" to guarantee that the contract will conclude 1 blocks
     Then she should receive the error "FAILURE_LOCKHASH_HASH_ALREADY_EXISTS"
 
+  Scenario: An account tries to create an escrow contract without locking the funds
     Given Alice defined the following bonded escrow contract:
       | type           | sender   | recipient | data             |
       | send-an-asset  | Alice    | Bob       | 1 cat.currency   |
       | send-an-asset  | Bob      | Sue       | 2 cat.currency   |
     When she publishes no funds bonded contract
-    Then she should receive the error "Failure_Hash_Lock_Hash_Does_Not_Exist"
+    Then she should receive the error "FAILURE_LOCKHASH_UNKNOWN_HASH"
 
   Scenario: An account tries to create an escrow but locks another mosaic that is not cat.currency
     Given Alice defined the following bonded escrow contract:

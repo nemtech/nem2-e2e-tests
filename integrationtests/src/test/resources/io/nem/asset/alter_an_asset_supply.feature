@@ -48,3 +48,9 @@ Feature: Alter an asset supply
     And the asset is now expired
     When Alice tries to increase the asset supply in 2 units
     Then she should receive the error "FAILURE_MOSAIC_EXPIRED"
+
+  @not-implemented
+  Scenario: An account tries to alter a non-changeable asset property
+    Given Alice has registered an asset with divisibility 6
+    When Alice changes the divisibility to 5
+    Then she should receive the error "FAILURE_MOSAIC_MODIFICATION_DISALLOWED"

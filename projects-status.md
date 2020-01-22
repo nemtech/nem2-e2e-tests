@@ -37,7 +37,7 @@ Following table describes the status attributions for each of the icons that wil
 | enhanced delegated harvesting | :o: |
 | metadata key-value | :white_check_mark: |
 | restriction account| :white_check_mark: |
-| restriction mosaic | :o: |
+| restriction mosaic | :white_check_mark: |
 
 ### Dragon: [Protocol v0.4.?.?](https://github.com/nemtech/catapult-server/milestone/5)
 
@@ -58,11 +58,11 @@ Following table describes the status attributions for each of the icons that wil
 | aliases | :white_check_mark: |
 | receipts | :white_check_mark: |
 | escrow | :white_check_mark: |
-| fees | :o: |
+| fees | :white_check_mark: |
 | delegated harvesting | :o: |
 | secret locks hash algos | :white_check_mark: |
 | hashlock | :white_check_mark: |
-| merkle proofs | :stop_sign: |
+| merkle proofs | :o: |
 | rollback | :o: |
 | multiSig account | :white_check_mark: |
 | namespace | :white_check_mark: |

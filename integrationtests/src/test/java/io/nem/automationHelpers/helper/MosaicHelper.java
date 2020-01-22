@@ -22,8 +22,7 @@ package io.nem.automationHelpers.helper;
 
 import io.nem.automationHelpers.common.TestContext;
 import io.nem.core.utils.ExceptionUtils;
-import io.nem.sdk.infrastructure.common.MosaicRepository;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.dao.MosaicsDao;
+import io.nem.sdk.api.MosaicRepository;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.blockchain.BlockDuration;
 import io.nem.sdk.model.mosaic.*;
@@ -314,7 +313,7 @@ public class MosaicHelper {
 		return ExceptionUtils.propagate(
 				() -> {
 					final MosaicRepository mosaicRepository =
-							new MosaicsDao(testContext.getCatapultContext());
+							testContext.getRepositoryFactory().createMosaicRepository();
 					return mosaicRepository.getMosaic(mosaicId).toFuture().get();
 				});
 	}

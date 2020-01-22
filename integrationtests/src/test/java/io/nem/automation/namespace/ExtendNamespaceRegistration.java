@@ -54,15 +54,17 @@ public class ExtendNamespaceRegistration extends BaseTest {
 		final NamespaceInfo namespaceInfo =
 				getTestContext().getScenarioContext().getContext(NAMESPACE_INFO_KEY);
 		getTestContext().getScenarioContext().setContext(NAMESPACE_FIRST_INFO_KEY, namespaceInfo);
+		final String actualNamespaceName = getActualNamespaceName(namespaceName);
 		new RegisterNamespace(getTestContext())
-				.registerNamespaceForUserAndWait(userName, namespaceName, duration);
+				.registerNamespaceForUserAndWait(userName, actualNamespaceName, duration);
 	}
 
 	@When(
 			"^(\\w+) tries to extends the registration of the namespace named \"(\\w+)\" for (\\d+) blocks?$")
 	public void extendsNamespaceRegistrationFails(
 			final String userName, final String namespaceName, final BigInteger duration) {
-        new RegisterNamespace(getTestContext()).registerNamespaceForUserAndAnnounce(userName, namespaceName, duration);
+        new RegisterNamespace(getTestContext()).registerNamespaceForUserAndAnnounce(userName, getActualNamespaceName(namespaceName),
+				duration);
 	}
 
 	@And("^the namespace is now under grace period$")

@@ -187,9 +187,10 @@ public class CreateEscrowContract extends BaseTest {
 			final AccountInfo senderAccountInfoAfter =
 					new AccountHelper(getTestContext()).getAccountInfo(senderAccountInfo.getAddress());
 			final Mosaic mosaicAfter = getMosaic(senderAccountInfoAfter, mosaicId).get();
+			final BigInteger fees = getUserFee(senderAccountInfo.getPublicAccount(), initialMosaic.getId());
 			assertEquals(
 					mosaic.getAmount().longValue(),
-					initialMosaic.getAmount().longValue() - mosaicAfter.getAmount().longValue());
+					initialMosaic.getAmount().longValue() - mosaicAfter.getAmount().longValue() - fees.longValue());
 		}
 	}
 

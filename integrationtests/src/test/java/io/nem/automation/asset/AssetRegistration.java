@@ -101,22 +101,15 @@ public class AssetRegistration extends BaseTest {
 		final AccountInfo newAccountInfo =
 				new AccountHelper(getTestContext()).getAccountInfo(initialAccountInfo.getAddress());
 		final MosaicId mosaicId = new MosaicHelper(getTestContext()).getNetworkCurrencyMosaicId();
-		final Mosaic mosaicBefore =
-				initialAccountInfo.getMosaics().stream()
-						.filter(mosaic -> mosaic.getId().getIdAsLong() == mosaicId.getIdAsLong())
-						.findAny()
-						.get();
-		final Mosaic mosaicAfter =
-				newAccountInfo.getMosaics().stream()
-						.filter(mosaic -> mosaic.getId().getIdAsLong() == mosaicId.getIdAsLong())
-						.findAny()
-						.get();
+		final Mosaic mosaicBefore = getMosaic(initialAccountInfo, mosaicId).get();
+		final Mosaic mosaicAfter = getMosaic(newAccountInfo, mosaicId).get();
 		assertEquals(mosaicBefore.getId(), mosaicAfter.getId());
-
+		final BigInteger fee = getUserFee(initialAccountInfo.getPublicAccount());
+		final long exceptedFee = amountChange == 0 ? 0 : fee.longValue();
 		assertEquals(
 				amountChange,
 				mosaicBefore.getAmount().longValue()
-						- mosaicAfter.getAmount().longValue());
+						- mosaicAfter.getAmount().longValue() - exceptedFee);
 	}
 
 	@When("^(\\w+) registers (\\w+), supply (\\w+) with divisibility (\\d+) asset for (\\d+) in blocks$")
@@ -148,9 +141,11 @@ public class AssetRegistration extends BaseTest {
 	}
 
 	@And("(\\w+) pays fee in (\\d+) units")
-	public void verifyAccountBalanceDueToFee(final String userName, final int change) {
+	public void verifyAccountBalanceDueToFee(final String userName, final BigInteger change) {
 		final AccountInfo accountInfoBefore = getAccountInfoFromContext(userName);
-		final BigInteger actualAmountChange = getCalculatedDynamicFee(change);
+		final BigInteger transactionHeight =
+				getTestContext().getTransactions().get(getTestContext().getTransactions().size() - 1).getTransactionInfo().get().getHeight();
+		final BigInteger actualAmountChange = getCalculatedDynamicFee(change, transactionHeight);
 		verifyAccountBalance(accountInfoBefore, actualAmountChange.longValue());
 	}
 
@@ -324,17 +319,32 @@ mosaicFlags,
 		storeMosaicInfo(assetName, mosaicInfo);
 	}
 
+//	@Given("^(\\w+) has the following restrictable assets registered and active:$")
+//	public void registerRestrictableAsset(final String userName, final List<String> assetNames) {
+//		final Account account = getUser(userName);
+//		assetNames.parallelStream().forEach(assetName -> {
+//			final boolean isSupplyMutable = CommonHelper.getRandomNextBoolean();
+//			final boolean isTransferable = CommonHelper.getRandomNextBoolean();
+//			final boolean isRestrictable = true;
+//			final int divisibility = CommonHelper.getRandomDivisibility();
+//			final BigInteger initialSuppy = BigInteger.valueOf(10);
+//			final MosaicFlags mosaicFlags = MosaicFlags.create(isSupplyMutable, isTransferable, isRestrictable);
+//			final MosaicInfo mosaicInfo =
+//					mosaicHelper.createMosaic(account, mosaicFlags, divisibility, initialSuppy);
+//			storeMosaicInfo(assetName, mosaicInfo);
+//		});
+//	}
 
 	@And("^the asset is now expired$")
 	public void waitForMosaicToExpire() {
 		final MosaicInfo mosaicInfo = getMosaicInfo(MOSAIC_INFO_KEY);
-		final BlockChainHelper blockchainDao = new BlockChainHelper(getTestContext());
+		final BlockChainHelper blockChainHelper = new BlockChainHelper(getTestContext());
 		if (0 == mosaicInfo.getDuration().longValue()) {
 			final String errorMessage = "Mosaicid " + mosaicInfo.getMosaicId() + " does not expire.";
 			throw new IllegalStateException(errorMessage);
 		}
 		final long endHeight = mosaicInfo.getStartHeight().longValue() + mosaicInfo.getDuration().longValue();
-		while (blockchainDao.getBlockchainHeight().longValue() <= endHeight) {
+		while (blockChainHelper.getBlockchainHeight().longValue() <= endHeight) {
 			ExceptionUtils.propagateVoid(() -> Thread.sleep(1000));
 		}
 	}

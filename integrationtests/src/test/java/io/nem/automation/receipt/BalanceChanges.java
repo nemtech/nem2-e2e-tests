@@ -69,7 +69,7 @@ public class BalanceChanges extends BaseTest {
 
 	private void verifyBalanceChangeReceipt(final BigInteger receiptHeight, final ReceiptType receiptType,
 											final String namespaceName, final BigInteger actualAmount, final PublicKey targetPublicKey) {
-		final NamespaceId namespaceId = getNamespaceIdFromName(namespaceName);
+		final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
 		final Mosaic mosaic = new MosaicHelper(getTestContext()).getMosaicFromNamespace(namespaceId, actualAmount);
 		verifyBalanceChangeReceipt(receiptHeight, receiptType, mosaic, targetPublicKey);
 	}

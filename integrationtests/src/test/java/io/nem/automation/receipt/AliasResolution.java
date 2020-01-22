@@ -63,7 +63,7 @@ public class AliasResolution extends BaseTest {
     final Account senderAccount = getUser(username);
     final NamespaceId recipientAddress = resolveNamespaceIdFromName(recipientAlias);
     final List<Mosaic> mosaics =
-        Arrays.asList(new Mosaic(getNamespaceIdFromName(assetAlias), amount));
+        Arrays.asList(new Mosaic(resolveNamespaceIdFromName(assetAlias), amount));
     final TransferHelper transferHelper = new TransferHelper(getTestContext());
     transferHelper.submitTransferAndWait(
         senderAccount, recipientAddress, mosaics, PlainMessage.Empty);
@@ -105,7 +105,7 @@ public class AliasResolution extends BaseTest {
 
   @Then("^\"(\\w+)\" should get asset for (\\w+)$")
   public void VerifyAssetResolution(final String userName, final String assetName) {
-    final NamespaceId namespaceId = getNamespaceIdFromName(assetName);
+    final NamespaceId namespaceId = resolveNamespaceIdFromName(assetName);
     final MosaicId mosaicId = new NamespaceHelper(getTestContext()).getLinkedMosaicId(namespaceId);
     final TransferTransaction transferTransaction = waitForLastTransactionToComplete();
     final Statement statement =

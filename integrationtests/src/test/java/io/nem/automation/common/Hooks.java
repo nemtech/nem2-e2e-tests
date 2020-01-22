@@ -27,6 +27,8 @@ import cucumber.runtime.ScenarioImpl;
 import io.nem.automationHelpers.common.Log;
 import io.nem.automationHelpers.common.TestContext;
 import io.nem.automationHelpers.helper.CommonHelper;
+import org.junit.Rule;
+import org.junit.rules.Timeout;
 
 import static io.nem.automation.common.BaseTest.CORE_USER_ACCOUNTS;
 
@@ -36,6 +38,10 @@ import static io.nem.automation.common.BaseTest.CORE_USER_ACCOUNTS;
 public class Hooks {
 	private final TestContext testContext;
 	private ScenarioNameMap scenarioNameMap;
+
+	@Rule
+	public Timeout globalTimeout = Timeout.seconds(60 * 10); // 10 minutes max per method tested
+
 
 	public Hooks(final TestContext testContext) {
 		this.testContext = testContext;

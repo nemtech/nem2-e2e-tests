@@ -33,7 +33,8 @@ Feature: Link a namespace to an asset
 
   @bvt
   Scenario: An account is able to send an asset using a subnamespace alias
-    Given Alice registered the subnamespace "alice.token"
+    Given Alice registered the namespace named "alice" for 10 blocks
+    And Alice registered the subnamespace "alice.token"
     And Alice registered the asset "X"
     When Alice links the namespace "alice.token" to the asset "X"
     Then she should receive a confirmation message
@@ -41,7 +42,8 @@ Feature: Link a namespace to an asset
 
   @bvt
   Scenario: An account tries to send an asset using namespace alias to an assest after unlinking it
-    Given Alice registered the subnamespace "alice.asset"
+    Given Alice registered the namespace named "alice" for 10 blocks
+    And Alice registered the subnamespace "alice.asset"
     And Alice registered the asset "T"
     And Alice links the namespace "alice.asset" to the asset "T"
     When Alice unlinks the namespace "alice.asset" from the asset "T"

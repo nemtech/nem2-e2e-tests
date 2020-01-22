@@ -115,8 +115,8 @@ public class RegisterSubNamespace extends BaseTest {
 	public void registerSubNamespace(final String userName, final String subNamespace) {
 		final BigInteger duration = BigInteger.valueOf(50);
 		final String subNamespaceName = getSubNamespaceName(subNamespace);
-		final String parentName = getParentName(subNamespace);
-		final String randomSubName = CommonHelper.getRandomNamespaceName(subNamespaceName);
+		final String parentName = getActualNamespaceName(getParentName(subNamespace));
+		final String randomSubName = createRandomNamespace(subNamespaceName, getTestContext());
 		new RegisterNamespace(getTestContext())
 				.registerNamespaceForUserAndWait(userName, parentName, duration);
 		registerSubNamespaceForUserAndWait(userName, randomSubName, parentName);
@@ -129,15 +129,15 @@ public class RegisterSubNamespace extends BaseTest {
 	public void createSubNamespaceInvalid(final String userName, final String subNamespace) {
 		final String realName = resolveNamespaceName(subNamespace);
 		createSubNamespaceForUser(
-				userName, getSubNamespaceName(realName), getParentName(realName));
+				userName, getSubNamespaceName(realName), getActualNamespaceName(getParentName(realName)));
 	}
 
 	@When("^(\\w+) tries to creates a subnamespace \"(.*)\" which is too deep$")
 	public void createSubNamespaceTooDeep(final String userName, final String subNamespace) {
 		final String[] parts = subNamespace.split("\\.");
-		String parentName = parts[0];
+		String parentName = getActualNamespaceName(parts[0]);
 		for (int i = 1; i < parts.length - 1; i++) {
-			final String randomSubName = CommonHelper.getRandomNamespaceName(parts[i]);
+			final String randomSubName = createRandomNamespace(parts[i], getTestContext());
 			registerSubNamespaceForUserAndWait(userName, randomSubName, parentName);
 			parentName += "." + randomSubName;
 		}

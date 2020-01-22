@@ -19,7 +19,7 @@ Feature: Prevent receiving transactions containing a specific asset
       | voucher |
     When Alex tries to send 1 asset "ticket" to Bobby
     Then Bobby should receive a confirmation message
-    And Alex should receive the error "Failure_RestrictionAccount_Mosaic_Transfer_Prohibited"
+    And Alex should receive the error "FAILURE_RESTRICTIONACCOUNT_MOSAIC_TRANSFER_PROHIBITED"
     And Bobby balance should remain intact
     And Alex balance should remain intact
 
@@ -45,10 +45,19 @@ Feature: Prevent receiving transactions containing a specific asset
     Then Bobby should receive a confirmation message
 #     And receiving voucher assets should remain blocked
       # This can be confirmed when Alex receives below error when he tries send a voucher asset to Bobby.
-    And Alex should receive the error "Failure_RestrictionAccount_Mosaic_Transfer_Prohibited"
+    And Alex should receive the error "FAILURE_RESTRICTIONACCOUNT_MOSAIC_TRANSFER_PROHIBITED"
+
+  Scenario: An unblocked asset should be transferable
+    Given Bobby blocks receiving transactions containing the following assets:
+      | ticket  |
+      | voucher |
+    And Bobby removes ticket from blocked assets
+    When Alex tries to send 1 asset "ticket" to Bobby
+    Then Bobby should receive a confirmation message
+    And Bobby should receive 1 of asset "ticket"
 
   Scenario: 4. An account removes an asset from the allowed assets
-    Given Bobby has only allowed receiving the following assets
+    Given Bobby has only allowed receiving the following assets:
       | ticket  |
       | voucher |
     When Bobby removes ticket from allowed assets
@@ -61,49 +70,49 @@ Feature: Prevent receiving transactions containing a specific asset
   Scenario: 5. An account unblocks a not blocked asset
     Given Bobby has blocked receiving ticket assets
     When Bobby tries to remove voucher from blocked assets
-    Then Bobby should receive the error "Failure_RestrictionAccount_Invalid_Modification"
+    Then Bobby should receive the error "FAILURE_RESTRICTIONACCOUNT_INVALID_MODIFICATION"
 
   Scenario: 6. An account removes an asset that does not exist in the allowed assets
     Given Bobby has blocked receiving ticket assets
     When Bobby tries to remove voucher from allowed assets
-    Then Bobby should receive the error "Failure_RestrictionAccount_Invalid_Modification"
+    Then Bobby should receive the error "FAILURE_RESTRICTIONACCOUNT_INVALID_MODIFICATION"
 
   Scenario: 7. An account tries only to allow receiving transactions containing specific assets when it has blocked assets
     Given Bobby has blocked receiving ticket assets
     When Bobby tries to only allow receiving voucher assets
-    Then Bobby should receive the error "Failure_RestrictionAccount_Invalid_Modification"
+    Then Bobby should receive the error "FAILURE_RESTRICTIONACCOUNT_INVALID_MODIFICATION"
 
   Scenario: 8. An account tries to block receiving transactions containing specific assets when it has allowed assets
     Given Bobby has only allowed receiving ticket assets
     When Bobby tries to block receiving voucher assets
-    Then Bobby should receive the error "Failure_RestrictionAccount_Invalid_Modification"
+    Then Bobby should receive the error "FAILURE_RESTRICTIONACCOUNT_INVALID_MODIFICATION"
 
   Scenario: 9. An account tries to block an asset twice
     Given Bobby has blocked receiving ticket assets
     When Bobby tries to block receiving ticket assets
-    Then Bobby should receive the error "Failure_RestrictionAccount_Invalid_Modification"
+    Then Bobby should receive the error "FAILURE_RESTRICTIONACCOUNT_INVALID_MODIFICATION"
 
   Scenario: 10. An account tries to allow an asset twice
     Given Bobby has only allowed receiving ticket assets
     When Bobby tries to only allow receiving ticket assets
-    Then Bobby should receive the error "Failure_RestrictionAccount_Invalid_Modification"
+    Then Bobby should receive the error "FAILURE_RESTRICTIONACCOUNT_INVALID_MODIFICATION"
 
   Scenario: 11. An account tries add too many restrictions in a single transaction
     Given Alex has 515 different assets registered and active
     When Bobby tries to add more than 512 restrictions in a transaction
-    Then Bobby should receive the error "Failure_RestrictionAccount_Modification_Count_Exceeded"
+    Then Bobby should receive the error "FAILURE_RESTRICTIONACCOUNT_MODIFICATION_COUNT_EXCEEDED"
 
   Scenario: 12. An account tries delete too many restrictions in a single transaction
     Given Alex has 515 different assets registered and active
     When Bobby tries to delete more than 512 restrictions in a transaction
-    Then Bobby should receive the error "Failure_RestrictionAccount_Modification_Count_Exceeded"
+    Then Bobby should receive the error "FAILURE_RESTRICTIONACCOUNT_MODIFICATION_COUNT_EXCEEDED"
 
   Scenario: 13. An account tries to block too many mosaics
     Given Bobby has already blocked receiving 512 different assets
     When Bobby tries to block receiving ticket assets
-    Then Bobby should receive the error "Failure_RestrictionAccount_Values_Count_Exceeded"
+    Then Bobby should receive the error "FAILURE_RESTRICTIONACCOUNT_VALUES_COUNT_EXCEEDED"
 
   Scenario: 14. An account tries to only allow too many mosaics
     Given Bobby has already allowed receiving 512 different assets
     When Bobby tries to only allow receiving ticket assets
-    Then Bobby should receive the error "Failure_RestrictionAccount_Values_Count_Exceeded"
+    Then Bobby should receive the error "FAILURE_RESTRICTIONACCOUNT_VALUES_COUNT_EXCEEDED"

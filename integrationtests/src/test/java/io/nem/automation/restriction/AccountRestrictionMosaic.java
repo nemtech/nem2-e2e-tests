@@ -10,7 +10,7 @@ import io.nem.core.utils.ExceptionUtils;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.mosaic.MosaicId;
 import io.nem.sdk.model.mosaic.UnresolvedMosaicId;
-import io.nem.sdk.model.transaction.AccountRestrictionType;
+import io.nem.sdk.model.transaction.AccountRestrictionFlags;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ public class AccountRestrictionMosaic extends BaseTest {
         final List<UnresolvedMosaicId> additions = new ArrayList<>();
         allowedAssets.forEach(asset -> additions.add(resolveMosaicId(asset)));
         accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndWait(
-                signerAccount, AccountRestrictionType.ALLOW_INCOMING_MOSAIC, additions, new ArrayList<>());
+                signerAccount, AccountRestrictionFlags.ALLOW_INCOMING_MOSAIC, additions, new ArrayList<>());
     }
 
     @When("^(\\w+) blocks receiving transactions containing the following assets:$")
@@ -61,7 +61,7 @@ public class AccountRestrictionMosaic extends BaseTest {
         final List<UnresolvedMosaicId> additions = new ArrayList<>();
         blockedAssets.forEach(asset -> additions.add(resolveMosaicId(asset)));
         accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndWait(
-                signerAccount, AccountRestrictionType.BLOCK_MOSAIC, additions, new ArrayList<>());
+                signerAccount, AccountRestrictionFlags.BLOCK_MOSAIC, additions, new ArrayList<>());
     }
 
     @When("^(\\w+) removes the restriction on the following allowed assets:$")
@@ -71,7 +71,7 @@ public class AccountRestrictionMosaic extends BaseTest {
         final List<UnresolvedMosaicId> deletions = new ArrayList<>();
         allowedAssets.forEach(asset -> deletions.add(resolveMosaicId(asset)));
         accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndWait(
-                signerAccount, AccountRestrictionType.ALLOW_INCOMING_MOSAIC, new ArrayList<>(), deletions);
+                signerAccount, AccountRestrictionFlags.ALLOW_INCOMING_MOSAIC, new ArrayList<>(), deletions);
     }
 
     @When("^(\\w+) removes the restriction on the following blocked assets:$")
@@ -81,7 +81,7 @@ public class AccountRestrictionMosaic extends BaseTest {
         final List<UnresolvedMosaicId> deletions = new ArrayList<>();
         blockedAssets.forEach(asset -> deletions.add(resolveMosaicId(asset)));
         accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndWait(
-                signerAccount, AccountRestrictionType.BLOCK_MOSAIC, new ArrayList<>(), deletions);
+                signerAccount, AccountRestrictionFlags.BLOCK_MOSAIC, new ArrayList<>(), deletions);
     }
 
     @When("^(\\w+) removes ([^\"]*) from blocked assets$")
@@ -104,6 +104,11 @@ public class AccountRestrictionMosaic extends BaseTest {
         this.allowsReceivingTransactionsContainingTheFollowingAssets(username, new ArrayList<>(Collections.singletonList(asset)));
     }
 
+    @Given("^(\\w+) has only allowed receiving the following assets:$")
+    public void hasOnlyAllowedReceivingFollowingAssets(final String username, final List<String> assets) {
+        this.allowsReceivingTransactionsContainingTheFollowingAssets(username, assets);
+    }
+
     @When("^(\\w+) tries to remove ([^\"]*) from blocked assets$")
     public void triesToUnblockReceivingAssets(final String username, final String asset) {
         final Account signerAccount = getUser(username);
@@ -111,7 +116,7 @@ public class AccountRestrictionMosaic extends BaseTest {
         List<UnresolvedMosaicId> deletions = new ArrayList<>();
         deletions.add(resolveMosaicId(asset));
         accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(signerAccount,
-                AccountRestrictionType.BLOCK_MOSAIC, additions, deletions);
+                AccountRestrictionFlags.BLOCK_MOSAIC, additions, deletions);
     }
 
     @When("^(\\w+) tries to block receiving ([^\"]*) assets$")
@@ -121,7 +126,7 @@ public class AccountRestrictionMosaic extends BaseTest {
         final List<UnresolvedMosaicId> deletions = new ArrayList<>();
         additions.add(resolveMosaicId(asset));
         accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(signerAccount,
-                AccountRestrictionType.BLOCK_MOSAIC, additions, deletions);
+                AccountRestrictionFlags.BLOCK_MOSAIC, additions, deletions);
     }
 
     @When("^(\\w+) tries to only allow receiving ([^\"]*) assets$")
@@ -131,7 +136,7 @@ public class AccountRestrictionMosaic extends BaseTest {
         final List<UnresolvedMosaicId> deletions = new ArrayList<>();
         additions.add(resolveMosaicId(asset));
         accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(signerAccount,
-                AccountRestrictionType.ALLOW_INCOMING_MOSAIC, additions, deletions);
+                AccountRestrictionFlags.ALLOW_INCOMING_MOSAIC, additions, deletions);
     }
 
     @When("^(\\w+) tries to remove ([^\"]*) from allowed assets$")
@@ -141,7 +146,7 @@ public class AccountRestrictionMosaic extends BaseTest {
         final List<UnresolvedMosaicId> deletions = new ArrayList<>();
         deletions.add(resolveMosaicId(asset));
         accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(signerAccount,
-                AccountRestrictionType.ALLOW_INCOMING_MOSAIC, additions, deletions);
+                AccountRestrictionFlags.ALLOW_INCOMING_MOSAIC, additions, deletions);
     }
 
     @Given("^(\\w+) has already (allowed|blocked) receiving (\\d+) different assets$")
@@ -169,10 +174,10 @@ public class AccountRestrictionMosaic extends BaseTest {
         });
         if (addOrDelete.equalsIgnoreCase("add")) {
             accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(signerAccount,
-                    AccountRestrictionType.BLOCK_MOSAIC, modifications, new ArrayList<>());
+                    AccountRestrictionFlags.BLOCK_MOSAIC, modifications, new ArrayList<>());
         } else if (addOrDelete.equalsIgnoreCase("delete")) {
             accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(signerAccount,
-                    AccountRestrictionType.BLOCK_MOSAIC, new ArrayList<>(), modifications);
+                    AccountRestrictionFlags.BLOCK_MOSAIC, new ArrayList<>(), modifications);
         }
     }
 

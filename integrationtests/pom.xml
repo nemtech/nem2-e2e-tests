@@ -59,6 +59,14 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.nem/sdk-vertx-client -->
+        <dependency>
+            <groupId>io.nem</groupId>
+            <artifactId>sdk-vertx-client</artifactId>
+            <version>0.16.1</version>
+        </dependency>
+
+
         <!--        <dependency>-->
         <!--            <groupId>org.apache.logging.log4j</groupId>-->
         <!--            <artifactId>log4j-core</artifactId>-->

@@ -36,7 +36,7 @@ Feature: Register a namespace
 
   Scenario Outline: An account tries to register a namespace with an invalid duration
     When Alice tries to registers a namespace named "alice" for <duration> block
-    Then she should receive the error "<error>"
+    Then Alice should receive the error "<error>"
     And Alice "cat.currency" balance should remain intact
 
     Examples:

@@ -103,7 +103,8 @@ public class RegisterNamespace extends BaseTest {
 
 	@And("^(\\w+) should become the owner of the new namespace (\\w+) for least (\\w+) block$")
 	public void verifyNamespaceOwnerShip(final String userName, final String namespaceName, final BigInteger duration) {
-		verifyNamespaceInfo(userName, NamespaceId.createFromName(namespaceName), duration);
+		final String actualNamespaceName = getActualNamespaceName(namespaceName);
+		verifyNamespaceInfo(userName, NamespaceId.createFromName(actualNamespaceName), duration);
 	}
 
 	@Then("^(\\w+) should receive a confirmation message$")
@@ -119,14 +120,16 @@ public class RegisterNamespace extends BaseTest {
 	@When("^(\\w+) tries to registers a namespace named \"(.*)\" for (-?\\d+) blocks?$")
 	public void registerNamespaceWithInvalidValues(
 			final String userName, final String namespaceName, final BigInteger duration) {
-		registerNamespaceForUser(userName, namespaceName, duration);
+		final String actualName = getActualNamespaceName(namespaceName);
+		registerNamespaceForUser(userName, actualName, duration);
 	}
 
 	@Given("^(\\w+) registered the namespace named \"(\\w+)\" for (\\d+) blocks?$")
 	@When("^(\\w+) registers a namespace named \"(\\w+)\" for (\\d+) blocks?$")
 	public void registerNamespaceValid(
 			final String userName, final String namespaceName, final BigInteger duration) {
-		registerNamespaceForUserAndWait(userName, namespaceName, duration);
+		final String randomName = createRandomNamespace(namespaceName, getTestContext());
+		registerNamespaceForUserAndWait(userName, randomName, duration);
 	}
 
 	@Given("^(\\w+) has has no \"cat.currency\"$")
@@ -137,7 +140,7 @@ public class RegisterNamespace extends BaseTest {
 	@And("^(\\w+) registers new namespace (\\w+)$")
 	public void registerNamespace(final String userName, final String namespaceName) {
 		final BigInteger duration = BigInteger.valueOf(20);
-		final String randomName = CommonHelper.getRandomNamespaceName(namespaceName);
+		final String randomName = createRandomNamespace(namespaceName, getTestContext());
 		getTestContext().getScenarioContext().setContext(namespaceName, randomName);
 		getTestContext().getScenarioContext().setContext(namespaceName + "Count", 20);
 		registerNamespaceForUserAndWait(userName, randomName, duration);
@@ -159,10 +162,10 @@ public class RegisterNamespace extends BaseTest {
 				namespaceHelper.createRootNamespaceAndAnnonce(account, namespaceName, duration);
 	}
 
-	@When("^(\\w+) tries to register a new namespace$")
-	public void triesToRegisterANamespace(final String username, final String namespaceName) {
+  @When("^(\\w+) tries to register a new namespace (\\w+)$")
+  public void triesToRegisterANamespace(final String username, final String namespaceName) {
 		final BigInteger duration = BigInteger.valueOf(20);
-		final String randomName = CommonHelper.getRandomNamespaceName(namespaceName);
+		final String randomName = createRandomNamespace(namespaceName, getTestContext());
 		getTestContext().getScenarioContext().setContext(namespaceName, randomName);
 		registerNamespaceForUserAndAnnounce(username, randomName, duration);
 	}

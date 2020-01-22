@@ -47,22 +47,22 @@ public class AccountRestrictionHelper {
 
 /*
     /**
-     * Generates the AccountRestrictionType enum value from given restriction operation (allow/block)
+     * Generates the AccountRestrictionFlags enum value from given restriction operation (allow/block)
      * and a given restricted item type (asset/address/transaction type)
      *
      * @param restrictionOperation restriction operation - allow or block
      * @param restrictedItem       restricted item type - asset or address or transaction type
-     * @return AccountRestrictionType object
+     * @return AccountRestrictionFlags object
      * /
-    public AccountRestrictionType getAccountRestrictionType(final String restrictionOperation,
+    public AccountRestrictionFlags getAccountRestrictionFlag(final String restrictionOperation,
                                                             final String restrictedItem) {
-        String accountRestrictionTypeString = "";
+        String AccountRestrictionFlagString = "";
         switch (restrictionOperation.toUpperCase()) {
             case "ALLOWS":
-                accountRestrictionTypeString = "ALLOW_INCOMING_";
+                AccountRestrictionFlagString = "ALLOW_INCOMING_";
                 break;
             case "BLOCKS":
-                accountRestrictionTypeString = "BLOCK_";
+                AccountRestrictionFlagString = "BLOCK_";
                 break;
         }
 
@@ -70,55 +70,55 @@ public class AccountRestrictionHelper {
 
             case "ADDRESS":
             case "ADDRESSES":
-                accountRestrictionTypeString += "ADDRESS";
+                AccountRestrictionFlagString += "ADDRESS";
                 break;
             case "ASSET":
             case "ASSETS":
-                accountRestrictionTypeString += "MOSAIC";
+                AccountRestrictionFlagString += "MOSAIC";
                 break;
             case "TRANSACTION TYPE":
             case "TRANSACTION TYPES":
-                accountRestrictionTypeString += "TRANSACTION_TYPE";
+                AccountRestrictionFlagString += "TRANSACTION_TYPE";
                 break;
         }
-        return AccountRestrictionType.valueOf(accountRestrictionTypeString);
+        return AccountRestrictionFlags.valueOf(AccountRestrictionFlagString);
     }
 
     public void removeAppropriateModificationTransactionAndWait(final String restrictedItem,
                                                                 final List<Object> restrictedItems,
                                                                 final Account signerAccount,
-                                                                final AccountRestrictionType accountRestrictionType) {
-		createAppropriateRestrictionTransaction(restrictedItem, restrictedItems, signerAccount, accountRestrictionType,
+                                                                final AccountRestrictionFlags AccountRestrictionFlags) {
+		createAppropriateRestrictionTransaction(restrictedItem, restrictedItems, signerAccount, AccountRestrictionFlags,
 				AccountRestrictionModificationAction.REMOVE, true);
     }
 
     public void addAppropriateModificationTransactionAndWait(final String restrictedItem,
                                                              final List<Object> restrictedItems,
                                                              final Account signerAccount,
-                                                             final AccountRestrictionType accountRestrictionType) {
-		createAppropriateRestrictionTransaction(restrictedItem, restrictedItems, signerAccount, accountRestrictionType,
+                                                             final AccountRestrictionFlags AccountRestrictionFlag) {
+		createAppropriateRestrictionTransaction(restrictedItem, restrictedItems, signerAccount, AccountRestrictionFlag,
 				AccountRestrictionModificationAction.ADD, true);
     }
 
     public void removeAppropriateModificationTransactionAndAnnounce(final String restrictedItem,
                                                                     final List<Object> restrictedItems,
                                                                     final Account signerAccount,
-                                                                    final AccountRestrictionType accountRestrictionType) {
-		createAppropriateRestrictionTransaction(restrictedItem, restrictedItems, signerAccount, accountRestrictionType,
+                                                                    final AccountRestrictionFlag AccountRestrictionFlag) {
+		createAppropriateRestrictionTransaction(restrictedItem, restrictedItems, signerAccount, AccountRestrictionFlag,
 				AccountRestrictionModificationAction.REMOVE, false);
     }
 
     public void addAppropriateModificationTransactionAndAnnounce(final String restrictedItem,
                                                                  final List<Object> restrictedItems,
                                                                  final Account signerAccount,
-                                                                 final AccountRestrictionType accountRestrictionType) {
-		createAppropriateRestrictionTransaction(restrictedItem, restrictedItems, signerAccount, accountRestrictionType,
+                                                                 final AccountRestrictionFlag AccountRestrictionFlag) {
+		createAppropriateRestrictionTransaction(restrictedItem, restrictedItems, signerAccount, AccountRestrictionFlag,
 				AccountRestrictionModificationAction.ADD, false);
     }
 
 	private void createAppropriateRestrictionTransaction(final String restrictedItem, final List<Object> restrictedItems,
 														 final Account signerAccount,
-														 final AccountRestrictionType accountRestrictionType,
+														 final AccountRestrictionFlag AccountRestrictionFlag,
 														 final AccountRestrictionModificationAction accountRestrictionModificationAction,
 														 final Boolean waitForTransaction) {
         switch (restrictedItem.toUpperCase()) {
@@ -132,10 +132,10 @@ public class AccountRestrictionHelper {
 				testContext.getLogger().LogInfo("assetModifications = %s", Arrays.toString(assetModifications.toArray()));
                 if (waitForTransaction) {
                     createAccountMosaicRestrictionTransactionAndWait(
-                            signerAccount, accountRestrictionType, assetModifications);
+                            signerAccount, AccountRestrictionFlag, assetModifications);
                 } else {
                     createAccountMosaicRestrictionTransactionAndAnnounce(
-                            signerAccount, accountRestrictionType, assetModifications);
+                            signerAccount, AccountRestrictionFlag, assetModifications);
                 }
                 break;
             case "ADDRESS":
@@ -147,10 +147,10 @@ public class AccountRestrictionHelper {
                 });
                 if (waitForTransaction) {
                     createAccountAddressRestrictionTransactionAndWait(
-                            signerAccount, accountRestrictionType, addressModifications);
+                            signerAccount, AccountRestrictionFlag, addressModifications);
                 } else {
                     createAccountAddressRestrictionTransactionAndAnnounce(
-                            signerAccount, accountRestrictionType, addressModifications);
+                            signerAccount, AccountRestrictionFlag, addressModifications);
                 }
                 break;
             case "TRANSACTION TYPE":
@@ -163,10 +163,10 @@ public class AccountRestrictionHelper {
                 });
                 if (waitForTransaction) {
                     createAccountTransactionTypeRestrictionTransactionAndWait(
-                            signerAccount, accountRestrictionType, operationModifications);
+                            signerAccount, AccountRestrictionFlag, operationModifications);
                 } else {
                     createAccountTransactionTypeRestrictionTransactionAndAnnounce(
-                            signerAccount, accountRestrictionType, operationModifications);
+                            signerAccount, AccountRestrictionFlag, operationModifications);
                 }
                 break;
         }
@@ -182,7 +182,7 @@ public class AccountRestrictionHelper {
 	 * @return
 	 */
 	public AccountMosaicRestrictionTransaction createAccountMosaicRestrictionTransactionAndWait(
-			Account account, AccountRestrictionType restrictionType,
+			Account account, AccountRestrictionFlags restrictionType,
 			List<UnresolvedMosaicId> additions, List<UnresolvedMosaicId> deletions) {
 
 		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
@@ -200,7 +200,7 @@ public class AccountRestrictionHelper {
 	 * @return
 	 */
 	public AccountAddressRestrictionTransaction createAccountAddressRestrictionTransactionAndWait(
-			Account account, AccountRestrictionType restrictionType,
+			Account account, AccountRestrictionFlags restrictionType,
 			List<UnresolvedAddress> additions, List<UnresolvedAddress> deletions) {
 
 		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
@@ -218,7 +218,7 @@ public class AccountRestrictionHelper {
 	 * @return
 	 */
 	public AccountOperationRestrictionTransaction createAccountTransactionTypeRestrictionTransactionAndWait(
-			Account account, AccountRestrictionType restrictionType,
+			Account account, AccountRestrictionFlags restrictionType,
 			List<TransactionType> additions, List<TransactionType> deletions) {
 
 		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
@@ -236,7 +236,7 @@ public class AccountRestrictionHelper {
 	 * @return
 	 */
 	public SignedTransaction createAccountMosaicRestrictionTransactionAndAnnounce(
-			Account account, AccountRestrictionType restrictionType,
+			Account account, AccountRestrictionFlags restrictionType,
 			List<UnresolvedMosaicId> additions, List<UnresolvedMosaicId> deletions) {
 		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
 		return transactionHelper.signAndAnnounceTransaction(
@@ -253,7 +253,7 @@ public class AccountRestrictionHelper {
 	 * @return
 	 */
 	public SignedTransaction createAccountAddressRestrictionTransactionAndAnnounce(
-			Account account, AccountRestrictionType restrictionType,
+			Account account, AccountRestrictionFlags restrictionType,
 			List<UnresolvedAddress> additions, List<UnresolvedAddress> deletions) {
 		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
 		return transactionHelper.signAndAnnounceTransaction(
@@ -270,7 +270,7 @@ public class AccountRestrictionHelper {
 	 * @return
 	 */
 	public SignedTransaction createAccountTransactionTypeRestrictionTransactionAndAnnounce(
-			Account account, AccountRestrictionType restrictionType,
+			Account account, AccountRestrictionFlags restrictionType,
 			List<TransactionType> additions, List<TransactionType> deletions) {
 		final TransactionHelper transactionHelper = new TransactionHelper(testContext);
 		return transactionHelper.signAndAnnounceTransaction(
@@ -286,10 +286,13 @@ public class AccountRestrictionHelper {
 	 * @return
 	 */
 	private AccountMosaicRestrictionTransaction createAccountMosaicRestrictionTransaction(
-			AccountRestrictionType restrictionType, List<UnresolvedMosaicId> additions,
+			AccountRestrictionFlags restrictionType, List<UnresolvedMosaicId> additions,
 			List<UnresolvedMosaicId> deletions) {
-		return AccountMosaicRestrictionTransactionFactory.create(
-				testContext.getNetworkType(), restrictionType, additions, deletions).build();
+		final AccountMosaicRestrictionTransactionFactory accountMosaicRestrictionTransactionFactory =
+				AccountMosaicRestrictionTransactionFactory.create(
+				testContext.getNetworkType(), restrictionType, additions, deletions);
+		return CommonHelper.appendCommonPropertiesAndBuildTransaction(accountMosaicRestrictionTransactionFactory,
+				TransactionHelper.getDefaultDeadline(), TransactionHelper.getDefaultMaxFee());
 	}
 
 	/**
@@ -300,10 +303,13 @@ public class AccountRestrictionHelper {
 	 * @return
 	 */
 	private AccountAddressRestrictionTransaction createAccountAddressRestrictionTransaction(
-			AccountRestrictionType restrictionType, List<UnresolvedAddress> additions,
+			AccountRestrictionFlags restrictionType, List<UnresolvedAddress> additions,
 			List<UnresolvedAddress> deletions) {
-		return AccountAddressRestrictionTransactionFactory.create(
-				testContext.getNetworkType(), restrictionType, additions, deletions).build();
+		final AccountAddressRestrictionTransactionFactory accountAddressRestrictionTransactionFactory =
+				AccountAddressRestrictionTransactionFactory.create(
+				testContext.getNetworkType(), restrictionType, additions, deletions);
+		return CommonHelper.appendCommonPropertiesAndBuildTransaction(accountAddressRestrictionTransactionFactory,
+				TransactionHelper.getDefaultDeadline(), TransactionHelper.getDefaultMaxFee());
 	}
 
 	/**
@@ -314,8 +320,11 @@ public class AccountRestrictionHelper {
 	 * @return
 	 */
 	private AccountOperationRestrictionTransaction createAccountTransactionTypeRestrictionTransaction(
-			AccountRestrictionType restrictionType, List<TransactionType> additions, List<TransactionType> deletions) {
-		return AccountOperationRestrictionTransactionFactory.create(
-				testContext.getNetworkType(), restrictionType, additions, deletions).build();
+			AccountRestrictionFlags restrictionType, List<TransactionType> additions, List<TransactionType> deletions) {
+		final AccountOperationRestrictionTransactionFactory accountOperationRestrictionTransactionFactory =
+				AccountOperationRestrictionTransactionFactory.create(
+				testContext.getNetworkType(), restrictionType, additions, deletions);
+		return CommonHelper.appendCommonPropertiesAndBuildTransaction(accountOperationRestrictionTransactionFactory,
+				TransactionHelper.getDefaultDeadline(), TransactionHelper.getDefaultMaxFee());
 	}
 }

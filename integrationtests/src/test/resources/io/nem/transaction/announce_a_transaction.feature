@@ -34,13 +34,13 @@ Feature: Announce a transaction
 
   Scenario: An account tries to announce a transaction with an invalid signature
     When Alice announces the transaction with invalid signature
-    Then she should receive the error "FAILURE_SIGNATURE_NOT_VERIFIABLE"
+    Then Alice balance should remain intact
 
   Scenario: An account tries to announce an already announced transaction
     Given Alice registered the asset "X"
     When Alice sends 2 asset "X" to Bob
     When Alice announces same the transaction
-    Then she should receive the error "FAILURE_HASH_ALREADY_EXISTS"
+    Then Alice balance should remain intact
 
   Scenario: An account tries to announce a transaction with an invalid network
     When Alice announces the transaction to the incorrect network

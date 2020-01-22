@@ -21,8 +21,6 @@
 package io.nem.automationHelpers.helper;
 
 import io.nem.automationHelpers.common.TestContext;
-import io.nem.core.utils.ExceptionUtils;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.dao.NetworkDao;
 import io.nem.sdk.model.blockchain.NetworkType;
 
 /**
@@ -46,7 +44,6 @@ public class NetworkHelper {
 	 * @return Network type.
 	 */
 	public NetworkType getNetworkType() {
-		return ExceptionUtils.propagate(
-				() -> new NetworkDao(testContext.getCatapultContext()).getNetworkType().toFuture().get());
+		return testContext.getNetworkType();
 	}
 }

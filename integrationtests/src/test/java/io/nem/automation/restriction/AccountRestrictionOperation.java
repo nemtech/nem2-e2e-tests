@@ -6,7 +6,7 @@ import io.nem.automation.common.BaseTest;
 import io.nem.automationHelpers.common.TestContext;
 import io.nem.automationHelpers.helper.AccountRestrictionHelper;
 import io.nem.sdk.model.account.Account;
-import io.nem.sdk.model.transaction.AccountRestrictionType;
+import io.nem.sdk.model.transaction.AccountRestrictionFlags;
 import io.nem.sdk.model.transaction.TransactionType;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class AccountRestrictionOperation extends BaseTest {
         final List<TransactionType> additions = new ArrayList<>();
         transactionTypesToBlock.parallelStream().forEach(transactionType -> additions.add(TransactionType.valueOf(transactionType)));
         accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndWait(userAccount,
-                AccountRestrictionType.BLOCK_OUTGOING_TRANSACTION_TYPE, additions, new ArrayList<>());
+                AccountRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE, additions, new ArrayList<>());
     }
 
     @When("^(\\w+) tries to block sending transactions of type:$")
@@ -47,7 +47,7 @@ public class AccountRestrictionOperation extends BaseTest {
         final List<TransactionType> additions = new ArrayList<>();
         transactionTypesToBlock.parallelStream().forEach(transactionType -> additions.add(TransactionType.valueOf(transactionType)));
         accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndAnnounce(userAccount,
-                AccountRestrictionType.BLOCK_OUTGOING_TRANSACTION_TYPE, additions, new ArrayList<>());
+                AccountRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE, additions, new ArrayList<>());
     }
 
     @When("^(\\w+) only allows sending transactions of type:$")
@@ -56,7 +56,7 @@ public class AccountRestrictionOperation extends BaseTest {
         final List<TransactionType> additions = new ArrayList<>();
         transactionTypesToAllow.parallelStream().forEach(transactionType -> additions.add(TransactionType.valueOf(transactionType)));
         accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndWait(userAccount,
-                AccountRestrictionType.ALLOW_OUTGOING_TRANSACTION_TYPE, additions, new ArrayList<>());
+                AccountRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE, additions, new ArrayList<>());
     }
 
     @When("^(\\w+) tries to only allow sending transactions of type:$")
@@ -65,7 +65,7 @@ public class AccountRestrictionOperation extends BaseTest {
         final List<TransactionType> additions = new ArrayList<>();
         transactionTypesToAllow.parallelStream().forEach(transactionType -> additions.add(TransactionType.valueOf(transactionType)));
         accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndAnnounce(userAccount,
-                AccountRestrictionType.ALLOW_OUTGOING_TRANSACTION_TYPE, additions, new ArrayList<>());
+                AccountRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE, additions, new ArrayList<>());
     }
 
     @When("^(\\w+) removes ([^\"]*) from blocked transaction types$")
@@ -74,7 +74,7 @@ public class AccountRestrictionOperation extends BaseTest {
         final List<TransactionType> deletions = new ArrayList<>();
         deletions.add(TransactionType.valueOf(transactionTypeToRemove));
         accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndWait(userAccount,
-                AccountRestrictionType.BLOCK_OUTGOING_TRANSACTION_TYPE, new ArrayList<>(), deletions);
+                AccountRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE, new ArrayList<>(), deletions);
     }
 
     @When("^(\\w+) removes ([^\"]*) from allowed transaction types$")
@@ -83,7 +83,7 @@ public class AccountRestrictionOperation extends BaseTest {
         final List<TransactionType> deletions = new ArrayList<>();
         deletions.add(TransactionType.valueOf(transactionTypeToRemove));
         accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndWait(userAccount,
-                AccountRestrictionType.ALLOW_OUTGOING_TRANSACTION_TYPE, new ArrayList<>(), deletions);
+                AccountRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE, new ArrayList<>(), deletions);
     }
 
     @When("^(\\w+) tries to remove ([^\"]*) from blocked transaction types$")
@@ -92,7 +92,7 @@ public class AccountRestrictionOperation extends BaseTest {
         final List<TransactionType> deletions = new ArrayList<>();
         deletions.add(TransactionType.valueOf(transactionTypeToRemove));
         accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndAnnounce(userAccount,
-                AccountRestrictionType.BLOCK_OUTGOING_TRANSACTION_TYPE, new ArrayList<>(), deletions);
+                AccountRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE, new ArrayList<>(), deletions);
     }
 
     @When("^(\\w+) tries to remove ([^\"]*) from allowed transaction types$")
@@ -101,6 +101,6 @@ public class AccountRestrictionOperation extends BaseTest {
         final List<TransactionType> deletions = new ArrayList<>();
         deletions.add(TransactionType.valueOf(transactionTypeToRemove));
         accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndAnnounce(userAccount,
-                AccountRestrictionType.ALLOW_OUTGOING_TRANSACTION_TYPE, new ArrayList<>(), deletions);
+                AccountRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE, new ArrayList<>(), deletions);
     }
 }

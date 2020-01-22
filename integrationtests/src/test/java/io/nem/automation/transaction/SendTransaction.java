@@ -24,16 +24,15 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import io.nem.automation.common.BaseTest;
 import io.nem.automationHelpers.common.TestContext;
-import io.nem.automationHelpers.helper.NetworkHelper;
-import io.nem.automationHelpers.helper.TransactionHelper;
-import io.nem.automationHelpers.helper.TransferHelper;
+import io.nem.automationHelpers.helper.*;
 import io.nem.core.utils.ExceptionUtils;
-import io.nem.core.utils.RetryCommand;
+import io.nem.sdk.infrastructure.directconnect.dataaccess.common.RetryCommand;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.account.Address;
 import io.nem.sdk.model.blockchain.NetworkType;
 import io.nem.sdk.model.message.PlainMessage;
 import io.nem.sdk.model.transaction.*;
+import net.sf.saxon.exslt.Common;
 
 import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
@@ -104,8 +103,10 @@ public class SendTransaction extends BaseTest {
 
 	@When("^(\\w+) announce valid transaction which expires in unconfirmed status$")
 	public void announcesTransactionExpiredUnconfirmed(final String userName) {
-		final int timeInSeconds = 3;
+		final int timeInSeconds = 2;
 		final Deadline deadline = Deadline.create(timeInSeconds, ChronoUnit.SECONDS);
+		final BigInteger blockHeight = new BlockChainHelper(getTestContext()).getBlockchainHeight();
+		waitForBlockChainHeight(blockHeight.longValue() + 1);
 		announcesTransactionWithInvalid(
 				userName, deadline, TransactionHelper.getDefaultMaxFee(), networkHelper.getNetworkType());
 		ExceptionUtils.propagateVoid(() -> Thread.sleep((timeInSeconds + 3) * 1000));
@@ -132,7 +133,8 @@ public class SendTransaction extends BaseTest {
 	}
 
 	@When("^(\\w+) announces same the transaction$")
-	public void announceLastTransaction(final String userName) {
+	public void announceLastTransaction(final String sender) {
+		storeUserInfoInContext(sender);
 		final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
 		transactionHelper.announceTransaction(signedTransaction);
 	}
@@ -158,14 +160,14 @@ public class SendTransaction extends BaseTest {
 								(final RetryCommand<TransactionStatus> retryCommand) -> {
 									final TransactionStatus current = new TransactionHelper(getTestContext())
 											.getTransactionStatus(signedTransaction.getHash());
-									if (current.getStatus().toUpperCase().startsWith("FAILURE_")) {
+									if (current.getCode().toUpperCase().startsWith("FAILURE_")) {
 										return current;
 									}
-									throw new RuntimeException("Transaction has not failed yet. TransactionStatus: " + current.toString());
+									throw new RuntimeException("Transaction has not failed yet. TransactionStatus: " + CommonHelper.toString(current));
 								});
 		assertEquals(
 				"Transaction " + signedTransaction.toString() + " did not fail.",
 				error.toUpperCase(),
-				status.getStatus().toUpperCase());
+				status.getCode().toUpperCase());
 	}
 }

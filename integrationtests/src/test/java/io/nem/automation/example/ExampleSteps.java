@@ -17,11 +17,7 @@ import cucumber.api.java.en.When;
 import io.nem.automationHelpers.common.TestContext;
 import io.nem.automationHelpers.helper.*;
 import io.nem.core.utils.ExceptionUtils;
-import io.nem.sdk.infrastructure.common.AccountRepository;
-import io.nem.sdk.infrastructure.common.CatapultContext;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.dao.AccountsDao;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.AccountsCollection;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.TransactionsCollection;
+import io.nem.sdk.api.AccountRepository;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.account.AccountInfo;
 import io.nem.sdk.model.account.Address;
@@ -65,7 +61,7 @@ public class ExampleSteps {
 	public void bob_transfer_xem_to_jill(int transferAmount)
 			throws InterruptedException, ExecutionException {
 		final Account signerAccount = testContext.getDefaultSignerAccount();
-		final AccountRepository accountRepository = new AccountsDao(testContext.getCatapultContext());
+		final AccountRepository accountRepository = testContext.getRepositoryFactory().createAccountRepository();
 		final AccountInfo signerAccountInfo =
 				accountRepository.getAccountInfo(signerAccount.getAddress()).toFuture().get();
 		testContext.getScenarioContext().setContext(signerAccountInfoKey, signerAccountInfo);
@@ -74,6 +70,53 @@ public class ExampleSteps {
 		final Account recipientAccount1 =
 				testContext.getScenarioContext().<Account>getContext(recipientAccountKey);
 
+		// hang
+		int ii = 0;
+		do {
+		final MosaicId mosaicId = new NamespaceHelper(testContext).getLinkedMosaicId(NetworkHarvestMosaic.NAMESPACEID);
+		final Account harvestAccount = Account.createFromPrivateKey("9D3753505B289F238D3B012B3A2EF975C4FBC8A49B687E25F4DC7184B96FC05E",
+				testContext.getNetworkType());
+		final TransferHelper transferHelper = new TransferHelper(testContext);
+		final TransferTransaction tx = transferHelper.submitTransferAndWait(signerAccount, harvestAccount.getAddress(),
+				Arrays.asList(NetworkCurrencyMosaic.createRelative(BigInteger.valueOf(100000))), PlainMessage.Empty);
+		final AccountInfo harvestAccountInfo = new AccountHelper(testContext).getAccountInfo(harvestAccount.getAddress());
+		final Mosaic harvest =
+				harvestAccountInfo.getMosaics().stream().filter(m -> m.getId().getIdAsLong() == mosaicId.getIdAsLong()).findFirst().orElseThrow(() -> new IllegalArgumentException("Not found"));
+		final long minHarvesterBalance = 500;
+      final TransferTransaction transferTransaction =
+          transferHelper.createTransferTransaction(
+              recipientAccount1.getAddress(),
+              Arrays.asList(
+                  new Mosaic(
+                      harvest.getId(),
+                      harvest.getAmount().subtract(BigInteger.valueOf(minHarvesterBalance - 5)))),
+              PlainMessage.Empty);
+      final TransferTransaction transferTransaction2 =
+          transferHelper.createTransferTransaction(
+              recipientAccount1.getAddress(),
+              Arrays.asList(
+                  new Mosaic(harvest.getId(), BigInteger.valueOf(minHarvesterBalance - 5))),
+              PlainMessage.Empty);
+
+//		final TransferTransaction transferTransaction = transferHelper.submitTransferAndWait(harvestAccount,
+//				recipientAccount1.getAddress(), Arrays.asList(new Mosaic(harvest.getId(),
+//						harvest.getAmount().subtract(BigInteger.valueOf(minHarvesterBalance - 5)))), PlainMessage.Empty);
+//		final TransferTransaction transferTransaction2 = transferHelper.submitTransferAndWait(harvestAccount,
+//				recipientAccount1.getAddress(), Arrays.asList(new Mosaic(harvest.getId(),
+//						BigInteger.valueOf(minHarvesterBalance - 5))), PlainMessage.Empty);
+		final AggregateTransaction aggregateTransaction =
+				new AggregateHelper(testContext).createAggregateCompleteTransaction(Arrays.asList(transferTransaction.toAggregate(harvestAccount.getPublicAccount()),
+						transferTransaction2.toAggregate(harvestAccount.getPublicAccount())));
+			final TransferTransaction tx2 = transferHelper.submitTransferAndWait(signerAccount, recipientAccount1.getAddress(),
+					Arrays.asList(NetworkCurrencyMosaic.createRelative(BigInteger.valueOf(100000))), PlainMessage.Empty);
+			new TransactionHelper(testContext).signAndAnnounceTransactionAndWait(harvestAccount, () -> aggregateTransaction);
+		final AccountInfo resAccountInfo = new AccountHelper(testContext).getAccountInfo(recipientAccount1.getAddress());
+		final Mosaic resceop =
+				resAccountInfo.getMosaics().stream().filter(m -> m.getId().getIdAsLong() == mosaicId.getIdAsLong()).findFirst().orElseThrow(() -> new IllegalArgumentException("Not found"));
+		final TransferTransaction transferTransaction3 = transferHelper.submitTransferAndWait(recipientAccount1,
+		harvestAccount.getAddress(), Arrays.asList(resceop), PlainMessage.Empty);
+		ii++;
+		} while (ii < 3);
 
 		final byte NO_OF_RANDOM_BYTES = 100;
 		final byte[] randomBytes = new byte[NO_OF_RANDOM_BYTES];
@@ -319,10 +362,7 @@ public class ExampleSteps {
 	@Then("^Jill should have (\\d+) XEM$")
 	public void jill_should_have_10_xem(int transferAmount)
 			throws InterruptedException, ExecutionException {
-		final CatapultContext catapultContext = testContext.getCatapultContext();
-		final TransactionsCollection transactionDB = new TransactionsCollection(catapultContext.getDataAccessContext());
-		Transaction transaction =
-				transactionDB.findByHash(testContext.getSignedTransaction().getHash()).get();
+		Transaction transaction = new TransactionHelper(testContext).getConfirmedTransaction(testContext.getSignedTransaction().getHash());
 
 		final TransferTransaction submitTransferTransaction =
 				(TransferTransaction) testContext.getTransactions().get(0);
@@ -349,8 +389,7 @@ public class ExampleSteps {
 				actualTransferTransaction.getMosaics().get(0).getId().getId().longValue());
 
 		// verify the recipient account updated
-		final AccountRepository accountRepository = new AccountsDao(testContext.getCatapultContext());
-		final AccountsCollection accountDB = new AccountsCollection(catapultContext.getDataAccessContext());
+		final AccountRepository accountRepository = testContext.getRepositoryFactory().createAccountRepository();
 		final Address recipientAddress =
 				testContext.getScenarioContext().<Account>getContext(recipientAccountKey).getAddress();
 		AccountInfo accountInfo = accountRepository.getAccountInfo(recipientAddress).toFuture().get();

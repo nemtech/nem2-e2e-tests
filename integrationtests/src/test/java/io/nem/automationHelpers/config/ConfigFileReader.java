@@ -20,6 +20,7 @@
 
 package io.nem.automationHelpers.config;
 
+import io.nem.automationHelpers.common.RepositoryFactoryType;
 import io.nem.sdk.model.blockchain.NetworkType;
 
 import java.io.BufferedReader;
@@ -151,12 +152,12 @@ public class ConfigFileReader {
 	}
 
 	/**
-	 * Gets max fee.
+	 * Gets min fee multiplier
 	 *
-	 * @return Max fee.
+	 * @return Min fee multiplier.
 	 */
-	public BigInteger getMaxFee() {
-		return new BigInteger(getPropertyValue("maxFee"));
+	public BigInteger getMinFeeMultiplier() {
+		return new BigInteger(getPropertyValue("minFeeMultiplier"));
 	}
 
 	/**
@@ -209,10 +210,36 @@ public class ConfigFileReader {
 	 *
 	 * @return Default dynamic fee multiplier.
 	 */
-	public int getDefaultDynamicFeeMultiplier() {
-		return Integer.parseInt(getPropertyValue("defaultDynamicFeeMultiplier"));
+	public BigInteger getDefaultDynamicFeeMultiplier() {
+		return new BigInteger(getPropertyValue("defaultDynamicFeeMultiplier"));
 	}
 
+	/**
+	 * Gets the max difficulty blocks.
+	 *
+	 * @return Max difficulty blocks.
+	 */
+	public BigInteger getMaxDifficultyBlocks() {
+		return new BigInteger(getPropertyValue("maxDifficultyBlocks"));
+	}
+
+	/**
+	 * Gets the rest gateway url.
+	 *
+	 * @return Url for the rest gateway.
+	 */
+	public String getRestGatewayUrl() {
+		return getPropertyValue("restGatewayUrl");
+	}
+
+	/**
+	 * Gets the factory type to connect to catapult.
+	 *
+	 * @return Repository factory type.
+	 */
+	public RepositoryFactoryType getRepositoryFactoryType() {
+		return RepositoryFactoryType.valueOf(getPropertyValue("RepositoryFactoryType").toUpperCase());
+	}
 
 	/**
 	 * Gets a property value from the config file.

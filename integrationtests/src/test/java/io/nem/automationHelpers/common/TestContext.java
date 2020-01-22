@@ -21,69 +21,42 @@
 package io.nem.automationHelpers.common;
 
 import io.nem.automationHelpers.config.ConfigFileReader;
-import io.nem.core.crypto.PublicKey;
 import io.nem.core.utils.ExceptionUtils;
-import io.nem.sdk.infrastructure.common.CatapultContext;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
-import io.nem.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.BlocksCollection;
-import io.nem.sdk.infrastructure.directconnect.network.CatapultNodeContext;
+import io.nem.sdk.api.RepositoryFactory;
 import io.nem.sdk.model.account.Account;
 import io.nem.sdk.model.account.PublicAccount;
 import io.nem.sdk.model.blockchain.BlockInfo;
 import io.nem.sdk.model.blockchain.NetworkType;
+import io.nem.sdk.model.mosaic.MosaicId;
 import io.nem.sdk.model.mosaic.NetworkCurrencyMosaic;
+import io.nem.sdk.model.mosaic.UnresolvedMosaicId;
 import io.nem.sdk.model.transaction.SignedTransaction;
 import io.nem.sdk.model.transaction.Transaction;
 import io.nem.sdk.model.transaction.TransactionType;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /** Test context */
 public class TestContext {
-  private static BlockInfo firstBlock;
   private final ConfigFileReader configFileReader;
-  private final CatapultContext catapultContext;
   private final Account defaultSignerAccount;
   private final ScenarioContext scenarioContext;
   private final List<Transaction> transactions;
   private final PublicAccount harvesterPublicAccount;
+  private final Map<String, List<Transaction>> userFeeMap = new HashMap<>();
+  private final RepositoryFactory repositoryFactory;
   private SignedTransaction signedTransaction;
   private Log logger;
+  private MosaicId networkCurrencyMosaicId;
 
   /** Constructor. */
   public TestContext() {
     configFileReader = new ConfigFileReader();
     scenarioContext = new ScenarioContext();
-    final DataAccessContext dataAccessContext =
-        new DataAccessContext(
-            configFileReader.getMongodbHost(),
-            configFileReader.getMongodbPort(),
-            configFileReader.getDatabaseQueryTimeoutInSeconds());
-
-    firstBlock =
-        ExceptionUtils.propagate(() -> new BlocksCollection(dataAccessContext).find(1).get());
-    final PublicKey apiServerPublicKey =
-        PublicKey.fromHexString(configFileReader.getApiServerPublicKey());
-
-    final String automationPrivateKey = configFileReader.getAutomationPrivateKey();
-    final Account account =
-        automationPrivateKey == null
-            ? Account.generateNewAccount(getNetworkType())
-            : Account.createFromPrivateKey(automationPrivateKey, getNetworkType());
-    this.getLogger()
-        .LogError("Connect using " + account.getPublicKey() + " Network: " + getNetworkType());
-    final CatapultNodeContext apiNodeContext =
-        new CatapultNodeContext(
-            apiServerPublicKey,
-            account.getKeyPair(),
-            getNetworkType(),
-            configFileReader.getApiHost(),
-            configFileReader.getApiPort(),
-            configFileReader.getSocketTimeoutInMilliseconds());
-    catapultContext = new CatapultContext(apiNodeContext, dataAccessContext);
+    repositoryFactory = new RepositoryFactoryImpl(configFileReader).create();
+    this.getLogger().LogError("Connecting to Network: " + getNetworkType());
     transactions = new ArrayList<>();
     final String privateString = configFileReader.getUserPrivateKey();
     defaultSignerAccount = Account.createFromPrivateKey(privateString, getNetworkType());
@@ -120,15 +93,6 @@ public class TestContext {
   }
 
   /**
-   * Gets catapult context.
-   *
-   * @return Catapult context.
-   */
-  public CatapultContext getCatapultContext() {
-    return catapultContext;
-  }
-
-  /**
    * Gets transactations.
    *
    * @return List of transactions.
@@ -145,12 +109,9 @@ public class TestContext {
    */
   public <T extends Transaction> Optional<T> findTransaction(
       final TransactionType transactionType) {
-    for (final Transaction transaction : transactions) {
-      if (transaction.getType() == transactionType) {
-        return Optional.of((T) transaction);
-      }
-    }
-    return Optional.empty();
+    final List<Transaction> filterTransaction =
+            transactions.stream().filter(t -> t.getType() == transactionType).collect(Collectors.toList());
+    return filterTransaction.isEmpty() ? Optional.empty() : Optional.of((T)filterTransaction.get(filterTransaction.size() - 1));
   }
 
   /**
@@ -212,7 +173,7 @@ public class TestContext {
    * @return Generation hash.
    */
   public String getGenerationHash() {
-    return firstBlock.getGenerationHash();
+    return ExceptionUtils.propagate(() -> repositoryFactory.getGenerationHash().toFuture().get());
   }
 
   /**
@@ -221,7 +182,7 @@ public class TestContext {
    * @return Network type.
    */
   public NetworkType getNetworkType() {
-    return firstBlock.getNetworkType();
+    return ExceptionUtils.propagate(() -> repositoryFactory.getNetworkType().toFuture().get());
   }
 
   /**
@@ -233,6 +194,17 @@ public class TestContext {
     return NetworkCurrencyMosaic.NAMESPACEID.getId();
   }
 
+  public MosaicId getNetworkCurrencyMosaicId() {
+    if (networkCurrencyMosaicId == null) {
+      networkCurrencyMosaicId =
+          repositoryFactory
+              .createNamespaceRepository()
+              .getLinkedMosaicId(NetworkCurrencyMosaic.NAMESPACEID)
+              .blockingFirst();
+    }
+    return networkCurrencyMosaicId;
+  }
+
   /**
    * Gets harvester public account.
    *
@@ -240,5 +212,42 @@ public class TestContext {
    */
   public PublicAccount getHarvesterPublicAccount() {
     return harvesterPublicAccount;
+  }
+
+  /**
+   * Gets repository factory.
+   *
+   * @return Repository factory.
+   */
+  public RepositoryFactory getRepositoryFactory() {
+    return repositoryFactory;
+  }
+
+  public void updateUserFee(final PublicAccount publicAccount, final Transaction transaction) {
+    final String key = publicAccount.getPublicKey().toHex();
+    userFeeMap.putIfAbsent(key, new LinkedList<>());
+    userFeeMap.get(key).add(transaction);
+  }
+
+  public BigInteger getFeesForUser(final PublicAccount publicAccount, final UnresolvedMosaicId id) {
+    BigInteger userFee = BigInteger.ZERO;
+    boolean isNetworkCurrency = Arrays.asList(
+                NetworkCurrencyMosaic.NAMESPACEID.getId(), getNetworkCurrencyMosaicId().getId())
+            .contains(id.getId());
+    if (!isNetworkCurrency){
+      return userFee;
+    }
+
+    List<Transaction> userTransactions = userFeeMap.getOrDefault(publicAccount.getPublicKey().toHex(), new LinkedList<>());
+    for (final Transaction transaction : userTransactions) {
+        final BlockInfo blockInfo =
+                repositoryFactory.createBlockRepository().getBlockByHeight(transaction.getTransactionInfo().get().getHeight()).blockingFirst();
+        userFee = BigInteger.valueOf(transaction.getSize() * blockInfo.getFeeMultiplier());
+    }
+    return userFee;
+  }
+
+  public void clearUserFee(final PublicAccount publicAccount) {
+    userFeeMap.remove(publicAccount.getPublicKey().toHex());
   }
 }

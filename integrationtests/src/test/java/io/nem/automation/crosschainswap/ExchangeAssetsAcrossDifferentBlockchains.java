@@ -67,6 +67,7 @@ public class ExchangeAssetsAcrossDifferentBlockchains extends BaseTest {
 	public void createSecretLockForMosaic(final String userName, final BigInteger amount, final String namespaceName,
 										  final String recipientName, final BigInteger numberOfBlocks) {
 		final Account senderAccount = getUser(userName);
+		final Account recipientAccount = getUserWithCurrency(recipientName, 100);
 		final NamespaceId namespaceId = getNamespaceIdFromName(namespaceName);
 		final Mosaic mosaicToLock = new MosaicHelper(getTestContext()).getMosaicFromNamespace(namespaceId, amount);
 		final String secretHash = getTestContext().getScenarioContext().getContext(SECRET_HASH);
