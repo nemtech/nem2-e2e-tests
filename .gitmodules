@@ -1,4 +1,0 @@
-[submodule "integrationtests/src/main"]
-	path = integrationtests/src/main
-	url = https://github.com/nemtech/nem2-e2e-tests.git
-	branch = next
