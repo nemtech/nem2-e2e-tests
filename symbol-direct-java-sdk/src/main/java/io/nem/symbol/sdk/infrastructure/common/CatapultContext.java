@@ -21,23 +21,33 @@
 package io.nem.symbol.sdk.infrastructure.common;
 
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
+import io.nem.symbol.sdk.infrastructure.directconnect.network.BrokerNodeContext;
 import io.nem.symbol.sdk.infrastructure.directconnect.network.CatapultNodeContext;
 
 /** Catapult server context. */
 public class CatapultContext {
   private final CatapultNodeContext apiNodeContext;
+  private final BrokerNodeContext brokerNodeContext;
   private final DataAccessContext dataAccessContext;
+  private final String configPath;
 
   /**
    * Constructor - Use the default ports for the given host.
    *
    * @param apiNodeContext Api server context.
    * @param dataAccessContext Data access context.
+   * @param brokerNodeContext Broker server context.
+   * @param configPath Path to the symbol config files.
    */
   public CatapultContext(
-      final CatapultNodeContext apiNodeContext, final DataAccessContext dataAccessContext) {
+          final CatapultNodeContext apiNodeContext,
+          final DataAccessContext dataAccessContext,
+          final BrokerNodeContext brokerNodeContext,
+          final String configPath) {
     this.apiNodeContext = apiNodeContext;
     this.dataAccessContext = dataAccessContext;
+    this.brokerNodeContext = brokerNodeContext;
+    this.configPath = configPath;
   }
 
   /**
@@ -56,5 +66,23 @@ public class CatapultContext {
    */
   public CatapultNodeContext getApiNodeContext() {
     return apiNodeContext;
+  }
+
+  /**
+   * Gets Symbol broker node context.
+   *
+   * @return Symbol broker node context.
+   */
+  public BrokerNodeContext getBrokerNodeContext() {
+    return brokerNodeContext;
+  }
+
+  /**
+   * Gets config path for Symbol server.
+   *
+   * @return Config path for Symbol server.
+   */
+  public String getConfigPath() {
+    return configPath;
   }
 }

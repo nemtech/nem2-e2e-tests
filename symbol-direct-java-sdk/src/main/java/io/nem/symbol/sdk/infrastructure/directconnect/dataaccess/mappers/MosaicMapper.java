@@ -52,7 +52,7 @@ public class MosaicMapper implements Function<JsonObject, Mosaic> {
    */
   public Mosaic apply(final JsonObject jsonObject) {
     return new Mosaic(
-        new MosaicId(MapperUtils.extractBigInteger(jsonObject, mosaicIdPropertyName)),
-        MapperUtils.extractBigInteger(jsonObject, "amount"));
+        new MosaicId(MapperUtils.toBigInteger(jsonObject, mosaicIdPropertyName)),
+        MapperUtils.toBigInteger(jsonObject, "amount"));
   }
 }

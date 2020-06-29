@@ -31,13 +31,13 @@ public enum PacketType {
   /** Transactions have been pushed by an api-node or a peer. */
   PUSH_TRANSACTIONS(9),
   /** Partial aggregate transactions have been pushed by an api-node. */
-  PUSH_PARTIAL_TRANSACTIONS(500),
+  PUSH_PARTIAL_TRANSACTIONS(256),
   /** Detached cosignatures have been pushed by an api-node. */
-  PUSH_DETACTED_COSIGNATURES(501),
+  PUSH_DETACTED_COSIGNATURES(257),
   /** Node information has been requested by a peer. */
-  NODE_DISCOVERY_PULL_PING(601),
+  NODE_DISCOVERY_PULL_PING(273),
   /** Node time information has been requested by a peer. */
-  TIME_SYNC_NODE_TIME(700);
+  TIME_SYNC_NODE_TIME(288);
 
   /* Enum value. */
   final int packetType;

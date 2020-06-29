@@ -62,8 +62,6 @@ public class SecretLockHelper extends BaseHelper<SecretLockHelper> {
     switch (lockHashAlgorithmType) {
       case SHA3_256:
         return Hashes.sha3_256(inputBytes);
-      case KECCAK_256:
-        return Hashes.keccak256(inputBytes);
       case HASH_256:
         return Hashes.hash256(inputBytes);
       case HASH_160:

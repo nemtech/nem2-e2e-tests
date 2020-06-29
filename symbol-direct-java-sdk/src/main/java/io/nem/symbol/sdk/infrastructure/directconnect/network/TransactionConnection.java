@@ -40,6 +40,8 @@ public class TransactionConnection {
   /* Authenticated socket. */
   final AuthenticatedSocket authenticatedSocket;
 
+  private static Object lock = new Object();
+
   /**
    * Constructor.
    *
@@ -90,7 +92,7 @@ public class TransactionConnection {
         ConvertUtils.getBytes(cosignatureSignedTransaction.getParentHash());
     final ByteBuffer parentHashBuffer = ByteBuffer.wrap(parentHashBytes);
     DetachedCosignatureBuilder detachedCosignatureBuilder =
-        DetachedCosignatureBuilder.create(
+        DetachedCosignatureBuilder.create(0,
             new KeyDto(signerBuffer),
             new SignatureDto(signatureBuffer),
             new Hash256Dto(parentHashBuffer));
@@ -105,10 +107,12 @@ public class TransactionConnection {
    * @param transactionBytes Transaction bytes.
    */
   private void announceTransaction(final PacketType packetType, final byte[] transactionBytes) {
-    ExceptionUtils.propagateVoid(
-        () -> {
-          final ByteBuffer ph = Packet.CreatePacketByteBuffer(packetType, transactionBytes);
-          authenticatedSocket.getSocketClient().Write(ph);
-        });
+    synchronized (lock) {
+      ExceptionUtils.propagateVoid(
+          () -> {
+            final ByteBuffer ph = Packet.CreatePacketByteBuffer(packetType, transactionBytes);
+            authenticatedSocket.getSocketClient().Write(ph);
+          });
+    }
   }
 }

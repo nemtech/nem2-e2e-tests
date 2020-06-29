@@ -30,8 +30,9 @@ import io.nem.symbol.automationHelpers.helper.*;
 import io.nem.symbol.core.utils.ConvertUtils;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers.MapperUtils;
 import io.nem.symbol.sdk.model.account.Account;
+import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.account.MultisigAccountInfo;
-import io.nem.symbol.sdk.model.account.PublicAccount;
+import io.nem.symbol.sdk.model.account.UnresolvedAddress;
 import io.nem.symbol.sdk.model.transaction.AggregateTransaction;
 import io.nem.symbol.sdk.model.transaction.MultisigAccountModificationTransaction;
 import io.nem.symbol.sdk.model.transaction.SignedTransaction;
@@ -65,12 +66,12 @@ public class CreateMultisignatureContract extends BaseTest {
       cosigners =
           multisigAccountInfoOptional
               .get()
-              .getCosignatories()
+              .getCosignatoryAddresses()
               .parallelStream()
               .map(
                   publicAccount -> {
                     final Account cosignerAccount =
-                        getUserAccountFromContext(publicAccount.getAddress());
+                        getUserAccountFromContext((Address) publicAccount);
                     return getCosignersForAccount(cosignerAccount);
                   })
               .flatMap(Collection::stream)
@@ -121,10 +122,10 @@ public class CreateMultisignatureContract extends BaseTest {
                 })
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
-    final List<PublicAccount> accountsAdditions =
+    final List<UnresolvedAddress> accountsAdditions =
         cosignatories
             .parallelStream()
-            .map(s -> getUser(s).getPublicAccount())
+            .map(s -> getUser(s).getAddress())
             .collect(Collectors.toList());
     final MultisigAccountModificationTransaction modifyMultisigAccountTransaction =
         multisigAccountHelper.createMultisigAccountModificationTransaction(
@@ -135,25 +136,26 @@ public class CreateMultisignatureContract extends BaseTest {
             .createAggregateBondedTransaction(
                 Arrays.asList(
                     modifyMultisigAccountTransaction.toAggregate(
-                        multiSigAccount.getPublicAccount())));
+                        multiSigAccount.getPublicAccount())),
+                cosignerAccounts.size());
     final TransactionHelper transactionHelper = new TransactionHelper(getTestContext());
     transactionHelper.signTransaction(aggregateTransaction, multiSigAccount);
     getTestContext().getScenarioContext().setContext(COSIGNATORIES_LIST, cosignerAccounts);
     getTestContext().getScenarioContext().setContext(MULTISIG_ACCOUNT_INFO, multiSigAccount);
   }
 
-  private int getMultisigAccountLevelDepth(final PublicAccount account) {
+  private int getMultisigAccountLevelDepth(final UnresolvedAddress address) {
     final MultisigAccountInfo multisigAccountInfo;
     int level = 0;
 
     try {
       multisigAccountInfo =
-          new AccountHelper(getTestContext()).getMultisigAccount(account.getAddress());
+          new AccountHelper(getTestContext()).getMultisigAccount((Address) address);
     } catch (final Exception e) {
       return level;
     }
-    final List<PublicAccount> cosigners = multisigAccountInfo.getCosignatories();
-    for (final PublicAccount cosigner : cosigners) {
+    final List<Address> cosigners = multisigAccountInfo.getCosignatoryAddresses();
+    for (final UnresolvedAddress cosigner : cosigners) {
       final int cosignerLevel = getMultisigAccountLevelDepth(cosigner) + 1;
       if (cosignerLevel > level) {
         level = cosignerLevel;
@@ -205,10 +207,21 @@ public class CreateMultisignatureContract extends BaseTest {
         cosignatories);
   }
 
+  @Given(
+      "^(\\w+) tries to define a multisignature contract called \"(.*)\" with more than the max cosigners$")
+  public void definedMultiSignatureContractWithMoreThanMaxCosigners(
+      final String userName, final String multisigAccountName) {
+    definedMultiSignatureContractWithCosigners(
+        userName,
+        (byte) 1,
+        (byte) (getTestContext().getSymbolConfig().getMaxCosignatoriesPerAccount().byteValue() + 1),
+        multisigAccountName);
+  }
+
   @And("^(\\w+) published the bonded contract")
   @When("^(\\w+) publishes the bonded contract")
   public void publishBondedTransaction(final String userName) {
-    final Account account = getUser(AUTOMATION_USER_ALICE);
+    final Account account = getUser(userName);
     final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
     final BigInteger duration = BigInteger.valueOf(10);
     final AggregateHelper aggregateHelper = new AggregateHelper(getTestContext());
@@ -239,7 +252,7 @@ public class CreateMultisignatureContract extends BaseTest {
         .forEach(
             (final Account account) -> {
               List<AggregateTransaction> transactions =
-                  accountHelper.getAggregateBondedTransactions(account.getPublicAccount());
+                  accountHelper.getAggregateBondedTransactions(account.getAddress());
               aggregateHelper.cosignAggregateBonded(account, aggregateTransaction);
             });
   }
@@ -267,15 +280,22 @@ public class CreateMultisignatureContract extends BaseTest {
         errorMessage,
         modifyMultisigAccountTransaction.getMinRemovalDelta(),
         multisigAccountInfo.getMinRemoval());
-    for (final PublicAccount publicAccount :
-        modifyMultisigAccountTransaction.getPublicKeyAdditions()) {
+    for (final UnresolvedAddress unresolvedAddress :
+        modifyMultisigAccountTransaction.getAddressAdditions()) {
       assertEquals(
-          errorMessage, true, multisigAccountInfo.getCosignatories().contains(publicAccount));
+          errorMessage,
+          true,
+          multisigAccountInfo.getCosignatoryAddresses().stream()
+              .map(c -> c.encoded(getTestContext().getNetworkType()))
+              .anyMatch(
+                  a ->
+                      a.equalsIgnoreCase(
+                          unresolvedAddress.encoded(getTestContext().getNetworkType()))));
     }
-    for (final PublicAccount publicAccount :
-        modifyMultisigAccountTransaction.getPublicKeyDeletions()) {
+    for (final UnresolvedAddress unresolvedAddress :
+        modifyMultisigAccountTransaction.getAddressDeletions()) {
       assertEquals(
-          errorMessage, false, multisigAccountInfo.getCosignatories().contains(publicAccount));
+          errorMessage, false, multisigAccountInfo.getCosignatoryAddresses().contains(unresolvedAddress));
     }
   }
 
@@ -328,8 +348,18 @@ public class CreateMultisignatureContract extends BaseTest {
     getTestContext().addTransaction(aggregateTransaction);
   }
 
-  @Given("^(\\w+) is cosignatory of (\\d+) multisignature contracts$")
-  public void addToMultiSignatureContracts(final String userName, final int numberOfContracts) {
+  @Given("^(\\w+) created a multisignature contract called \"(.*)\" with max cosigners$")
+  public void createMultiSignatureContractWithMaxCosigners(
+      final String userName, final String multisigAccountName) {
+    final byte minimumApproval = 1;
+    final byte numberOfCosignatory =
+        getTestContext().getSymbolConfig().getMaxCosignatoriesPerAccount().byteValue();
+    createMultiSignatureContractWithCosigners(
+        userName, minimumApproval, numberOfCosignatory, multisigAccountName);
+  }
+
+  @Given("^(\\w+) is a cosignatory on the max multisig contracts$")
+  public void addToMultiSignatureContracts(final String userName) {
     final String signer = AUTOMATION_USER_ALICE;
     final byte minimumApproval = 1;
     final byte minimumRemoval = 1;
@@ -350,7 +380,9 @@ public class CreateMultisignatureContract extends BaseTest {
           cosignMultiSignatureAccount();
         };
     CommonHelper.executeInParallel(
-        runnable, numberOfContracts, 20 * BLOCK_CREATION_TIME_IN_SECONDS);
+        runnable,
+        getTestContext().getSymbolConfig().getMaxCosignedAccountsPerAccount(),
+        20 * getTestContext().getSymbolConfig().getBlockGenerationTargetTime());
   }
 
   @Then("^the multisignature contract should become a (\\d+) level multisignature contract$")
@@ -361,6 +393,6 @@ public class CreateMultisignatureContract extends BaseTest {
     assertEquals(
         "Multisig account level did not match.",
         level,
-        getMultisigAccountLevelDepth(multisigAccount.getPublicAccount()));
+        getMultisigAccountLevelDepth(multisigAccount.getAddress()));
   }
 }

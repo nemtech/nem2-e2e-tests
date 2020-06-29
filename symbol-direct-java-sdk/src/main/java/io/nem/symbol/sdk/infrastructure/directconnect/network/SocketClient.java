@@ -87,4 +87,11 @@ public class SocketClient {
           outStream.write(byteBuffer.array());
         });
   }
+
+  public void close() {
+      ExceptionUtils.propagateVoid(
+              () -> {
+      socket.close();
+      });
+  }
 }

@@ -17,10 +17,10 @@ public class ChainStatisticInfoMapper implements Function<JsonObject, ChainStati
    */
   public ChainStatisticInfo apply(final JsonObject jsonObject) {
     final JsonObject chainStatisticJsonObject = jsonObject.getJsonObject("current");
-    final BigInteger height = MapperUtils.extractBigInteger(chainStatisticJsonObject, "height");
+    final BigInteger height = MapperUtils.toBigInteger(chainStatisticJsonObject, "height");
     final BigInteger scoreHigh =
-        MapperUtils.extractBigInteger(chainStatisticJsonObject, "scoreHigh");
-    final BigInteger scoreLow = MapperUtils.extractBigInteger(chainStatisticJsonObject, "scoreLow");
+        MapperUtils.toBigInteger(chainStatisticJsonObject, "scoreHigh");
+    final BigInteger scoreLow = MapperUtils.toBigInteger(chainStatisticJsonObject, "scoreLow");
     return ChainStatisticInfo.create(height, scoreHigh, scoreLow);
   }
 }

@@ -8,21 +8,22 @@ Feature: Create a multisignature contract
 
   @bvt
   Scenario Outline: An account creates an M-of-N contract
-    Given Alice defined a <minimumApproval> of 2 multisignature contract called "tom" with <minimumRemoval> required for removal with cosignatories:
+    Given Alice defined a <minimumApproval> of 3 multisignature contract called "tom" with <minimumRemoval> required for removal with cosignatories:
       | cosignatory |
       | phone       |
       | computer    |
+      | car         |
     And Alice published the bonded contract
     When all the required cosignatories sign the transaction
-    Then she should receive a confirmation message
-    And tom account is convert to multisig
+    Then tom account is convert to multisig
 
     Examples:
       | minimumApproval | minimumRemoval |
       | 1               | 2              |
       | 2               | 1              |
+      | 3               | 3              |
 
-    @bvt
+  @bvt
  Scenario Outline: An account tries to create a multisignature contract, setting an invalid values
     Given Alice defined a <minimumApproval> of 2 multisignature contract called "tom" with <minimumRemoval> required for removal with cosignatories:
       | cosignatory |
@@ -49,14 +50,14 @@ Feature: Create a multisignature contract
     When Alice published the bonded contract
     Then she should receive the error "FAILURE_MULTISIG_REDUNDANT_MODIFICATION"
 
-  Scenario: An account tries to create a multisignature contract with more than 25 cosignatories
-    Given Alice tries to define a 1 of 26 multisignature contract called "tom"
+  Scenario: An account tries to create a multisignature contract with more than max cosignatories
+    Given Alice tries to define a multisignature contract called "tom" with more than the max cosigners
     And Alice published the bonded contract
     When all the required cosignatories sign the transaction
-    Then she should receive the error "FAILURE_AGGREGATE_TOO_MANY_COSIGNATURES"
+    Then she should receive the error "FAILURE_MULTISIG_MAX_COSIGNATORIES"
 
-  Scenario: An account tries to add as a cosignatory an account which is already cosignatory of 25 multisignature contracts
-    Given Dan is cosignatory of 25 multisignature contracts
+  Scenario: An account tries to add as a cosignatory an account which is already at max cosignatory for multisignature contracts
+    Given Dan is a cosignatory on the max multisig contracts
     And Alice defined a 1 of 2 multisignature contract called "tom5" with 1 required for removal with cosignatories:
       | cosignatory |
       | Dan         |
@@ -82,8 +83,7 @@ Feature: Create a multisignature contract
       | deposit     |
       | phone       | 
     And Alice published the bonded contract
-    And "phone" accepted the transaction
-    When "deposit" accepts the transaction
+    When "phone" accepts the transaction
     Then she should receive the error "FAILURE_MULTISIG_LOOP"
 
   Scenario: An account tries to turn twice an account to multisignature contract
@@ -103,9 +103,10 @@ Feature: Create a multisignature contract
       | cosignatory |
       | computer    |
       | phone       |
-    When Dan tries to send 1 asset "cat.currency" to phone
+    When Dan tries to send 1 asset of "network currency" to phone
     Then dan should receive the error "FAILURE_MULTISIG_OPERATION_PROHIBITED_BY_ACCOUNT"
 
+  @bvt
   Scenario: An account creates a multi-level multisignature contract
     Given Alice created a 1 of 2 multisignature contract called "level" with 1 required for removal with cosignatories:
       | cosignatory |

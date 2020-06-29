@@ -25,18 +25,16 @@ import io.nem.symbol.automationHelpers.common.TestContext;
 import io.nem.symbol.core.utils.ExceptionUtils;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.AccountInfo;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
 import io.nem.symbol.sdk.model.mosaic.Mosaic;
 import io.nem.symbol.sdk.model.mosaic.MosaicId;
+import io.nem.symbol.sdk.model.network.NetworkType;
 import io.nem.symbol.sdk.model.transaction.CosignatureSignedTransaction;
 import io.nem.symbol.sdk.model.transaction.SignedTransaction;
 import io.nem.symbol.sdk.model.transaction.TransactionStatus;
 import org.apache.commons.lang3.Validate;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static org.junit.Assert.assertEquals;
@@ -144,6 +142,19 @@ public class CommonHelper {
     return namePrefix + getRandomValueInRange(0, 100000000);
   }
 
+  public static String getRandonString(final int length) {
+    final byte[] bytes = new byte[length];
+
+    new Random().nextBytes(bytes);
+    return new String(bytes, StandardCharsets.UTF_8);
+  }
+
+  public static String getRandonStringWithMaxLength(final int maxLength) {
+    final int length = getRandomValueInRange(1, maxLength);
+
+    return getRandonString(length);
+  }
+
   /**
    * Verifies
    *
@@ -204,8 +215,23 @@ public class CommonHelper {
    */
   public static void executeInParallel(
       final Runnable runnable, final int numberOfInstances, final long timeoutInSeconds) {
-    ExecutorService es = Executors.newCachedThreadPool();
+    final List<Runnable> runnables = new ArrayList<>();
     for (int i = 0; i < numberOfInstances; i++) {
+      runnables.add(runnable);
+    }
+    executeInParallel(runnables, timeoutInSeconds);
+  }
+
+  /**
+   * Execute list of runnable methods in a given amount of time in parallel.
+   *
+   * @param runnables List of runnable methods.
+   * @param timeoutInSeconds Timeout in seconds.
+   */
+  public static void executeInParallel(
+          final List<Runnable> runnables, final long timeoutInSeconds) {
+    ExecutorService es = Executors.newCachedThreadPool();
+    for (final Runnable runnable : runnables) {
       es.execute(runnable);
     }
     ExceptionUtils.propagateVoid(() -> es.awaitTermination(timeoutInSeconds, TimeUnit.SECONDS));

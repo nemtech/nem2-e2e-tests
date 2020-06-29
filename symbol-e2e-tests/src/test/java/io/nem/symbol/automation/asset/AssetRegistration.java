@@ -30,10 +30,9 @@ import io.nem.symbol.automationHelpers.helper.*;
 import io.nem.symbol.core.utils.ExceptionUtils;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.AccountInfo;
+import io.nem.symbol.sdk.model.blockchain.BlockDuration;
 import io.nem.symbol.sdk.model.mosaic.*;
-import io.nem.symbol.sdk.model.transaction.MosaicDefinitionTransaction;
-import io.nem.symbol.sdk.model.transaction.SignedTransaction;
-import io.nem.symbol.sdk.model.transaction.TransactionType;
+import io.nem.symbol.sdk.model.transaction.*;
 
 import java.math.BigInteger;
 import java.util.Random;
@@ -44,6 +43,8 @@ import static org.junit.Assert.assertTrue;
 /** Asset registration and supply tests. */
 public class AssetRegistration extends BaseTest {
   private final MosaicHelper mosaicHelper;
+  private final String MOSAIC_NONCE_NAME = "mosaicNonce";
+  private final String MOSAIC_ID_NAME = "mosaicId";
 
   /**
    * Constructor.
@@ -61,7 +62,7 @@ public class AssetRegistration extends BaseTest {
     createMosaicDefinition.run();
   }
 
-  private void verifyAsset(final Account account, final BigInteger duration) {
+  private void verifyAssetWithOwner(final Account account, final BigInteger duration) {
     final MosaicDefinitionTransaction mosaicDefinitionTransaction =
         getTestContext()
             .<MosaicDefinitionTransaction>findTransaction(TransactionType.MOSAIC_DEFINITION)
@@ -70,8 +71,17 @@ public class AssetRegistration extends BaseTest {
     final MosaicInfo mosaicInfo = mosaicHelper.getMosaic(mosaicId);
     final String errorMessage = "Mosaic info check failed for id: " + mosaicId.getIdAsLong();
     assertEquals(errorMessage, mosaicId.getIdAsLong(), mosaicInfo.getMosaicId().getIdAsLong());
-    assertEquals(
-        errorMessage, account.getPublicKey(), mosaicInfo.getOwner().getPublicKey().toHex());
+    //    assertEquals(
+    //        errorMessage, account.getAddress().plain(), mosaicInfo.getOwnerAddress().plain());
+    verifyAsset(mosaicDefinitionTransaction, duration);
+  }
+
+  private void verifyAsset(
+      final MosaicDefinitionTransaction mosaicDefinitionTransaction, final BigInteger duration) {
+    final MosaicInfo mosaicInfo = mosaicHelper.getMosaic(mosaicDefinitionTransaction.getMosaicId());
+    final MosaicId mosaicId = mosaicInfo.getMosaicId();
+    final String errorMessage = "Mosaic info check failed for id: " + mosaicId.getIdAsLong();
+    assertEquals(errorMessage, mosaicId.getIdAsLong(), mosaicInfo.getMosaicId().getIdAsLong());
     assertEquals(
         errorMessage, mosaicDefinitionTransaction.getDivisibility(), mosaicInfo.getDivisibility());
     assertEquals(
@@ -101,13 +111,37 @@ public class AssetRegistration extends BaseTest {
     final BigInteger fee = getUserFee(initialAccountInfo.getPublicAccount());
     final long exceptedFee = amountChange == 0 ? 0 : fee.longValue();
     assertEquals(
+        "Change did not match. Before value: "
+            + mosaicBefore.getAmount().longValue()
+            + " After: "
+            + mosaicAfter.getAmount().longValue()
+            + " Fee: "
+            + exceptedFee,
         amountChange,
         mosaicBefore.getAmount().longValue() - mosaicAfter.getAmount().longValue() - exceptedFee);
   }
 
-  @When("^(\\w+) registers (\\w+), supply (\\w+) with divisibility (\\d+) asset for (\\d+) in blocks$")
-  public void registerAssestForDuration(
+  private void storeMosaicId(final MosaicId mosaicId) {
+    getTestContext().getScenarioContext().setContext(MOSAIC_ID_NAME, mosaicId);
+  }
+
+  private void storeMosaicNonce(final MosaicNonce mosaicNonce) {
+    getTestContext().getScenarioContext().setContext(MOSAIC_NONCE_NAME, mosaicNonce);
+  }
+
+  private MosaicId getMosaicId() {
+    return getTestContext().getScenarioContext().getContext(MOSAIC_ID_NAME);
+  }
+
+  private MosaicNonce getMosaicNonce() {
+    return getTestContext().getScenarioContext().getContext(MOSAIC_NONCE_NAME);
+  }
+
+  @When(
+      "^(\\w+) registers an asset named \"(\\w+)\" with (\\w+), supply (\\w+) with divisibility (\\d+) for (\\d+) blocks$")
+  public void registerAssetForDuration(
       final String userName,
+      final String assetName,
       final AssetTransferableType assetTransferableType,
       final AssetSupplyType assetSupplyType,
       final int divisibility,
@@ -116,35 +150,179 @@ public class AssetRegistration extends BaseTest {
     final boolean supplyMutable = assetSupplyType == AssetSupplyType.MUTABLE;
     final boolean transferable = assetTransferableType == AssetTransferableType.TRANSFERABLE;
     final MosaicFlags mosaicFlags = MosaicFlags.create(supplyMutable, transferable);
+    final MosaicNonce mosaicNonce = MosaicNonce.createRandom();
+    final MosaicId mosaicId = MosaicId.createFromNonce(mosaicNonce, userAccount.getPublicAccount());
+    storeMosaicId(mosaicId);
+    storeMosaicNonce(mosaicNonce);
+    createMosaicAndSaveAccount(
+        userName,
+        () -> {
+          mosaicHelper.submitCreateModifyMosaicDefinitionAndWait(
+              userAccount,
+              mosaicNonce,
+              mosaicId,
+              mosaicFlags,
+              divisibility,
+              BigInteger.valueOf(duration));
+        });
+    final MosaicInfo mosaicInfo = new MosaicHelper(getTestContext()).getMosaic(mosaicId);
+    storeMosaicInfo(assetName, mosaicInfo);
+    storeMosaicInfo(MOSAIC_INFO_KEY, mosaicInfo);
+  }
+
+  @When(
+      "^(\\w+) updates asset named \"(\\w+)\" to (\\w+), supply (\\w+) with divisibility (\\d+) for (\\d+) blocks$")
+  public void updateAssetForDuration(
+      final String userName,
+      final String assetName,
+      final AssetTransferableType assetTransferableType,
+      final AssetSupplyType assetSupplyType,
+      final int divisibility,
+      final int duration) {
+    final Account userAccount = getUser(userName);
+    final boolean supplyMutable = assetSupplyType == AssetSupplyType.MUTABLE;
+    final boolean transferable = assetTransferableType == AssetTransferableType.TRANSFERABLE;
+    final MosaicFlags mosaicFlags = MosaicFlags.create(supplyMutable, transferable);
+    final MosaicNonce mosaicNonce = getMosaicNonce();
+    final MosaicId mosaicId = getMosaicId();
+    final MosaicInfo mosaicInfo = new MosaicHelper(getTestContext()).getMosaic(mosaicId);
     createMosaicAndSaveAccount(
         userName,
         () ->
-            mosaicHelper.submitExpiringMosaicDefinitionAndWait(
-                userAccount, mosaicFlags, divisibility, BigInteger.valueOf(duration)));
+            mosaicHelper.submitCreateModifyMosaicDefinitionAndWait(
+                userAccount,
+                mosaicNonce,
+                mosaicId,
+                mosaicFlags,
+                divisibility ^ mosaicInfo.getDivisibility(),
+                BigInteger.valueOf(duration)));
+  }
+
+  @When(
+      "^(\\w+) tries to update asset named \"(\\w+)\" to (\\w+), supply (\\w+) with divisibility (\\d+) for (\\d+) blocks$")
+  public void triesUpdateAssetForDuration(
+      final String userName,
+      final String assetName,
+      final AssetTransferableType assetTransferableType,
+      final AssetSupplyType assetSupplyType,
+      final int divisibility,
+      final int duration) {
+    final Account userAccount = getUser(userName);
+    final boolean supplyMutable = assetSupplyType == AssetSupplyType.MUTABLE;
+    final boolean transferable = assetTransferableType == AssetTransferableType.TRANSFERABLE;
+    final MosaicFlags mosaicFlags = MosaicFlags.create(supplyMutable, transferable);
+    final MosaicNonce mosaicNonce = getMosaicNonce();
+    final MosaicId mosaicId = getMosaicId();
+    final MosaicInfo mosaicInfo = new MosaicHelper(getTestContext()).getMosaic(mosaicId);
+    createMosaicAndSaveAccount(
+        userName,
+        () ->
+            mosaicHelper.createModifyMosaicDefinitionTransactionAndAnnounce(
+                userAccount,
+                mosaicNonce,
+                mosaicId,
+                mosaicFlags,
+                divisibility ^ mosaicInfo.getDivisibility(),
+                BigInteger.valueOf(duration)));
   }
 
   @Then("^(\\w+) should become the owner of the new asset for at least (\\d+) blocks$")
   public void verifyAssetOwnerShip(final String username, final BigInteger duration) {
     final Account userAccount = getUser(username);
-    verifyAsset(userAccount, duration);
+    verifyAssetWithOwner(userAccount, duration);
   }
 
-  @And("(\\w+) pays fee in (\\d+) units")
-  public void verifyAccountBalanceDueToFee(final String userName, final BigInteger change) {
-    final AccountInfo accountInfoBefore = getAccountInfoFromContext(userName);
-    final BigInteger transactionHeight =
+  @Then("^(\\w+) asset should be updated correctly$")
+  public void verifyAssetUpdate(final String assetName) {
+    final MosaicInfo mosaicInfo = getMosaicInfo(assetName);
+    final MosaicDefinitionTransaction mosaicDefinitionTransaction =
         getTestContext()
-            .getTransactions()
-            .get(getTestContext().getTransactions().size() - 1)
-            .getTransactionInfo()
-            .get()
-            .getHeight();
-    final BigInteger actualAmountChange = getCalculatedDynamicFee(change, transactionHeight);
+            .<MosaicDefinitionTransaction>findTransaction(TransactionType.MOSAIC_DEFINITION)
+            .get();
+    final long duration =
+        mosaicDefinitionTransaction.getBlockDuration().getDuration()
+            + mosaicInfo.getDuration().longValue();
+    final MosaicFlags mosaicFlags =
+        MosaicFlags.create(
+            mosaicInfo.isSupplyMutable(), mosaicInfo.isTransferable(), mosaicInfo.isRestrictable());
+    final MosaicFlags updatedMosaicFlags =
+        MosaicFlags.create(
+            mosaicFlags.getValue() ^ mosaicDefinitionTransaction.getMosaicFlags().getValue());
+    final MosaicDefinitionTransaction mosaicDefinitionTransactionUpdated =
+        MosaicDefinitionTransactionFactory.create(
+                getTestContext().getNetworkType(),
+                getMosaicNonce(),
+                getMosaicId(),
+                updatedMosaicFlags,
+                mosaicInfo.getDivisibility() ^ mosaicDefinitionTransaction.getDivisibility(),
+                new BlockDuration(duration))
+            .build();
+    verifyAsset(mosaicDefinitionTransactionUpdated, BigInteger.valueOf(duration));
+  }
+
+  @And("(\\w+) pays mosaic rental fee")
+  public void verifyMosaicRentalFee(final String userName) {
+    final AccountInfo accountInfoBefore = getAccountInfoFromContext(userName);
+    final BigInteger actualAmountChange =
+        getTestContext()
+            .getRepositoryFactory()
+            .createNetworkRepository()
+            .getRentalFees()
+            .blockingFirst()
+            .getEffectiveMosaicRentalFee();
+    getTestContext()
+        .getLogger()
+        .LogError(
+            "Mosaic rental fee: "
+                + actualAmountChange.longValue()
+                + " at block: "
+                + new BlockChainHelper(getTestContext()).getBlockchainHeight().longValue());
+    verifyAccountBalance(accountInfoBefore, actualAmountChange.longValue());
+  }
+
+  @And("(\\w+) pays child namespace fee")
+  public void verifyChildNamespaceFee(final String userName) {
+    final AccountInfo accountInfoBefore = getAccountInfoFromContext(userName);
+    final BigInteger actualAmountChange =
+        getTestContext()
+            .getRepositoryFactory()
+            .createNetworkRepository()
+            .getRentalFees()
+            .blockingFirst()
+            .getEffectiveChildNamespaceRentalFee();
+    getTestContext()
+        .getLogger()
+        .LogError(
+            "Child namespace rental fee: "
+                + actualAmountChange.longValue()
+                + " at block: "
+                + new BlockChainHelper(getTestContext()).getBlockchainHeight().longValue());
+    verifyAccountBalance(accountInfoBefore, actualAmountChange.longValue());
+  }
+
+  @And("(\\w+) pays rental fee in (\\d+) units")
+  public void verifyAccountBalanceDueToRentalFee(final String userName, final BigInteger change) {
+    final AccountInfo accountInfoBefore = getAccountInfoFromContext(userName);
+    final BigInteger rootNamespaceRentalFee =
+        getTestContext()
+            .getRepositoryFactory()
+            .createNetworkRepository()
+            .getRentalFees()
+            .blockingFirst()
+            .getEffectiveRootNamespaceRentalFeePerBlock();
+    final BigInteger actualAmountChange = rootNamespaceRentalFee.multiply(addMinDuration(change));
+    getTestContext()
+        .getLogger()
+        .LogError(
+            "Root namespace rental fee: "
+                + rootNamespaceRentalFee.longValue()
+                + " at block: "
+                + new BlockChainHelper(getTestContext()).getBlockchainHeight().longValue());
     verifyAccountBalance(accountInfoBefore, actualAmountChange.longValue());
   }
 
   @When("^(\\w+) registers a non-expiring asset$")
-  public void registerAssestNonExpiring(final String userName) {
+  public void registerAssetNonExpiring(final String userName) {
     final Account userAccount = getUser(userName);
     final MosaicFlags mosaicFlags =
         MosaicFlags.create(
@@ -159,11 +337,11 @@ public class AssetRegistration extends BaseTest {
   @Then("^(\\w+) should become the owner of the new asset$")
   public void verifyAssetOwnerShip(final String username) {
     final Account userAccount = getUser(username);
-    verifyAsset(userAccount, BigInteger.ZERO);
+    verifyAssetWithOwner(userAccount, BigInteger.ZERO);
   }
 
   @When("^(\\w+) registers an asset for (-?\\d+) in blocks with (-?\\d+) divisibility$")
-  public void registerInvalidAssest(
+  public void registerInvalidAsset(
       final String userName, final int duration, final int divisibility) {
     final Account userAccount = getUser(userName);
     final MosaicFlags mosaicFlags =
@@ -176,19 +354,22 @@ public class AssetRegistration extends BaseTest {
                 userAccount, mosaicFlags, divisibility, BigInteger.valueOf(duration)));
   }
 
-  @And("(\\w+) \"cat.currency\" balance should remain intact")
-  public void verifyAccountBalanceIsTheSame(final String userName) {
-    final AccountInfo accountInfoBefore = getAccountInfoFromContext(userName);
-    verifyAccountBalance(accountInfoBefore, 0);
-  }
-
-  @Given("^(\\w+) has spent all her \"cat.currency\"$")
+  @Given("^(\\w+) has spent all her \"network currency\"$")
   public void createEmptyAccount(final String username) {
     getUser(username);
   }
 
   @When("^(\\w+) registers an asset$")
   public void registerAssetZeroBalance(final String userName) {
+    final Account account = getUser(userName);
+    final MosaicFlags mosaicFlags = MosaicFlags.create(true, true);
+    createMosaicAndSaveAccount(
+        userName,
+        () -> mosaicHelper.createMosaicDefinitionTransactionAndAnnounce(account, mosaicFlags, 0));
+  }
+
+  @When("^(\\w+) tries to register an asset$")
+  public void triesToRegisterAsset(final String userName) {
     final Account account = getUser(userName);
     final MosaicFlags mosaicFlags = MosaicFlags.create(true, true);
     createMosaicAndSaveAccount(
@@ -299,6 +480,37 @@ public class AssetRegistration extends BaseTest {
     final MosaicInfo mosaicInfo =
         new MosaicHelper(getTestContext())
             .getMosaicWithRetry(mosaicDefinitionTransaction.getMosaicId());
+    storeMosaicInfo(MOSAIC_INFO_KEY, mosaicInfo);
+    storeMosaicInfo(assetName, mosaicInfo);
+  }
+
+  @Given(
+      "^(\\w+) has registered expiring asset \"(\\w+)\" for (\\d+) blocks with supply (\\d+) units?$")
+  public void registerExpiringAssetWithSupply(
+      final String userName, final String assetName, final BigInteger duration, BigInteger supply) {
+    final Account account = getUser(userName);
+    final boolean supplyMutable = CommonHelper.getRandomNextBoolean();
+    final boolean transferable = CommonHelper.getRandomNextBoolean();
+    final int divisibility = CommonHelper.getRandomDivisibility();
+    final MosaicFlags mosaicFlags = MosaicFlags.create(supplyMutable, transferable);
+    createMosaicAndSaveAccount(
+        userName,
+        () -> {
+          final MosaicDefinitionTransaction mosaicDefinitionTransaction =
+              mosaicHelper.submitExpiringMosaicDefinitionAndWait(
+                  account, mosaicFlags, divisibility, duration);
+          mosaicHelper.submitMosaicSupplyChangeAndWait(
+              account,
+              mosaicDefinitionTransaction.getMosaicId(),
+              MosaicSupplyChangeActionType.INCREASE,
+              supply);
+        });
+    SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
+    final MosaicSupplyChangeTransaction mosaicDefinitionTransaction =
+        new TransactionHelper(getTestContext()).waitForTransactionToComplete(signedTransaction);
+    final MosaicInfo mosaicInfo =
+        new MosaicHelper(getTestContext())
+            .getMosaicWithRetry((MosaicId) mosaicDefinitionTransaction.getMosaicId());
     storeMosaicInfo(MOSAIC_INFO_KEY, mosaicInfo);
     storeMosaicInfo(assetName, mosaicInfo);
   }

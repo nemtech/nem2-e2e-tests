@@ -21,12 +21,20 @@
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
 import com.mongodb.client.model.Filters;
+import io.nem.symbol.sdk.api.BlockSearchCriteria;
+import io.nem.symbol.sdk.api.TransactionSearchCriteria;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers.BlocksInfoMapper;
+import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers.MapperUtils;
+import io.nem.symbol.sdk.model.account.Address;
+import io.nem.symbol.sdk.model.blockchain.BlockInfo;
+import io.nem.symbol.sdk.model.transaction.Transaction;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.Binary;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,5 +84,41 @@ public class BlocksCollection {
     final List<Document> results =
         catapultCollection.find(blockRangeFilters, context.getDatabaseTimeoutInSeconds());
     return catapultCollection.ConvertResult(results);
+  }
+
+  private byte[] getAddressBytes(final Address address) {
+    return MapperUtils.fromAddressToByteBuffer(address).array();
+  }
+
+  private Bson toSearchCriteria(final BlockSearchCriteria criteria) {
+    List<Bson> filters = new ArrayList<>();
+
+    if (criteria.getBeneficiaryAddress() != null) {
+      final Bson addressFilter =
+              Filters.eq(
+                      "meta.addresses", new Binary((byte) 0, getAddressBytes(criteria.getBeneficiaryAddress())));
+      filters.add(addressFilter);
+    }
+
+    if (criteria.getSignerPublicKey() != null) {
+      final Bson signerFilter =
+              Filters.eq(
+                      "block.signerPublicKey",
+                      new Binary((byte) 0, criteria.getSignerPublicKey().getBytes()));
+      filters.add(signerFilter);
+    }
+    return Filters.and(filters);
+  }
+
+  /**
+   * It searches entities of a type based on a criteria.
+   *
+   * @param criteria the criteria
+   * @return a page of entities.
+   */
+  public List<FullBlockInfo> search(final BlockSearchCriteria criteria) {
+    final Bson filters = toSearchCriteria(criteria);
+
+    return catapultCollection.findR(filters, context.getDatabaseTimeoutInSeconds());
   }
 }

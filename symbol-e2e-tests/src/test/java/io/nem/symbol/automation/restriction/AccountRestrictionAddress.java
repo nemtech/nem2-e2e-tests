@@ -26,11 +26,11 @@ import cucumber.api.java.en.When;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
 import io.nem.symbol.automationHelpers.helper.AccountRestrictionHelper;
+import io.nem.symbol.automationHelpers.helper.CommonHelper;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.account.UnresolvedAddress;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
-import io.nem.symbol.sdk.model.transaction.AccountRestrictionFlags;
+import io.nem.symbol.sdk.model.transaction.AccountAddressRestrictionFlags;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.ArrayList;
@@ -55,7 +55,9 @@ public class AccountRestrictionAddress extends BaseTest {
 
   @Given("^the following accounts exist:$")
   public void theFollowingAccountsExists(final List<String> usernames) {
-    usernames.parallelStream().forEach(username -> getUserWithCurrency(username, 3000));
+    usernames.parallelStream().forEach(username -> getUserWithCurrency(username, 10000));
+    //    usernames.parallelStream().forEach(username -> transferAssets(username, username, new
+    // ArrayList<>(), PlainMessage.Empty));
     // usernames.forEach(username ->
     // getTestContext().getLogger().LogInfo(getAccountInfoFromContext(username).toString()));
   }
@@ -65,12 +67,11 @@ public class AccountRestrictionAddress extends BaseTest {
       final String username, final List<String> blockedAccounts) {
     final Account signerAccount = getUser(username);
     final List<UnresolvedAddress> additions =
-        blockedAccounts
-            .parallelStream()
+        blockedAccounts.parallelStream()
             .map(blockedAccount -> getAccountInfoFromContext(blockedAccount).getAddress())
             .collect(Collectors.toList());
     accountRestrictionHelper.createAccountAddressRestrictionTransactionAndWait(
-        signerAccount, AccountRestrictionFlags.BLOCK_ADDRESS, additions, new ArrayList<>());
+        signerAccount, AccountAddressRestrictionFlags.BLOCK_ADDRESS, additions, new ArrayList<>());
   }
 
   @And("^receiving transactions from the stated addresses should be blocked$")
@@ -81,13 +82,12 @@ public class AccountRestrictionAddress extends BaseTest {
       final String username, final List<String> allowedAccounts) {
     final Account signerAccount = getUser(username);
     final List<UnresolvedAddress> additions =
-        allowedAccounts
-            .parallelStream()
+        allowedAccounts.parallelStream()
             .map(allowedAccount -> getAccountInfoFromContext(allowedAccount).getAddress())
             .collect(Collectors.toList());
     accountRestrictionHelper.createAccountAddressRestrictionTransactionAndWait(
         signerAccount,
-        AccountRestrictionFlags.ALLOW_INCOMING_ADDRESS,
+        AccountAddressRestrictionFlags.ALLOW_INCOMING_ADDRESS,
         additions,
         new ArrayList<>());
   }
@@ -98,7 +98,7 @@ public class AccountRestrictionAddress extends BaseTest {
     final List<UnresolvedAddress> deletions = new ArrayList<>();
     deletions.add(getAccountInfoFromContext(accountToUnblock).getAddress());
     accountRestrictionHelper.createAccountAddressRestrictionTransactionAndWait(
-        signerAccount, AccountRestrictionFlags.BLOCK_ADDRESS, new ArrayList<>(), deletions);
+        signerAccount, AccountAddressRestrictionFlags.BLOCK_ADDRESS, new ArrayList<>(), deletions);
   }
 
   @When("^(\\w+) removes (\\w+) from allowed addresses$")
@@ -109,7 +109,7 @@ public class AccountRestrictionAddress extends BaseTest {
     deletions.add(getAccountInfoFromContext(accountToRemoveFromAllowed).getAddress());
     accountRestrictionHelper.createAccountAddressRestrictionTransactionAndWait(
         signerAccount,
-        AccountRestrictionFlags.ALLOW_INCOMING_ADDRESS,
+        AccountAddressRestrictionFlags.ALLOW_INCOMING_ADDRESS,
         new ArrayList<>(),
         deletions);
   }
@@ -120,7 +120,7 @@ public class AccountRestrictionAddress extends BaseTest {
     final List<UnresolvedAddress> deletions = new ArrayList<>();
     deletions.add(getAccountInfoFromContext(userToRemove).getAddress());
     accountRestrictionHelper.createAccountAddressRestrictionTransactionAndAnnounce(
-        signerAccount, AccountRestrictionFlags.BLOCK_ADDRESS, new ArrayList<>(), deletions);
+        signerAccount, AccountAddressRestrictionFlags.BLOCK_ADDRESS, new ArrayList<>(), deletions);
   }
 
   @When("^(\\w+) tries to remove (\\w+) from allowed addresses$")
@@ -131,7 +131,7 @@ public class AccountRestrictionAddress extends BaseTest {
     deletions.add(getAccountInfoFromContext(userToRemove).getAddress());
     accountRestrictionHelper.createAccountAddressRestrictionTransactionAndAnnounce(
         signerAccount,
-        AccountRestrictionFlags.ALLOW_INCOMING_ADDRESS,
+        AccountAddressRestrictionFlags.ALLOW_INCOMING_ADDRESS,
         new ArrayList<>(),
         deletions);
   }
@@ -156,7 +156,7 @@ public class AccountRestrictionAddress extends BaseTest {
     final List<UnresolvedAddress> additions = new ArrayList<>();
     additions.add(getAccountInfoFromContext(blockedAccount).getAddress());
     accountRestrictionHelper.createAccountAddressRestrictionTransactionAndAnnounce(
-        signerAccount, AccountRestrictionFlags.BLOCK_ADDRESS, additions, new ArrayList<>());
+        signerAccount, AccountAddressRestrictionFlags.BLOCK_ADDRESS, additions, new ArrayList<>());
   }
 
   @Given("^(\\w+) has (allowed|blocked) receiving transactions from (\\d+) different addresses$")
@@ -166,11 +166,19 @@ public class AccountRestrictionAddress extends BaseTest {
     this.thereAreAtLeastDifferentAddressesRegistered(count);
     final List<String> addresses =
         getTestContext().getScenarioContext().getContext("randomAddressesList");
-    if (restrictionType.equalsIgnoreCase("allowed")) {
-      this.onlyAllowsReceivingTransactionsFrom(username, addresses);
-    } else {
-      this.blocksReceivingTransactionsFrom(username, addresses);
+    final List<Runnable> runnables = new ArrayList<>();
+    for (int i = 0; i < count; i += 256) {
+      final List<String> subList = addresses.subList(i, i + 256);
+      runnables.add(
+          () -> {
+            if (restrictionType.equalsIgnoreCase("allowed")) {
+              this.onlyAllowsReceivingTransactionsFrom(username, subList);
+            } else {
+              this.blocksReceivingTransactionsFrom(username, subList);
+            }
+          });
     }
+    CommonHelper.executeInParallel(runnables, 120);
   }
 
   @When("^(\\w+) tries to block receiving transactions from (\\d+) different addresses$")
@@ -183,16 +191,16 @@ public class AccountRestrictionAddress extends BaseTest {
         getTestContext().getScenarioContext().getContext("randomAddressesList");
     // TODO: assuming that at least count + 1 addresses are registered. May be better to check and
     // throw if not.
-    randomAddresses.stream()
-        .limit(count + 1)
-        .collect(Collectors.toList())
-        .parallelStream()
+    randomAddresses.stream().limit(count + 1).collect(Collectors.toList()).parallelStream()
         .forEach(
             address -> {
               modifications.add(getUser(address).getAddress());
             });
     accountRestrictionHelper.createAccountAddressRestrictionTransactionAndAnnounce(
-        signerAccount, AccountRestrictionFlags.BLOCK_ADDRESS, modifications, new ArrayList<>());
+        signerAccount,
+        AccountAddressRestrictionFlags.BLOCK_ADDRESS,
+        modifications,
+        new ArrayList<>());
   }
 
   @When("^(\\w+) tries to only allow receiving transactions from (\\d+) different addresses$")
@@ -204,17 +212,14 @@ public class AccountRestrictionAddress extends BaseTest {
         getTestContext().getScenarioContext().getContext("randomAddressesList");
     // TODO: assuming that at least count + 1 addresses are registered. May be better to check and
     // throw if not.
-    randomAddresses.stream()
-        .limit(count + 1)
-        .collect(Collectors.toList())
-        .parallelStream()
+    randomAddresses.stream().limit(count + 1).collect(Collectors.toList()).parallelStream()
         .forEach(
             address -> {
               modifications.add(getUser(address).getAddress());
             });
     accountRestrictionHelper.createAccountAddressRestrictionTransactionAndAnnounce(
         signerAccount,
-        AccountRestrictionFlags.ALLOW_INCOMING_ADDRESS,
+        AccountAddressRestrictionFlags.ALLOW_INCOMING_ADDRESS,
         modifications,
         new ArrayList<>());
   }
@@ -237,7 +242,7 @@ public class AccountRestrictionAddress extends BaseTest {
   public void userTriesToOnlyAllowReceivingTransactionsFromInvalidAddress(
       final String username, final String invalidAddressString) {
     this.userTriesToOnlyAllowReceivingTransactionsFrom(
-        username, new Address(invalidAddressString, NetworkType.MIJIN_TEST));
+        username, new Address(invalidAddressString, getTestContext().getNetworkType()));
   }
 
   private void userTriesToOnlyAllowReceivingTransactionsFrom(
@@ -247,7 +252,7 @@ public class AccountRestrictionAddress extends BaseTest {
     additions.add(address);
     accountRestrictionHelper.createAccountAddressRestrictionTransactionAndAnnounce(
         signerAccount,
-        AccountRestrictionFlags.ALLOW_INCOMING_ADDRESS,
+        AccountAddressRestrictionFlags.ALLOW_INCOMING_ADDRESS,
         additions,
         new ArrayList<>());
   }

@@ -20,14 +20,12 @@
 
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers;
 
-import io.nem.symbol.sdk.model.account.AccountInfo;
-import io.nem.symbol.sdk.model.account.AccountType;
-import io.nem.symbol.sdk.model.account.Address;
-import io.nem.symbol.sdk.model.account.Importances;
+import io.nem.symbol.sdk.model.account.*;
 import io.nem.symbol.sdk.model.mosaic.Mosaic;
 import io.vertx.core.json.JsonObject;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -44,10 +42,10 @@ public class AccountInfoMapper implements Function<JsonObject, AccountInfo> {
     final JsonObject accountJsonObject = jsonObject.getJsonObject("account");
     final Address address = Address.createFromEncoded(accountJsonObject.getString("address"));
     final BigInteger addressHeight =
-        MapperUtils.extractBigInteger(accountJsonObject, "addressHeight");
+        MapperUtils.toBigInteger(accountJsonObject, "addressHeight");
     final String publicKey = accountJsonObject.getString("publicKey");
     final BigInteger publicHeight =
-        MapperUtils.extractBigInteger(accountJsonObject, "publicKeyHeight");
+        MapperUtils.toBigInteger(accountJsonObject, "publicKeyHeight");
     final ImportancesMapper importancesMapper = new ImportancesMapper();
     final List<Importances> importances =
         accountJsonObject.getJsonArray("importances").stream()
@@ -63,6 +61,8 @@ public class AccountInfoMapper implements Function<JsonObject, AccountInfo> {
         accountJsonObject.getJsonArray("mosaics").stream()
             .map(jsonObj -> mosaicMapper.apply((JsonObject) jsonObj))
             .collect(Collectors.toList());
+    final List<ActivityBucket> activityBuckets = new ArrayList<>();
+    final SupplementalAccountKeys accountKeys = null;
     return new AccountInfo(
         address,
         addressHeight,
@@ -71,6 +71,8 @@ public class AccountInfoMapper implements Function<JsonObject, AccountInfo> {
         importance.getValue(),
         importance.getHeight(),
         mosaics,
-        AccountType.UNLINKED);
+        AccountType.UNLINKED,
+            accountKeys,
+            activityBuckets);
   }
 }

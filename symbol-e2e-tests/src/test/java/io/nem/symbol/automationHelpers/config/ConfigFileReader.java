@@ -21,12 +21,9 @@
 package io.nem.symbol.automationHelpers.config;
 
 import io.nem.symbol.automationHelpers.common.RepositoryFactoryType;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
+import io.nem.symbol.sdk.model.network.NetworkType;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -79,21 +76,48 @@ public class ConfigFileReader {
   }
 
   /**
-   * Gets the api server public key.
+   * Gets the broker host address.
    *
-   * @return Api host public key.
+   * @return broker host name/address.
    */
-  public String getApiServerPublicKey() {
-    return getPropertyValue("apiServerPublicKey").toUpperCase();
+  public String getBrokerHost() {
+    return getPropertyValue("brokerHost");
   }
 
   /**
-   * Gets the automation private key.
+   * Gets the broker host port.
    *
-   * @return Automation private key.
+   * @return broker host port.
    */
-  public String getAutomationPrivateKey() {
-    return getPropertyValue("automationPrivateKey").toUpperCase();
+  public int getBrokerPort() {
+    return Integer.parseInt(getPropertyValue("brokerPort"));
+  }
+
+  /**
+   * Gets the api server full certificate file.
+   *
+   * @return Api node certificate file.
+   */
+  public File getApiServerCertificateFile() {
+    return new File(getPropertyValue("apiServerCertificateFile").toUpperCase());
+  }
+
+  /**
+   * Gets the automation key file.
+   *
+   * @return Automation key file.
+   */
+  public File getAutomationKeyFile() {
+    return new File(getPropertyValue("automationKeyFile").toUpperCase());
+  }
+
+  /**
+   * Gets the automation certificate file.
+   *
+   * @return Automation certificate file.
+   */
+  public File getAutomationCertificateFile() {
+    return new File(getPropertyValue("automationCertificateFile").toUpperCase());
   }
 
   /**
@@ -133,15 +157,6 @@ public class ConfigFileReader {
   }
 
   /**
-   * Gets cat currency id.
-   *
-   * @return Currency id.
-   */
-  public BigInteger getCatCurrencyId() {
-    return new BigInteger(getPropertyValue("cat.currency"), 16);
-  }
-
-  /**
    * Gets min fee multiplier
    *
    * @return Min fee multiplier.
@@ -169,24 +184,6 @@ public class ConfigFileReader {
   }
 
   /**
-   * Gets generation hash.
-   *
-   * @return Generation hash.
-   */
-  public String getGenerationHash() {
-    return getPropertyValue("generationHash");
-  }
-
-  /**
-   * Gets the namespace grace period in blocks.
-   *
-   * @return Namespace grace period in blocks.
-   */
-  public int getNamespaceGracePeriodInBlocks() {
-    return Integer.parseInt(getPropertyValue("namespaceGracePeriodInBlocks"));
-  }
-
-  /**
    * Gets the harvester public key.
    *
    * @return Public key.
@@ -196,22 +193,23 @@ public class ConfigFileReader {
   }
 
   /**
-   * Gets the default dynamic fee multiplier.
+   * Gets the harvester private key.
    *
-   * @return Default dynamic fee multiplier.
+   * @return Private key.
    */
-  public BigInteger getDefaultDynamicFeeMultiplier() {
-    return new BigInteger(getPropertyValue("defaultDynamicFeeMultiplier"));
+  public String getHarvesterPrivateKey() {
+    return getPropertyValue("remoteHarvesterPrivateKey");
   }
 
   /**
-   * Gets the max difficulty blocks.
+   * Gets the harvester private key.
    *
-   * @return Max difficulty blocks.
+   * @return Public key.
    */
-  public BigInteger getMaxDifficultyBlocks() {
-    return new BigInteger(getPropertyValue("maxDifficultyBlocks"));
+  public String getNodePublicKey() {
+    return getPropertyValue("nodePublicKey");
   }
+
 
   /**
    * Gets the rest gateway url.
@@ -229,6 +227,15 @@ public class ConfigFileReader {
    */
   public RepositoryFactoryType getRepositoryFactoryType() {
     return RepositoryFactoryType.valueOf(getPropertyValue("RepositoryFactoryType").toUpperCase());
+  }
+
+  /**
+   * Gets symbol config path.
+   *
+   * @return Symbol config path.
+   */
+  public String getSymbolConfigPath() {
+    return getPropertyValue("symbolConfigPath");
   }
 
   /**

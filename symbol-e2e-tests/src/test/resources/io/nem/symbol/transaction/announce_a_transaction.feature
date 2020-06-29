@@ -5,14 +5,12 @@ Feature: Announce a transaction
 
     Given Alice has an account in MAIN_NET
     And the maximum transaction lifetime is 1 day
-    And the native currency asset is "cat.currency"
+    And the native currency asset is "network currency"
 
   @bvt
   Scenario: An account announced a valid transaction (max_fee)
-    Given Alice announced a valid transaction of size 10 bytes willing to pay 25 cat.currency
-    When a node with a fee multiplier of 2 processes the transaction
-    Then the node accepts the transaction
-    And Alice "cat.currency" balance is deducted by 20 units
+    When Alice announce valid transaction
+    Then Alice balance should decrease by transaction fee
 
   @bvt
   Scenario Outline: An account tries to announce a transaction with an invalid deadline
@@ -28,9 +26,16 @@ Feature: Announce a transaction
 
 
   Scenario: An unconfirmed transaction deadline expires
-    When Alice announce valid transaction which expires in unconfirmed status
-    Then she should receive a confirmation message
-    And  she should receive the error "FAILURE_CORE_PAST_DEADLINE"
+    Given Alice waits for a next block
+    And Alice creates a valid transaction with deadline in 5 seconds
+    When Alice publishes the contract
+    Then she should receive the error "FAILURE_CORE_PAST_DEADLINE"
+
+  Scenario: An expired transaction gets submitted
+    Given Alice creates a valid transaction with deadline in 20 seconds
+    And Alice waits for 3 blocks
+    When Alice publishes the contract
+    Then she should receive the error "FAILURE_CORE_PAST_DEADLINE"
 
   Scenario: Transaction unconfirmed state verification
     When Alice announce valid transaction
@@ -46,7 +51,7 @@ Feature: Announce a transaction
 
   Scenario: An account tries to announce an already announced transaction
     Given Alice registered the asset "X"
-    When Alice sends 2 asset "X" to Bob
+    When Alice sends 2 asset of "X" to Bob
     When Alice announces same the transaction
     Then Alice balance should remain intact
 
@@ -54,15 +59,7 @@ Feature: Announce a transaction
     When Alice announces the transaction to the incorrect network
     Then she should receive the error "FAILURE_CORE_WRONG_NETWORK"
 
-  Scenario: A node rejects a transaction because the max_fee value is too low
-    Given Alice announced a valid transaction of size 10 bytes willing to pay 10 cat.currency
-    When a node with a fee multiplier of 2 processes the transaction
-    Then the node rejects the transaction
-    And Alice "cat.currency" balance remains intact
-
   Scenario: No node accepts the transaction because the max_fee value is too low
-    Given Alice announced a valid transaction of size 10 bytes willing to pay 5 cat.currency
-    And all the nodes have set the fee multiplier to 2
-    When the transaction deadline is reached
-    Then the transaction is rejected
-    And Alice "cat.currency" balance should remain intact
+    Given Alice announced a valid transaction with max fee set below the in require fee
+    When the transaction is dropped
+    Then Alice balance should remain intact

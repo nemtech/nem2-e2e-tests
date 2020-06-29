@@ -3,7 +3,7 @@ Feature: Apply global restrictions on mosaics
   So that accounts that do not pass the restriction cannot transact with the mosaic
 
   Background:
-    # This step registers every user with cat.currency
+    # This step registers every user with network currency
     Given the following accounts exist:
       | Alex                |
       | Bobby               |
@@ -15,6 +15,7 @@ Feature: Apply global restrictions on mosaics
       | MyCompanySharesPublic  | false        |
     And Bobby has at least 10 MyCompanySharesPrivate balance
 
+  @bvt
   Scenario: An account that doesn't pass the restriction cannot transact with the mosaic
     Given Alex creates the following restriction
       | Mosaic                 | Restriction Key | Restriction value | Restriction Type |
@@ -25,9 +26,10 @@ Feature: Apply global restrictions on mosaics
     And Alex gives Carol the following restriction keys
       | Mosaic                 | restriction key | restriction value |
       | MyCompanySharesPrivate | can_hold        | 0                 |
-    When Bobby tries to send 1 asset "MyCompanySharesPrivate" to Carol
+    When Bobby tries to send 1 asset of "MyCompanySharesPrivate" to Carol
     Then Bobby should receive the error "Failure_RestrictionMosaic_Account_Unauthorized"
 
+  @bvt
   Scenario: An account that passes the restriction should be able to transact with the mosaic
     Given Alex creates the following restriction
       | Mosaic                 | Restriction Key | Restriction value | Restriction Type |
@@ -35,12 +37,13 @@ Feature: Apply global restrictions on mosaics
     And Alex gives Bobby the following restriction keys
       | Mosaic                 | restriction key | restriction value |
       | MyCompanySharesPrivate | can_hold        | 1                 |
-    And Carol gives Bobby the following restriction keys
+    And Alex gives Carol the following restriction keys
       | Mosaic                 | restriction key | restriction value |
       | MyCompanySharesPrivate | can_hold        | 1                 |
-    When Bobby sends 1 asset "MyCompanySharesPrivate" to Carol
+    When Bobby sends 1 asset of "MyCompanySharesPrivate" to Carol
     Then Carol should receive 1 of asset "MyCompanySharesPrivate"
 
+  @bvt
   Scenario: Make a modification to a mosaic restriction
     Given Alex creates the following restrictions
       | Mosaic                 | Restriction Key | Restriction value | Restriction Type |
@@ -54,9 +57,10 @@ Feature: Apply global restrictions on mosaics
     When Alex makes a modification to the mosaic restriction
       | Mosaic                 | Restriction Key | New Restriction value | New Restriction Type | Previous Restriction Value |
       | MyCompanySharesPrivate | can_hold        | 1                     | EQ                   | 2                          |
-    And Bobby sends 1 asset "MyCompanySharesPrivate" to Carol
+    And Bobby sends 1 asset of "MyCompanySharesPrivate" to Carol
     Then Carol should receive 1 of asset "MyCompanySharesPrivate"
 
+  @bvt
   Scenario: An account that passes multiple restrictions can interact with the mosaic
     Given Alex creates the following restrictions
       | Mosaic                 | Restriction Key | Restriction value | Restriction Type |
@@ -70,7 +74,7 @@ Feature: Apply global restrictions on mosaics
       | Mosaic                 | Restriction key | Restriction value |
       | MyCompanySharesPrivate | can_hold        | 1                 |
       | MyCompanySharesPrivate | can_share       | 1                 |
-    When Bobby sends 1 asset "MyCompanySharesPrivate" to Carol
+    When Bobby sends 1 asset of "MyCompanySharesPrivate" to Carol
     Then Carol should receive 1 of asset "MyCompanySharesPrivate"
 
 #  Scenario: An account that cannot pass the right restriction cannot do the corresponding transaction with mosaic
@@ -121,7 +125,7 @@ Feature: Apply global restrictions on mosaics
     Then Bobby should receive the error "FAILURE_RESTRICTIONMOSAIC_PREVIOUS_VALUE_MISMATCH"
 
   Scenario: Creating an address restriction without global restriction should give an error
-    When Bobby tries to create the following restriction key
+    When Alex tries to makes a modification to the mosaic restriction
       | Mosaic                 | restriction key | restriction value |
       | MyCompanySharesPrivate | can_hold        | 1                 |
     Then Bobby should receive the error "FAILURE_RESTRICTIONMOSAIC_UNKNOWN_GLOBAL_RESTRICTION"

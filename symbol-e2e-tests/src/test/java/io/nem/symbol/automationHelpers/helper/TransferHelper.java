@@ -23,11 +23,12 @@ package io.nem.symbol.automationHelpers.helper;
 import io.nem.symbol.automationHelpers.common.TestContext;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.Address;
+import io.nem.symbol.sdk.model.account.PublicAccount;
 import io.nem.symbol.sdk.model.account.UnresolvedAddress;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
 import io.nem.symbol.sdk.model.message.Message;
 import io.nem.symbol.sdk.model.mosaic.Mosaic;
 import io.nem.symbol.sdk.model.namespace.NamespaceId;
+import io.nem.symbol.sdk.model.network.NetworkType;
 import io.nem.symbol.sdk.model.transaction.SignedTransaction;
 import io.nem.symbol.sdk.model.transaction.TransferTransaction;
 import io.nem.symbol.sdk.model.transaction.TransferTransactionFactory;
@@ -46,6 +47,13 @@ public class TransferHelper extends BaseHelper<TransferHelper> {
   public TransferHelper(final TestContext testContext) {
     super(testContext);
     this.transactionHelper = new TransactionHelper(testContext);
+  }
+
+  private TransferTransaction createPersistentDelegationRequestTransaction(final Account remoteAccount, final PublicAccount nodePublicAccount) {
+    final TransferTransactionFactory transferTransactionFactory =
+            TransferTransactionFactory.createPersistentDelegationRequestTransaction(testContext.getNetworkType(),
+                    remoteAccount.getKeyPair().getPrivateKey(), nodePublicAccount.getPublicKey());
+    return buildTransaction(transferTransactionFactory);
   }
 
   /**
@@ -136,5 +144,21 @@ public class TransferHelper extends BaseHelper<TransferHelper> {
       final Message message) {
     return transactionHelper.signAndAnnounceTransactionAndWait(
         sender, () -> createTransferTransaction(recipient, mosaics, message));
+  }
+
+  /**
+   * Create persistent delegation request transaction and announce and wait.
+   *
+   * @param sender Sender account.
+   * @param remoteAccount Remote account.
+   * @param nodePublicAccount Node public key.
+   * @return Transfer transaction.
+   */
+  public TransferTransaction submitPersistentDelegationRequestAndWait(
+          final Account sender,
+          final Account remoteAccount,
+          final PublicAccount nodePublicAccount) {
+    return transactionHelper.signAndAnnounceTransactionAndWait(
+            sender, () -> createPersistentDelegationRequestTransaction(remoteAccount, nodePublicAccount));
   }
 }

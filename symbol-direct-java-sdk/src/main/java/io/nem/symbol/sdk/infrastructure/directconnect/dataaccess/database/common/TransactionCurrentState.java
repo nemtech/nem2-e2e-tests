@@ -33,4 +33,11 @@ public interface TransactionCurrentState {
    * @return Transaction status if found.
    */
   Optional<TransactionStatus> getStatus(final String hash);
+
+  /**
+   * Returns transaction status group "failed", "unconfirmed", "confirmed", etc...
+   *
+   * @return transaction group name
+   */
+  String getGroupStatus();
 }

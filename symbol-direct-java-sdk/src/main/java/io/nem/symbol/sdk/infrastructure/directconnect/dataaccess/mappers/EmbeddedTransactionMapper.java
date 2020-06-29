@@ -21,7 +21,7 @@
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers;
 
 import io.nem.symbol.sdk.model.account.PublicAccount;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
+import io.nem.symbol.sdk.model.network.NetworkType;
 import io.nem.symbol.sdk.model.transaction.Transaction;
 import io.nem.symbol.sdk.model.transaction.TransactionFactory;
 import io.vertx.core.json.JsonObject;

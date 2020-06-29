@@ -44,9 +44,7 @@ public class TransactionStatementsCollection {
         new CatapultCollection<>(
             context.getCatapultMongoDbClient(),
             "transactionStatements",
-            () ->
-                new TransactionStatementsMapper(
-                    new BlocksCollection(context).find(1).get().getNetworkType()));
+            TransactionStatementsMapper::new);
   }
 
   /**

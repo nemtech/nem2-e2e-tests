@@ -23,7 +23,8 @@ package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers;
 import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.account.MultisigAccountInfo;
 import io.nem.symbol.sdk.model.account.PublicAccount;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
+import io.nem.symbol.sdk.model.account.UnresolvedAddress;
+import io.nem.symbol.sdk.model.network.NetworkType;
 import io.vertx.core.json.JsonObject;
 
 import java.util.List;
@@ -37,13 +38,12 @@ public class MultisigAccountInfoMapper implements Function<JsonObject, MultisigA
    *
    * @param jsonObject Json object.
    * @param keyName Key name.
-   * @param networkType Network type.
    * @return Public account.
    */
-  private List<PublicAccount> getPublicAccounts(
-      final JsonObject jsonObject, final String keyName, final NetworkType networkType) {
+  private List<Address> getAddressList(
+      final JsonObject jsonObject, final String keyName) {
     return jsonObject.getJsonArray(keyName).stream()
-        .map(s -> new PublicAccount(s.toString(), networkType))
+        .map(s -> Address.createFromEncoded((String)s))
         .collect(Collectors.toList());
   }
 
@@ -57,16 +57,13 @@ public class MultisigAccountInfoMapper implements Function<JsonObject, MultisigA
     final JsonObject multisigJsonObject = jsonObject.getJsonObject("multisig");
     final Address address =
         Address.createFromEncoded(multisigJsonObject.getString("accountAddress"));
-    final PublicAccount account =
-        new PublicAccount(
-            multisigJsonObject.getString("accountPublicKey"), address.getNetworkType());
     final byte minApproval = multisigJsonObject.getInteger("minApproval").byteValue();
     final byte minRemoval = multisigJsonObject.getInteger("minRemoval").byteValue();
-    final List<PublicAccount> cosignatories =
-        getPublicAccounts(multisigJsonObject, "cosignatoryPublicKeys", address.getNetworkType());
-    final List<PublicAccount> multisigAccounts =
-        getPublicAccounts(multisigJsonObject, "multisigPublicKeys", address.getNetworkType());
+    final List<Address> cosignatories =
+        getAddressList(multisigJsonObject, "cosignatoryAddresses");
+    final List<Address> multisigAccounts =
+            getAddressList(multisigJsonObject, "multisigAddresses");
     return new MultisigAccountInfo(
-        account, minApproval, minRemoval, cosignatories, multisigAccounts);
+        address, minApproval, minRemoval, cosignatories, multisigAccounts);
   }
 }

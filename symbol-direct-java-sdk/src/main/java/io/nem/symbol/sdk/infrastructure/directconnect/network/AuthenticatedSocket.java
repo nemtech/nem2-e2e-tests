@@ -20,46 +20,40 @@
 
 package io.nem.symbol.sdk.infrastructure.directconnect.network;
 
-import io.nem.symbol.core.crypto.KeyPair;
-import io.nem.symbol.core.crypto.PublicKey;
-import io.nem.symbol.sdk.infrastructure.directconnect.auth.ConnectionSecurityMode;
-import io.nem.symbol.sdk.infrastructure.directconnect.auth.VerifyServer;
+import io.nem.symbol.sdk.infrastructure.directconnect.auth.TlsSocket;
+
+import java.io.File;
+import java.net.Socket;
 
 /** Authenticated socket to the catapult server. */
 public class AuthenticatedSocket {
-  private static AuthenticatedSocket authenticatedSocket = null;
   /* Key pair value use in the server challenge */
-  final KeyPair keyPair;
+  //final KeyPair keyPair;
   /* Client socket. */
   final SocketClient socketClient;
 
   /**
    * Constructor
    *
-   * @param socket Client socket.
-   * @param publicKey Server public key.
+   * @param hostName Client socket.
+   * @param port Server public key.
    */
-  private AuthenticatedSocket(
-      final SocketClient socket, final PublicKey publicKey, final KeyPair keyPair) {
-    this.keyPair = keyPair;
-
-    final VerifyServer verifyServer =
-        new VerifyServer(socket, keyPair, publicKey, ConnectionSecurityMode.NONE);
-    verifyServer.verifyConnection();
-    this.socketClient = socket;
+  private AuthenticatedSocket(final String hostName, final int port, final File clientKey, final File clientCertificate,
+                              final File remoteNodeCertificate) {
+    final Socket sslSocket = TlsSocket.creaate(clientKey, clientCertificate, remoteNodeCertificate).createSocket(hostName, port);
+    socketClient = SocketClient.create(sslSocket);
   }
 
   /**
    * Creates an authenticated socket with the server.
    *
-   * @param socketClient Socket connection to the server.
-   * @param publicKey Server public key
-   * @param clientKeyPair Client key pair
+   * @param hostName Socket connection to the server.
+   * @param port   Server public key
    * @return Authenticated socket
    */
-  public static AuthenticatedSocket create(
-      final SocketClient socketClient, final PublicKey publicKey, final KeyPair clientKeyPair) {
-    return new AuthenticatedSocket(socketClient, publicKey, clientKeyPair);
+  public static AuthenticatedSocket create(final String hostName, final int port, final File clientKey, final File clientCertificate,
+                                           final File remoteNodeCertificate) {
+    return new AuthenticatedSocket(hostName, port, clientKey, clientCertificate, remoteNodeCertificate);
   }
 
   /**

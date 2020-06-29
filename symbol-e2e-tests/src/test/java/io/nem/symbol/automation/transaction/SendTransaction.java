@@ -20,17 +20,18 @@
 
 package io.nem.symbol.automation.transaction;
 
+import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
 import io.nem.symbol.automationHelpers.helper.*;
-import io.nem.symbol.core.utils.ExceptionUtils;
+import io.nem.symbol.sdk.api.RepositoryCallException;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.common.RetryCommand;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.Address;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
 import io.nem.symbol.sdk.model.message.PlainMessage;
+import io.nem.symbol.sdk.model.network.NetworkType;
 import io.nem.symbol.sdk.model.transaction.*;
 
 import java.math.BigInteger;
@@ -38,8 +39,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /** Transaction specific tests. */
 public class SendTransaction extends BaseTest {
@@ -61,8 +61,12 @@ public class SendTransaction extends BaseTest {
 
   private TransferTransaction createTransaction(
       final Deadline deadline, final BigInteger maxFee, final NetworkType networkType) {
-    final Address recipientAddress = Account.generateNewAccount(getTestContext().getNetworkType()).getAddress();
-    return new TransferHelper(getTestContext()).withDeadline(() -> deadline).withMaxFee(maxFee).createTransferTransaction(
+    final Address recipientAddress =
+        Account.generateNewAccount(getTestContext().getNetworkType()).getAddress();
+    return new TransferHelper(getTestContext())
+        .withDeadline(() -> deadline)
+        .withMaxFee(maxFee)
+        .createTransferTransaction(
             networkType, recipientAddress, new ArrayList<>(), PlainMessage.create("Test message"));
   }
 
@@ -76,7 +80,7 @@ public class SendTransaction extends BaseTest {
     throw new IllegalStateException("There is only one Network type define.");
   }
 
-  private void announcesTransactionWithInvalid(
+  private void announcesTransferTransaction(
       final String senderName,
       final Deadline deadline,
       final BigInteger maxFee,
@@ -90,19 +94,8 @@ public class SendTransaction extends BaseTest {
   @When("^(\\w+) tries to announces the transaction with a deadline of (-?\\d+) hours?$")
   public void announcesTransactionWithInvalidDeadline(final String userName, final int timeout) {
     final Deadline deadline = Deadline.create(timeout, ChronoUnit.HOURS);
-    announcesTransactionWithInvalid(
+    announcesTransferTransaction(
         userName, deadline, TransactionHelper.getDefaultMaxFee(), networkHelper.getNetworkType());
-  }
-
-  @When("^(\\w+) announce valid transaction which expires in unconfirmed status$")
-  public void announcesTransactionExpiredUnconfirmed(final String userName) {
-    final int timeInSeconds = 2;
-    final Deadline deadline = Deadline.create(timeInSeconds, ChronoUnit.SECONDS);
-    final BigInteger blockHeight = new BlockChainHelper(getTestContext()).getBlockchainHeight();
-    waitForBlockChainHeight(blockHeight.longValue() + 1);
-    announcesTransactionWithInvalid(
-        userName, deadline, TransactionHelper.getDefaultMaxFee(), networkHelper.getNetworkType());
-    ExceptionUtils.propagateVoid(() -> Thread.sleep((timeInSeconds + 3) * 1000));
   }
 
   @When("^(\\w+) announce valid transaction$")
@@ -117,6 +110,18 @@ public class SendTransaction extends BaseTest {
     waitForBlockChainHeight(blockHeight.longValue() + 1);
     new TransactionHelper(getTestContext())
         .signAndAnnounceTransaction(sender, () -> transferTransaction);
+  }
+
+  @When("^(\\w+) creates a valid transaction with deadline in (\\d+) seconds$")
+  public void createTransaction(final String userName, final int timeoutInSeconds) {
+    final Account sender = getUser(userName);
+    final Deadline deadline = Deadline.create(timeoutInSeconds, ChronoUnit.SECONDS);
+    final TransferTransaction transferTransaction =
+        createTransaction(
+            deadline, TransactionHelper.getDefaultMaxFee(), getTestContext().getNetworkType());
+    final SignedTransaction signedTransaction =
+        new TransactionHelper(getTestContext()).signTransaction(transferTransaction, sender);
+    getTestContext().setSignedTransaction(signedTransaction);
   }
 
   @Then("^she can verify the transaction (\\w+) state in the DB$")
@@ -134,20 +139,16 @@ public class SendTransaction extends BaseTest {
   @When("^(\\w+) announces the transaction with invalid signature$")
   public void announcesTransactionInvalidSignature(final String userName) {
     final Account sender = getUser(userName);
-    final Account signingAccount = Account.generateNewAccount(networkHelper.getNetworkType());
     final TransferTransaction transferTransaction =
         createTransaction(
             TransactionHelper.getDefaultDeadline(),
             TransactionHelper.getDefaultMaxFee(),
             networkHelper.getNetworkType());
     final SignedTransaction signedInvalidTransaction =
-        transactionHelper.signTransaction(
-            transferTransaction,
-            signingAccount,
-            getTestContext().getGenerationHash().replace('0', '1'));
+        transactionHelper.signTransaction(transferTransaction, sender, sender.getPrivateKey());
     transactionHelper.announceTransaction(signedInvalidTransaction);
     final SignedTransaction signedTransaction =
-        transactionHelper.signTransaction(transferTransaction, signingAccount);
+        transactionHelper.signTransaction(transferTransaction, sender);
     getTestContext().setSignedTransaction(signedTransaction);
   }
 
@@ -161,7 +162,7 @@ public class SendTransaction extends BaseTest {
   @When("^(\\w+) announces the transaction to the incorrect network$")
   public void announceTransactionIncorrectNetwork(final String userName) {
     final NetworkType networkType = getIncorrectNetworkType();
-    announcesTransactionWithInvalid(
+    announcesTransferTransaction(
         userName,
         TransactionHelper.getDefaultDeadline(),
         TransactionHelper.getDefaultMaxFee(),
@@ -172,16 +173,28 @@ public class SendTransaction extends BaseTest {
   public void verifyTransactionError(final String userName, final String error) {
     final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
     final int maxTries = 20;
-    final int waitTimeInMilliseconds = 1000;
+    final int waitTimeInMilliseconds = 2000;
     final TransactionStatus status =
         new RetryCommand<TransactionStatus>(maxTries, waitTimeInMilliseconds, Optional.empty())
             .run(
                 (final RetryCommand<TransactionStatus> retryCommand) -> {
-                  final TransactionStatus current =
-                      new TransactionHelper(getTestContext())
-                          .getTransactionStatus(signedTransaction.getHash());
-                  if (current.getCode().toUpperCase().startsWith("FAILURE_")) {
-                    return current;
+                  TransactionStatus current;
+                  try {
+
+                    current =
+                        new TransactionHelper(getTestContext())
+                            .getTransactionStatus(signedTransaction.getHash());
+                    if (current.getCode().toUpperCase().startsWith("FAILURE_")) {
+                      return current;
+                    }
+                  } catch (final RepositoryCallException ex) {
+                    current =
+                        new TransactionStatus(
+                            TransactionState.FAILED,
+                            "Unknown state",
+                            signedTransaction.getHash(),
+                            Deadline.create(),
+                            BigInteger.ZERO);
                   }
                   throw new RuntimeException(
                       "Transaction has not failed yet. TransactionStatus: "
@@ -191,5 +204,34 @@ public class SendTransaction extends BaseTest {
         "Transaction " + signedTransaction.toString() + " did not fail.",
         error.toUpperCase(),
         status.getCode().toUpperCase());
+  }
+
+  @Given("^(\\w+) announced a valid transaction with max fee set below the in require fee$")
+  public void announcedValidTransactionWithLowMaxFee(final String userName) {
+    final Account userAccount = getUser(userName);
+    final TransferTransaction transferTransaction =
+        createTransaction(
+            TransactionHelper.getDefaultDeadline(),
+            BigInteger.ZERO,
+            getTestContext().getNetworkType());
+    new TransactionHelper(getTestContext())
+        .signAndAnnounceTransaction(userAccount, () -> transferTransaction);
+  }
+
+  @When("^the transaction is dropped$")
+  public void waitForTransactionDropped() {
+    final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
+    boolean found = false;
+    try {
+      final TransactionStatus transactionStatus =
+          new TransactionHelper(getTestContext()).getTransactionStatus(signedTransaction.getHash());
+      found = true;
+      getTestContext()
+          .getLogger()
+          .LogError("Transaction was found - " + CommonHelper.toString(transactionStatus));
+    } catch (final Exception ex) {
+
+    }
+    assertFalse("Transaction was found.", found);
   }
 }

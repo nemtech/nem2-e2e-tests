@@ -89,24 +89,25 @@ public class TransactionHelper {
    * @return Signed Transaction.
    */
   public SignedTransaction signTransaction(final Transaction transaction, final Account account) {
-    return signTransaction(transaction, account, testContext.getGenerationHash());
+    return signTransaction(transaction, account, testContext.getSymbolConfig().getGenerationHashSeed());
   }
 
   /**
    * Get the transaction by the hash.
    *
+   * @param group Transaction group.
    * @param hash Transaction hash.
    * @param <T> Transaction type.
    * @return Transaction.
    */
-  public <T extends Transaction> T getTransaction(final String hash) {
+  public <T extends Transaction> T getTransaction(final TransactionGroup group, final String hash) {
 
     try {
       return (T)
           testContext
               .getRepositoryFactory()
               .createTransactionRepository()
-              .getTransaction(hash)
+              .getTransaction(group, hash)
               .toFuture()
               .get();
     } catch (final Exception ex) {
@@ -137,7 +138,7 @@ public class TransactionHelper {
         () ->
             testContext
                 .getRepositoryFactory()
-                .createTransactionRepository()
+                .createTransactionStatusRepository()
                 .getTransactionStatus(hash)
                 .toFuture()
                 .get());
@@ -232,7 +233,7 @@ public class TransactionHelper {
   private <T extends Transaction> T waitForStatusAndGetTransaction(
       final String hash, final TransactionState status) {
     waitForTransactionStatus(hash, status);
-    return getTransaction(hash);
+    return getTransaction(TransactionGroup.valueOf(status.name()), hash);
   }
 
   /**

@@ -18,8 +18,7 @@ Feature: Edit a multisignature contract
       | tablet      | add       |
     And computer published the bonded contract
     When "tablet" accepts the transaction
-    Then Alice should receive a confirmation message
-    And tom multisignature contract should be updated
+    Then tom multisignature contract should be updated
 
   @bvt
   Scenario: A cosignatory remove cosignatory to the multisignature contract
@@ -31,9 +30,9 @@ Feature: Edit a multisignature contract
       | cosignatory | operation |
       | phone       | remove    |
     When computer publishes the contract
-    Then Alice should receive a confirmation message
-    And tom multisignature contract should be updated
+    Then tom multisignature contract should be updated
 
+  @bvt
   Scenario: A cosignatory adds and removes cosignatories from the multisignature contract
     Given Alice created a 1 of 2 multisignature contract called "tom" with 1 required for removal with cosignatories:
       | cosignatory |
@@ -45,9 +44,9 @@ Feature: Edit a multisignature contract
       | tablet      | add       |
     And computer published the bonded contract
     When "tablet" accepts the transaction
-    Then Alice should receive a confirmation message
-    And tom multisignature contract should be updated
+    Then tom multisignature contract should be updated
 
+  @bvt
   Scenario: A cosignatory accepts the addition of another cosignatory to the multisignature contract
     Given Alice created a 2 of 2 multisignature contract called "tom" with 1 required for removal with cosignatories:
       | cosignatory |
@@ -60,9 +59,9 @@ Feature: Edit a multisignature contract
     And computer published the bonded contract
     And "phone" accepted the transaction
     When "tablet" accepts the transaction
-    Then Alice should receive a confirmation message
-    And tom multisignature contract should be updated
+    Then tom multisignature contract should be updated
 
+  @bvt
   Scenario: A cosignatory account removes itself from the multisignature contract
     Given Alice created a 1 of 2 multisignature contract called "tom" with 1 required for removal with cosignatories:
       | cosignatory |
@@ -72,9 +71,9 @@ Feature: Edit a multisignature contract
       | cosignatory | operation |
       | computer    | remove    |
     When computer publishes the contract
-    Then Alice should receive a confirmation message
-    And tom multisignature contract should be updated
+    Then tom multisignature contract should be updated
 
+  @bvt
   Scenario: All cosignatories are removed from the multisignature contract
     Given Alice created a 1 of 1 multisignature contract called "tom" with 1 required for removal with cosignatories:
       | cosignatory |
@@ -83,8 +82,8 @@ Feature: Edit a multisignature contract
       | cosignatory | operation |
       | computer    | remove    |
     When computer publishes the contract
-    Then Alice should receive a confirmation message
-    And tom become a regular account
+    Then tom become a regular account
+    And tom sends "hello" to "computer"
 
  @bvt
  Scenario Outline: A cosignatory updates the minimum approval and removal requirements for a multisignature account
@@ -131,7 +130,6 @@ Feature: Edit a multisignature contract
       | cosignatory | operation |
       | computer    | remove    |
     When computer publishes the contract
-    Then Alice should receive a confirmation message
     Then she should receive the error "FAILURE_MULTISIG_MIN_SETTING_OUT_OF_RANGE"
 
   Scenario: A cosignatory tries adding twice another cosignatory to the multisignature contract
@@ -148,14 +146,14 @@ Feature: Edit a multisignature contract
     Then she should receive the error "FAILURE_MULTISIG_ALREADY_A_COSIGNATORY"
 
   Scenario: A cosignatory tries to add more than 24 cosignatories to the multisignature contract
-    Given Alice created a 1 of 24 multisignature contract called "tom"
+    Given Alice created a multisignature contract called "tom" with max cosigners
     And "cosigner1" update the cosignatories of the multisignature:
       | cosignatory | operation |
-      | cosigner25  | add       |
-      | cosigner26  | add       |
+      | cosignerOver| add       |
+      | cosignerex  | add       |
     And computer published the bonded contract
-    And "cosigner25" accepts the transaction
-    And "cosigner26" accepts the transaction
+    And "cosignerOver" accepts the transaction
+    And "cosignerex" accepts the transaction
     Then "Alice" should receive the error "FAILURE_MULTISIG_MAX_COSIGNATORIES"
 
   Scenario: A cosignatory tries to add the multisignature contract as a cosignatory

@@ -8,26 +8,23 @@ Feature: Send a message
 
   @bvt
   Scenario Outline: An account sends a message to another account
-
     When Alice sends "<message>" to "<recipient>"
     Then the "<recipient>" should receive the message "<message>"
  
     Examples:
       | message | recipient    |
       | Hello   | Sue          |
-      | Hi      | Bob          |
+      | H       | Bob          |
 
   Scenario Outline: An account tries to send a message to an invalid account
-
     When Alice tries to send "<message>" to "<recipient>"
     Then she should receive the error "<error>"
 
     Examples:
-      | message | recipient                                      | error                        |
-      | Hello   | NAIBV5-BKEVGJ-IZQ4RP-224TYE-J3ZIUL-WDHUTI-X3H5 | FAILURE_CORE_INVALID_ADDRESS |
-      | Hello   | MAIBV5-BKEVGJ-IZQ4RP-224TYE-J3ZIUL-WDHUTI-X3H5 | FAILURE_CORE_INVALID_ADDRESS |
+      | message | recipient                                     | error                        |
+      | Hello   | NAIBV5-BKEVGJ-IZQ4RP-224TYE-J3ZIUL-WDHUTI-X3A | FAILURE_CORE_INVALID_ADDRESS |
+      | Hello   | MAIBV5-BKEVGJ-IZQ4RP-224TYE-J3ZIUL-WDHUTI-X3I | FAILURE_CORE_INVALID_ADDRESS |
 
   Scenario: An account tries to send a message to another account but the message is too large
-
-    When Alice tries to send a 1024 character message to Bob
+    When Alice tries to send a message which is over the max length to Bob
     Then she should receive the error "Failure_Transfer_Message_Too_Large"

@@ -48,6 +48,14 @@ public class AggregateHelper extends BaseHelper<AggregateHelper> {
     return buildTransaction(hashLockTransactionFactory);
   }
 
+  private AggregateTransaction buildAggregateTransaction(
+      final AggregateTransactionFactory aggregateTransactionFactory,
+      final int numberOfCosignatures) {
+    return aggregateTransactionFactory
+        .calculateMaxFeeForAggregate(testContext.getMinFeeMultiplier(), numberOfCosignatures)
+        .build();
+  }
+
   /**
    * Creates a aggregate transaction with cosigners.
    *
@@ -55,16 +63,14 @@ public class AggregateHelper extends BaseHelper<AggregateHelper> {
    * @return Aggregate transaction.
    */
   public AggregateTransaction createAggregateTransactionWithCosigners(
-          final TransactionType transactionType,
+      final TransactionType transactionType,
       final List<Transaction> innerTransaction,
       final List<AggregateTransactionCosignature> cosignatures) {
     final AggregateTransactionFactory aggregateTransactionFactory =
         AggregateTransactionFactory.create(
-            transactionType,
-            testContext.getNetworkType(),
-            innerTransaction,
-            cosignatures);
-    return buildTransaction(aggregateTransactionFactory);
+            transactionType, testContext.getNetworkType(), innerTransaction, cosignatures);
+    buildFactoryTransaction(aggregateTransactionFactory);
+    return buildAggregateTransaction(aggregateTransactionFactory, cosignatures.size());
   }
 
   /**
@@ -74,10 +80,10 @@ public class AggregateHelper extends BaseHelper<AggregateHelper> {
    * @return Aggregate transaction.
    */
   public AggregateTransaction createAggregateCompleteTransaction(
-      final List<Transaction> innerTransaction) {
+      final List<Transaction> innerTransaction, final int numberOfCosigners) {
     final AggregateTransactionFactory aggregateTransactionFactory =
         AggregateTransactionFactory.createComplete(testContext.getNetworkType(), innerTransaction);
-    return buildTransaction(aggregateTransactionFactory);
+    return buildAggregateTransaction(aggregateTransactionFactory, numberOfCosigners);
   }
 
   /**
@@ -87,10 +93,11 @@ public class AggregateHelper extends BaseHelper<AggregateHelper> {
    * @return Aggregate transaction.
    */
   public AggregateTransaction createAggregateBondedTransaction(
-      final List<Transaction> innerTransaction) {
+      final List<Transaction> innerTransaction, final int numberOfCosigners) {
     final AggregateTransactionFactory aggregateTransactionFactory =
         AggregateTransactionFactory.createBonded(testContext.getNetworkType(), innerTransaction);
-    return buildTransaction(aggregateTransactionFactory);
+    buildFactoryTransaction(aggregateTransactionFactory);
+    return buildAggregateTransaction(aggregateTransactionFactory, numberOfCosigners);
   }
 
   /**
@@ -142,7 +149,8 @@ public class AggregateHelper extends BaseHelper<AggregateHelper> {
       final Account account, final List<Transaction> innerTransaction) {
     return new TransactionHelper(testContext)
         .signAndAnnounceTransaction(
-            account, () -> createAggregateCompleteTransaction(innerTransaction));
+            account,
+            () -> createAggregateCompleteTransaction(innerTransaction, innerTransaction.size()));
   }
 
   /**
@@ -168,10 +176,12 @@ public class AggregateHelper extends BaseHelper<AggregateHelper> {
    * @return Signed transaction.
    */
   public SignedTransaction createAggregateBondedAndAnnounce(
-      final Account account, final List<Transaction> innerTransaction) {
+      final Account account,
+      final List<Transaction> innerTransaction,
+      final int numberOfCosigners) {
     final TransactionHelper transactionHelper = new TransactionHelper(testContext);
     final AggregateTransaction aggregateTransaction =
-        createAggregateBondedTransaction(innerTransaction);
+        createAggregateBondedTransaction(innerTransaction, numberOfCosigners);
     final SignedTransaction signedTransaction =
         transactionHelper.signTransaction(aggregateTransaction, account);
     final BigInteger duration = BigInteger.valueOf(5);
@@ -193,7 +203,8 @@ public class AggregateHelper extends BaseHelper<AggregateHelper> {
       final Account account, final List<Transaction> innerTransaction) {
     return new TransactionHelper(testContext)
         .signAndAnnounceTransactionAndWait(
-            account, () -> createAggregateCompleteTransaction(innerTransaction));
+            account,
+            () -> createAggregateCompleteTransaction(innerTransaction, innerTransaction.size()));
   }
 
   /**
@@ -205,9 +216,11 @@ public class AggregateHelper extends BaseHelper<AggregateHelper> {
    * @return Mosaic supply change transaction.
    */
   public AggregateTransaction submitAggregateBondedAndWait(
-      final Account account, final List<Transaction> innerTransaction) {
+      final Account account,
+      final List<Transaction> innerTransaction,
+      final int numberOfCosigners) {
     final SignedTransaction signedTransaction =
-        createAggregateBondedAndAnnounce(account, innerTransaction);
+        createAggregateBondedAndAnnounce(account, innerTransaction, numberOfCosigners);
     return new TransactionHelper(testContext).waitForTransactionToComplete(signedTransaction);
   }
 
@@ -240,19 +253,28 @@ public class AggregateHelper extends BaseHelper<AggregateHelper> {
       final AggregateTransaction aggregateTransaction,
       final Account initiatorAccount,
       final List<Account> cosigners) {
-    aggregateTransaction.signTransactionWithCosigners(
-        initiatorAccount, cosigners, testContext.getGenerationHash());
-    this.withDeadline(() -> aggregateTransaction.getDeadline());
-    final AggregateTransaction aggregateTransactionUpdate =
-        createAggregateTransactionWithCosigners(aggregateTransaction.getType(),
-            aggregateTransaction.getInnerTransactions(), aggregateTransaction.getCosignatures());
-    testContext.addTransaction(aggregateTransactionUpdate);
     final SignedTransaction signedTransaction =
-        aggregateTransactionUpdate.signTransactionWithCosigners(
-                initiatorAccount, cosigners, testContext.getGenerationHash());
+        aggregateTransaction.signTransactionWithCosigners(
+            initiatorAccount, cosigners, testContext.getSymbolConfig().getGenerationHashSeed());
+    testContext.addTransaction(aggregateTransaction);
     testContext.setSignedTransaction(signedTransaction);
-
-//    aggregateTransaction.addCosigners(initiatorAccount, cosigners, testContext.getGenerationHash());
     return signedTransaction;
+  }
+
+  /**
+   * Create aggregate transaction.
+   *
+   * @param isBonded Is Bonded tx.
+   * @param innerTransaction Inner transaction list.
+   * @param numOfCosigner Number of cosigner.
+   * @return Aggregate transaction.
+   */
+  public AggregateTransaction createAggregateTransaction(
+      final boolean isBonded, final List<Transaction> innerTransaction, final int numOfCosigner) {
+    final AggregateTransaction aggregateTransaction =
+        isBonded
+            ? createAggregateBondedTransaction(innerTransaction, numOfCosigner)
+            : createAggregateCompleteTransaction(innerTransaction, numOfCosigner);
+    return aggregateTransaction;
   }
 }

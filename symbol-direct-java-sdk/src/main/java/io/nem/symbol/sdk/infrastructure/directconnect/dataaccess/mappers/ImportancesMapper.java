@@ -35,7 +35,7 @@ public class ImportancesMapper implements Function<JsonObject, Importances> {
    */
   public Importances apply(final JsonObject jsonObject) {
     return new Importances(
-        MapperUtils.extractBigInteger(jsonObject, "value"),
-        MapperUtils.extractBigInteger(jsonObject, "height"));
+        MapperUtils.toBigInteger(jsonObject, "value"),
+        MapperUtils.toBigInteger(jsonObject, "height"));
   }
 }

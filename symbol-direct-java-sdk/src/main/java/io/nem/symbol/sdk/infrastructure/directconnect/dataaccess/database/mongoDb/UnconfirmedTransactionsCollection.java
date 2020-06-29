@@ -23,7 +23,7 @@ package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongo
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 
 /** Unconfirmed transactions collection. */
-public class UnconfirmedTransactionsCollection extends TransactionCurrentCollectionBase {
+public class UnconfirmedTransactionsCollection extends TransactionCollectionBase {
   /**
    * Constructor.
    *
@@ -39,7 +39,7 @@ public class UnconfirmedTransactionsCollection extends TransactionCurrentCollect
    * @return transaction group name of "unconfirmed".
    */
   @Override
-  protected String getGroupStatus() {
+  public String getGroupStatus() {
     return "unconfirmed";
   }
 }

@@ -20,18 +20,19 @@
 
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers;
 
-import io.nem.symbol.core.utils.ConvertUtils;
+import io.nem.symbol.core.crypto.PublicKey;
+import io.nem.symbol.core.crypto.VotingKey;
 import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.account.PublicAccount;
 import io.nem.symbol.sdk.model.account.UnresolvedAddress;
 import io.nem.symbol.sdk.model.blockchain.BlockDuration;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
 import io.nem.symbol.sdk.model.message.Message;
 import io.nem.symbol.sdk.model.message.PlainMessage;
 import io.nem.symbol.sdk.model.mosaic.*;
 import io.nem.symbol.sdk.model.namespace.AliasAction;
 import io.nem.symbol.sdk.model.namespace.NamespaceId;
 import io.nem.symbol.sdk.model.namespace.NamespaceRegistrationType;
+import io.nem.symbol.sdk.model.network.NetworkType;
 import io.nem.symbol.sdk.model.transaction.*;
 import io.vertx.core.json.JsonObject;
 import org.bouncycastle.util.encoders.Hex;
@@ -42,8 +43,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers.MapperUtils.extractBigInteger;
 
 /** Transaction mapper. */
 public class TransactionMapper implements Function<JsonObject, Transaction> {
@@ -85,6 +84,20 @@ public class TransactionMapper implements Function<JsonObject, Transaction> {
       return new MosaicGlobalRestrictionTransactionMapper();
     } else if (type == TransactionType.MOSAIC_ADDRESS_RESTRICTION) {
       return new MosaicAddressRestrictionTransactionMapper();
+    } else if (type == TransactionType.ACCOUNT_KEY_LINK) {
+      return new AccountKeyLinkTransactionMapper();
+    } else if (type == TransactionType.ACCOUNT_METADATA) {
+      return new AccountMetadataTransactionMapper();
+    } else if (type == TransactionType.MOSAIC_METADATA) {
+      return new AccountOperationRestrictionModificationTransactionMapper();
+    } else if (type == TransactionType.NAMESPACE_METADATA) {
+      return new AccountOperationRestrictionModificationTransactionMapper();
+    } else if (type == TransactionType.VRF_KEY_LINK) {
+      return new VrfLinkTransactionMapper();
+    } else if (type == TransactionType.NODE_KEY_LINK) {
+      return new NodeKeyLinkTransactionMapper();
+    } else if (type == TransactionType.VOTING_KEY_LINK) {
+      return new VotingKeyLinkTransactionMapper();
     }
     throw new UnsupportedOperationException("Unimplemented Transaction type: " + type.toString());
   }
@@ -98,21 +111,21 @@ public class TransactionMapper implements Function<JsonObject, Transaction> {
   private TransactionInfo createTransactionInfo(final JsonObject jsonObject) {
     if (jsonObject.containsKey("hash")) {
       return TransactionInfo.create(
-          extractBigInteger(jsonObject, "height"),
+          MapperUtils.toBigInteger(jsonObject, "height"),
           jsonObject.getInteger("index"),
           "",
           jsonObject.getString("hash"),
           jsonObject.getString("merkleComponentHash"));
     } else if (jsonObject.containsKey("aggregateHash")) {
       return TransactionInfo.createAggregate(
-          extractBigInteger(jsonObject, "height"),
+          MapperUtils.toBigInteger(jsonObject, "height"),
           jsonObject.getInteger("index"),
           "",
           jsonObject.getString("aggregateHash"),
           jsonObject.getJsonObject("aggregateId").getString("$oid"));
     } else {
       return TransactionInfo.create(
-          extractBigInteger(jsonObject, "height"),
+          MapperUtils.toBigInteger(jsonObject, "height"),
           jsonObject.getString("hash"),
           jsonObject.getString("merkleComponentHash"));
     }
@@ -126,25 +139,25 @@ public class TransactionMapper implements Function<JsonObject, Transaction> {
    * @return Transaction.
    */
   protected <T extends Transaction> T appendCommonPropertiesAndBuildTransaction(
-    final TransactionFactory<T> factory, final JsonObject jsonObject) {
-      final JsonObject transaction = jsonObject.getJsonObject("transaction");
-      final NetworkType networkType = NetworkType.rawValueOf(transaction.getInteger("network"));
-      final TransactionInfo transactionInfo =
-          this.createTransactionInfo(jsonObject.getJsonObject("meta"));
-      final Deadline deadline = new Deadline(extractBigInteger(transaction, "deadline"));
-      final Integer version = transaction.getInteger("version");
-      final BigInteger maxFee = extractBigInteger(transaction, "maxFee");
-      final String signature = transaction.getString("signature");
-      final PublicAccount signer =
-          new PublicAccount(transaction.getString("signerPublicKey"), networkType);
-      return factory
-          .transactionInfo(transactionInfo)
-          .signer(signer)
-          .deadline(deadline)
-          .version(version)
-          .maxFee(maxFee)
-          .signature(signature)
-          .build();
+      final TransactionFactory<T> factory, final JsonObject jsonObject) {
+    final JsonObject transaction = jsonObject.getJsonObject("transaction");
+    final NetworkType networkType = NetworkType.rawValueOf(transaction.getInteger("network"));
+    final TransactionInfo transactionInfo =
+        this.createTransactionInfo(jsonObject.getJsonObject("meta"));
+    final Deadline deadline = new Deadline(MapperUtils.toBigInteger(transaction, "deadline"));
+    final Integer version = transaction.getInteger("version");
+    final BigInteger maxFee = MapperUtils.toBigInteger(transaction, "maxFee");
+    final String signature = transaction.getString("signature");
+    final PublicAccount signer =
+        new PublicAccount(transaction.getString("signerPublicKey"), networkType);
+    return factory
+        .transactionInfo(transactionInfo)
+        .signer(signer)
+        .deadline(deadline)
+        .version(version)
+        .maxFee(maxFee)
+        .signature(signature)
+        .build();
   }
 
   private <T extends Transaction> Transaction createTransaction(final JsonObject jsonObject) {
@@ -213,16 +226,8 @@ class TransferTransactionMapper extends TransactionMapperBase {
                   Hex.decode(transaction.getJsonObject("message").getString("payload")),
                   StandardCharsets.UTF_8));
     }
-    final String recipient = transaction.getString("recipientAddress");
-    UnresolvedAddress unresolvedAddress;
-    if (recipient.startsWith("01")) {
-      final String namespaceString = recipient.substring(1, 10);
-      final byte[] bytes = ConvertUtils.getBytes(namespaceString);
-      final BigInteger namespaceId = new BigInteger(bytes);
-      unresolvedAddress = NamespaceId.createFromId(namespaceId);
-    } else {
-      unresolvedAddress = Address.createFromEncoded(recipient);
-    }
+    final UnresolvedAddress unresolvedAddress =
+        MapperUtils.toUnresolvedAddress(transaction, "recipientAddress");
     return TransferTransactionFactory.create(networkType, unresolvedAddress, mosaics, message);
   }
 }
@@ -244,11 +249,11 @@ class RegisterNamespaceTransactionMapper extends TransactionMapperBase {
         new String(Hex.decode(transaction.getString("name")), StandardCharsets.UTF_8);
     return namespaceType == NamespaceRegistrationType.ROOT_NAMESPACE
         ? NamespaceRegistrationTransactionFactory.createRootNamespace(
-            networkType, namespaceName, extractBigInteger(transaction, "duration"))
+            networkType, namespaceName, MapperUtils.toBigInteger(transaction, "duration"))
         : NamespaceRegistrationTransactionFactory.createSubNamespace(
             networkType,
             namespaceName,
-            NamespaceId.createFromId(extractBigInteger(transaction, "parentId")));
+            NamespaceId.createFromId(MapperUtils.toBigInteger(transaction, "parentId")));
   }
 }
 
@@ -270,8 +275,8 @@ class MosaicDefinitionTransactionMapper extends TransactionMapperBase {
 
     return MosaicDefinitionTransactionFactory.create(
         networkType,
-        MosaicNonce.createFromBigInteger(extractBigInteger(transaction, "nonce")),
-        MapperUtils.getMosaicIdFromJson(transaction, "id"),
+        MosaicNonce.createFromBigInteger(MapperUtils.toBigInteger(transaction, "nonce")),
+        MapperUtils.toMosaicId(transaction, "id"),
         mosaicFlags,
         divisibility,
         new BlockDuration(duration));
@@ -291,9 +296,9 @@ class MosaicSupplyChangeTransactionMapper extends TransactionMapperBase {
     extractCommonProperties(jsonObject);
     return MosaicSupplyChangeTransactionFactory.create(
         networkType,
-        MapperUtils.getMosaicIdFromJson(transaction, "mosaicId"),
+        MapperUtils.toMosaicId(transaction, "mosaicId"),
         MosaicSupplyChangeActionType.rawValueOf(transaction.getInteger("action")),
-        extractBigInteger(transaction, "delta"));
+        MapperUtils.toBigInteger(transaction, "delta"));
   }
 }
 
@@ -308,10 +313,10 @@ class MultisigModificationTransactionMapper extends TransactionMapperBase {
   @Override
   public MultisigAccountModificationTransactionFactory create(final JsonObject jsonObject) {
     extractCommonProperties(jsonObject);
-    final List<PublicAccount> publicKeyAdditions =
-        getPublicKeyList(transaction, "publicKeyAdditions");
-    final List<PublicAccount> publicKeyDeletions =
-        getPublicKeyList(transaction, "publicKeyDeletions");
+    final List<UnresolvedAddress> publicKeyAdditions =
+        getAddressList(transaction, "addressAdditions");
+    final List<UnresolvedAddress> publicKeyDeletions =
+        getAddressList(transaction, "addressDeletions");
     return MultisigAccountModificationTransactionFactory.create(
         networkType,
         transaction.getInteger("minApprovalDelta").byteValue(),
@@ -320,9 +325,9 @@ class MultisigModificationTransactionMapper extends TransactionMapperBase {
         publicKeyDeletions);
   }
 
-  private List<PublicAccount> getPublicKeyList(final JsonObject jsonObject, final String name) {
+  private List<UnresolvedAddress> getAddressList(final JsonObject jsonObject, final String name) {
     return jsonObject.getJsonArray(name).stream()
-        .map(item -> PublicAccount.createFromPublicKey((String) item, networkType))
+        .map(item -> Address.createFromEncoded((String) item))
         .collect(Collectors.toList());
   }
 }
@@ -346,6 +351,7 @@ class AggregateTransactionMapper extends TransactionMapperBase {
               .map(
                   aggregateCosignature ->
                       new AggregateTransactionCosignature(
+                          BigInteger.ZERO,
                           aggregateCosignature.getString("signature"),
                           new PublicAccount(
                               aggregateCosignature.getString("signerPublicKey"), networkType)))
@@ -372,12 +378,12 @@ class HashLockTransactionMapper extends TransactionMapperBase {
   @Override
   public HashLockTransactionFactory create(final JsonObject jsonObject) {
     extractCommonProperties(jsonObject);
-    final MosaicId mosaicId = MapperUtils.getMosaicIdFromJson(transaction, "mosaicId");
+    final MosaicId mosaicId = MapperUtils.toMosaicId(transaction, "mosaicId");
     final BigInteger amount = BigInteger.valueOf(transaction.getInteger("amount"));
     return HashLockTransactionFactory.create(
         networkType,
         new Mosaic(mosaicId, amount),
-        extractBigInteger(transaction, "duration"),
+        MapperUtils.toBigInteger(transaction, "duration"),
         transaction.getString("hash"));
   }
 }
@@ -396,7 +402,7 @@ class SecretLockTransactionMapper extends TransactionMapperBase {
     return SecretLockTransactionFactory.create(
         networkType,
         new MosaicMapper("mosaicId").apply(transaction),
-        extractBigInteger(transaction, "duration"),
+        MapperUtils.toBigInteger(transaction, "duration"),
         LockHashAlgorithmType.rawValueOf(transaction.getInteger("hashAlgorithm")),
         transaction.getString("secret"),
         Address.createFromEncoded(transaction.getString("recipientAddress")));
@@ -437,8 +443,8 @@ class MosaicAliasTransactionMapper extends TransactionMapperBase {
     return MosaicAliasTransactionFactory.create(
         networkType,
         AliasAction.rawValueOf(transaction.getInteger("aliasAction").byteValue()),
-        NamespaceId.createFromId(extractBigInteger(transaction, "namespaceId")),
-        MapperUtils.getMosaicIdFromJson(transaction, "mosaicId"));
+        NamespaceId.createFromId(MapperUtils.toBigInteger(transaction, "namespaceId")),
+        MapperUtils.toMosaicId(transaction, "mosaicId"));
   }
 }
 
@@ -456,7 +462,7 @@ class AddressAliasTransactionMapper extends TransactionMapperBase {
     return AddressAliasTransactionFactory.create(
         networkType,
         AliasAction.rawValueOf(transaction.getInteger("aliasAction").byteValue()),
-        NamespaceId.createFromId(extractBigInteger(transaction, "namespaceId")),
+        NamespaceId.createFromId(MapperUtils.toBigInteger(transaction, "namespaceId")),
         Address.createFromEncoded(transaction.getString("address")));
   }
 }
@@ -478,7 +484,7 @@ class AccountMosaicRestrictionModificationTransactionMapper extends TransactionM
         getMosaicIdList(transaction, "restrictionDeletions");
     return AccountMosaicRestrictionTransactionFactory.create(
         networkType,
-        AccountRestrictionFlags.rawValueOf(transaction.getInteger("restrictionFlags")),
+        AccountMosaicRestrictionFlags.rawValueOf(transaction.getInteger("restrictionFlags")),
         restrictionAdditions,
         restrictionDeletions);
   }
@@ -507,7 +513,7 @@ class AccountAddressRestrictionModificationTransactionMapper extends Transaction
         getAddressList(transaction, "restrictionDeletions");
     return AccountAddressRestrictionTransactionFactory.create(
         networkType,
-        AccountRestrictionFlags.rawValueOf(transaction.getInteger("restrictionFlags")),
+        AccountAddressRestrictionFlags.rawValueOf(transaction.getInteger("restrictionFlags")),
         restrictionAdditions,
         restrictionDeletions);
   }
@@ -536,7 +542,7 @@ class AccountOperationRestrictionModificationTransactionMapper extends Transacti
         getTransactionTypeList(transaction, "restrictionDeletions");
     return AccountOperationRestrictionTransactionFactory.create(
         networkType,
-        AccountRestrictionFlags.rawValueOf(transaction.getInteger("restrictionFlags")),
+        AccountOperationRestrictionFlags.rawValueOf(transaction.getInteger("restrictionFlags")),
         restrictionAdditions,
         restrictionDeletions);
   }
@@ -566,16 +572,17 @@ class MosaicGlobalRestrictionTransactionMapper extends TransactionMapperBase {
     extractCommonProperties(jsonObject);
     return MosaicGlobalRestrictionTransactionFactory.create(
             networkType,
-            MapperUtils.getMosaicIdFromJson(transaction, "mosaicId"),
-            extractBigInteger(transaction, "restrictionKey"),
-            extractBigInteger(transaction, "newRestrictionValue"),
+            MapperUtils.toMosaicId(transaction, "mosaicId"),
+            MapperUtils.toBigInteger(transaction, "restrictionKey"),
+            MapperUtils.toBigInteger(transaction, "newRestrictionValue"),
             MosaicRestrictionType.rawValueOf(
                 transaction.getInteger("newRestrictionType").byteValue()))
-        .referenceMosaicId(MapperUtils.getMosaicIdFromJson(transaction, "referenceMosaicId"))
+        .referenceMosaicId(MapperUtils.toMosaicId(transaction, "referenceMosaicId"))
         .previousRestrictionType(
             MosaicRestrictionType.rawValueOf(
                 transaction.getInteger("previousRestrictionType").byteValue()))
-        .previousRestrictionValue(extractBigInteger(transaction, "previousRestrictionValue"));
+        .previousRestrictionValue(
+            MapperUtils.toBigInteger(transaction, "previousRestrictionValue"));
   }
 }
 
@@ -592,10 +599,118 @@ class MosaicAddressRestrictionTransactionMapper extends TransactionMapperBase {
     extractCommonProperties(jsonObject);
     return MosaicAddressRestrictionTransactionFactory.create(
             networkType,
-            MapperUtils.getMosaicIdFromJson(transaction, "mosaicId"),
-            extractBigInteger(transaction, "restrictionKey"),
+            MapperUtils.toMosaicId(transaction, "mosaicId"),
+            MapperUtils.toBigInteger(transaction, "restrictionKey"),
             MapperUtils.toUnresolvedAddress(transaction, "targetAddress"),
-            extractBigInteger(transaction, "newRestrictionValue"))
-        .previousRestrictionValue(extractBigInteger(transaction, "previousRestrictionValue"));
+            MapperUtils.toBigInteger(transaction, "newRestrictionValue"))
+        .previousRestrictionValue(
+            MapperUtils.toBigInteger(transaction, "previousRestrictionValue"));
+  }
+}
+
+/** Account metadata transaction mapper. */
+class AccountMetadataTransactionMapper extends TransactionMapperBase {
+  /**
+   * Converts from json to Account metadata transaction.
+   *
+   * @param jsonObject Json object.ƒ
+   * @return Account metadata transaction.
+   */
+  @Override
+  public MetadataTransactionFactory create(final JsonObject jsonObject) {
+    extractCommonProperties(jsonObject);
+    final String value =
+        new String(Hex.decode(transaction.getString("value")), StandardCharsets.UTF_8);
+    return AccountMetadataTransactionFactory.create(
+            networkType,
+            MapperUtils.toUnresolvedAddress(transaction, "targetAddress"),
+            MapperUtils.toBigInteger(transaction, "scopedMetadataKey"),
+            value)
+        .valueSizeDelta(transaction.getInteger("valueSizeDelta"))
+        .valueSize(transaction.getInteger("valueSize"));
+  }
+}
+
+/** Account link transaction mapper. */
+class AccountKeyLinkTransactionMapper extends TransactionMapperBase {
+  /**
+   * Converts from json to account link transaction.
+   *
+   * @param jsonObject Json object.
+   * @return Account link transaction.
+   */
+  @Override
+  public AccountKeyLinkTransactionFactory create(final JsonObject jsonObject) {
+    extractCommonProperties(jsonObject);
+    final PublicKey linkedPublicKey =
+        PublicKey.fromHexString(transaction.getString("linkedPublicKey"));
+    return AccountKeyLinkTransactionFactory.create(
+        networkType,
+        linkedPublicKey,
+        LinkAction.rawValueOf(transaction.getInteger("linkAction").byteValue()));
+  }
+}
+
+/** Node Key link transaction mapper. */
+class NodeKeyLinkTransactionMapper extends TransactionMapperBase {
+  /**
+   * Converts from json to Node key link transaction.
+   *
+   * @param jsonObject Json object.
+   * @return Node key link transaction.
+   */
+  @Override
+  public NodeKeyLinkTransactionFactory create(final JsonObject jsonObject) {
+    extractCommonProperties(jsonObject);
+
+    final PublicKey linkedPublicKey =
+        PublicKey.fromHexString(transaction.getString("linkedPublicKey"));
+    return NodeKeyLinkTransactionFactory.create(
+        networkType,
+        linkedPublicKey,
+        LinkAction.rawValueOf(transaction.getInteger("linkAction").byteValue()));
+  }
+}
+
+/** Vrf link transaction mapper. */
+class VrfLinkTransactionMapper extends TransactionMapperBase {
+  /**
+   * Converts from json to Vrf link transaction.
+   *
+   * @param jsonObject Json object.
+   * @return Vrf link transaction.
+   */
+  @Override
+  public VrfKeyLinkTransactionFactory create(final JsonObject jsonObject) {
+    extractCommonProperties(jsonObject);
+    final PublicKey linkedPublicKey =
+        PublicKey.fromHexString(transaction.getString("linkedPublicKey"));
+    return VrfKeyLinkTransactionFactory.create(
+        networkType,
+        linkedPublicKey,
+        LinkAction.rawValueOf(transaction.getInteger("linkAction").byteValue()));
+  }
+}
+
+/** Voting Key link transaction mapper. */
+class VotingKeyLinkTransactionMapper extends TransactionMapperBase {
+  /**
+   * Converts from json to Voting key link transaction.
+   *
+   * @param jsonObject Json object.
+   * @return Voting key link transaction.
+   */
+  @Override
+  public VotingKeyLinkTransactionFactory create(final JsonObject jsonObject) {
+    extractCommonProperties(jsonObject);
+    final VotingKey votingKey = new VotingKey(transaction.getString("linkedPublicKey"));
+    final BigInteger startPoint = MapperUtils.toBigInteger(transaction,"startPoint");
+    final BigInteger endPoint = MapperUtils.toBigInteger(transaction,"endPoint");
+    return VotingKeyLinkTransactionFactory.create(
+        networkType,
+        votingKey,
+        startPoint,
+        endPoint,
+        LinkAction.rawValueOf(transaction.getInteger("linkAction").byteValue()));
   }
 }

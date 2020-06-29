@@ -21,6 +21,8 @@
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.dao;
 
 import io.nem.symbol.sdk.api.MosaicRepository;
+import io.nem.symbol.sdk.api.MosaicSearchCriteria;
+import io.nem.symbol.sdk.api.Page;
 import io.nem.symbol.sdk.infrastructure.common.CatapultContext;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.MosaicsCollection;
 import io.nem.symbol.sdk.model.account.Address;
@@ -70,13 +72,14 @@ public class MosaicsDao implements MosaicRepository {
     throw new UnsupportedOperationException("Method not implemented");
   }
 
+  /**
+   * It searches entities of a type based on a criteria.
+   *
+   * @param criteria the criteria
+   * @return a page of entities.
+   */
   @Override
-  public Observable<List<MosaicInfo>> getMosaicsFromAccount(Address address) {
-    throw new UnsupportedOperationException("Method not implemented");
-  }
-
-  @Override
-  public Observable<List<MosaicInfo>> getMosaicsFromAccounts(List<Address> list) {
-    throw new UnsupportedOperationException("Method not implemented");
+  public Observable<Page<MosaicInfo>> search(MosaicSearchCriteria criteria) {
+    return null;
   }
 }

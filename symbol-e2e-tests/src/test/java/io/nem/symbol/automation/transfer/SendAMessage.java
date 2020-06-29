@@ -48,9 +48,10 @@ public class SendAMessage extends BaseTest {
     transferHelper = new TransferHelper(testContext);
   }
 
-  @When("^(\\w+) tries to send a (\\d+) character message to (.*)$")
+  @When("^(\\w+) tries to send a message which is over the max length to (.*)$")
   public void sendReallyLongMessage(
-      final String sender, final int messageSize, final String recipient) {
+      final String sender, final String recipient) {
+    int messageSize = getTestContext().getSymbolConfig().getTransferMaxMessageSize() + 1;
     final PlainMessage longMessage = PlainMessage.create(new String(new char[messageSize]));
     triesToTransferAssets(sender, recipient, new ArrayList<>(), longMessage);
   }

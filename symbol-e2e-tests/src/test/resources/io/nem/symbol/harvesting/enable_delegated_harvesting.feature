@@ -5,14 +5,12 @@ Feature: Enable delegated harvesting
 
   Scenario: An account enables delegated harvesting and delegates its importance to a remote account
     When Alice enables delegated harvesting delegating her account importance to D
-    Then she should receive a confirmation message
-    And D can use Alice's importance to harvest
+    Then D can use Alice's importance to harvest
 
   Scenario: An account disables delegated harvesting
     Given Alice delegated her account importance to D
     When she disables delegating her account importance to D
-    Then she should receive a confirmation message
-    And D can not use Alice's importance to harvest
+    Then D can not use Alice's importance to harvest
 
   Scenario: An account tries to enable delegated harvesting twice
     Given Alice delegated his importance to D
@@ -29,7 +27,7 @@ Feature: Enable delegated harvesting
     Then she should receive the error "FAILURE_ACCOUNTLINK_REMOTE_ACCOUNT_INELIGIBLE"
 
   Scenario: An account tries to enable delegated harvesting but the remote account owns mosaics
-    Given D owns 10 cat.currency
+    Given D owns 10 network currency
     When Alice enables delegated harvesting delegating her account importance to D
     Then she should receive the error "FAILURE_ACCOUNTLINK_REMOTE_ACCOUNT_INELIGIBLE"
 
@@ -57,27 +55,3 @@ Feature: Enable delegated harvesting
     Given Alice has delegated her account importance to D
     When D announces a transaction
     Then D should receive the error "Failure_AccountLink_Remote_Account_Signer_Not_Allowed"
-
-  # Account Restrictions
-  Scenario: An account tries to enable delegated harvesting but has not allowed sending "ACCOUNT_LINK" transactions
-    Given Alice only allowed sending "TRANSFER" transactions
-    When she enables delegated harvesting delegating her account importance to "54BEF898980B8C4EBF81894775994FB0255BA4D5926126865FBA544360A0FDEE"
-    Then she should receive the error "Failure_RestrictionAccount_Transaction_Type_Not_Allowed"
-
-  Scenario: An account tries to enable delegated harvesting but has blocked sending "ACCOUNT_LINK" transactions
-    Given Alice blocked sending "ACCOUNT_LINK" transactions
-    And Alice has delegated her account importance to "54BEF898980B8C4EBF81894775994FB0255BA4D5926126865FBA544360A0FDEE"
-    When she enables delegated harvesting delegating her account importance to "54BEF898980B8C4EBF81894775994FB0255BA4D5926126865FBA544360A0FDEE"
-    Then she should receive the error "Failure_RestrictionAccount_Transaction_Type_Not_Allowed"
-
-  Scenario: An account tries to disable delegated harvesting but has not allowed sending "ACCOUNT_LINK" transactions
-    Given Alice has delegated her account importance to "54BEF898980B8C4EBF81894775994FB0255BA4D5926126865FBA544360A0FDEE"
-    And Alice only allowed sending "TRANSFER" transactions
-    When she disables delegating her account importance to "54BEF898980B8C4EBF81894775994FB0255BA4D5926126865FBA544360A0FDEE"
-    Then she should receive the error "Failure_RestrictionAccount_Transaction_Type_Not_Allowed"
-
-  Scenario: An account tries to disable delegated harvesting but has blocked sending "ACCOUNT_LINK" transactions
-    Given Alice has delegated her account importance to "54BEF898980B8C4EBF81894775994FB0255BA4D5926126865FBA544360A0FDEE"
-    And Alice blocked sending "ACCOUNT_LINK" transactions
-    When she disables delegating her account importance to "54BEF898980B8C4EBF81894775994FB0255BA4D5926126865FBA544360A0FDEE"
-    Then she should receive the error "Failure_RestrictionAccount_Transaction_Type_Not_Allowed"

@@ -20,9 +20,13 @@
 
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.dao;
 
+import io.nem.symbol.sdk.api.Page;
 import io.nem.symbol.sdk.api.TransactionRepository;
+import io.nem.symbol.sdk.api.TransactionSearchCriteria;
+import io.nem.symbol.sdk.api.TransactionStatusRepository;
 import io.nem.symbol.sdk.infrastructure.common.CatapultContext;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.common.RetryCommand;
+import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.common.SearchableTransactionCollection;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.common.TransactionCurrentState;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.*;
 import io.nem.symbol.sdk.infrastructure.directconnect.network.TransactionConnection;
@@ -31,12 +35,16 @@ import io.reactivex.Observable;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /** Transaction dao repository. */
-public class TransactionDao implements TransactionRepository {
+public class TransactionDao implements TransactionRepository, TransactionStatusRepository {
   /* Catapult context. */
   private final CatapultContext catapultContext;
+  private final Map<TransactionGroup, TransactionCollectionBase> transactionCollectionGroupMap;
 
   /**
    * Constructor.
@@ -45,38 +53,61 @@ public class TransactionDao implements TransactionRepository {
    */
   public TransactionDao(final CatapultContext context) {
     this.catapultContext = context;
+    transactionCollectionGroupMap =
+        Stream.of(
+                new Object[][] {
+                  {
+                    TransactionGroup.CONFIRMED,
+                    new TransactionsCollection(catapultContext.getDataAccessContext())
+                  },
+                  {
+                    TransactionGroup.UNCONFIRMED,
+                    new UnconfirmedTransactionsCollection(catapultContext.getDataAccessContext())
+                  },
+                  {
+                    TransactionGroup.PARTIAL,
+                    new PartialTransactionsCollection(catapultContext.getDataAccessContext())
+                  }
+                })
+            .collect(
+                Collectors.toMap(
+                    data -> (TransactionGroup) data[0],
+                    data -> (TransactionCollectionBase) data[1]));
+  }
+
+  private TransactionCollectionBase getCollection(TransactionGroup group) {
+    group = group == null ? TransactionGroup.CONFIRMED : group;
+    return transactionCollectionGroupMap.get(group);
   }
 
   /**
    * Gets a transaction for a given hash.
    *
-   * @param transactionHash Transaction hash.
-   * @return Observable of Transaction.
+   * @param group the group the transaction belongs.
+   * @param transactionHash String
+   * @return Observable of {@link Transaction}
    */
   @Override
-  public Observable<Transaction> getTransaction(final String transactionHash) {
+  public Observable<Transaction> getTransaction(
+      final TransactionGroup group, final String transactionHash) {
     return Observable.fromCallable(
         () -> {
-          final List<TransactionCurrentCollectionBase> transactionCollections =
-              Arrays.asList(
-                  new UnconfirmedTransactionsCollection(catapultContext.getDataAccessContext()),
-                  new PartialTransactionsCollection(catapultContext.getDataAccessContext()),
-                  new TransactionsCollection(catapultContext.getDataAccessContext()));
+          final SearchableTransactionCollection transactionCollection = getCollection(group);
           final int maxRetries = 3; // Add retry since the tx could be between collections.
           final int waitTimeInMilliseconds = 1000;
           return new RetryCommand<Transaction>(maxRetries, waitTimeInMilliseconds, Optional.empty())
               .run(
                   (final RetryCommand<Transaction> retryCommand) -> {
-                    for (final TransactionCurrentCollectionBase transactionState :
-                        transactionCollections) {
-                      final Optional<Transaction> transactionOptional =
-                          transactionState.findByHash(transactionHash);
-                      if (transactionOptional.isPresent()) {
-                        return transactionOptional.get();
-                      }
+                    final Optional<Transaction> transactionOptional =
+                        transactionCollection.getTransaction(transactionHash);
+                    if (transactionOptional.isPresent()) {
+                      return transactionOptional.get();
                     }
                     throw new IllegalArgumentException(
-                        "Transaction hash " + transactionHash + " not found.");
+                        "Transaction hash "
+                            + transactionHash
+                            + " not found in "
+                            + ((TransactionCurrentState) transactionCollection).getGroupStatus());
                   });
         });
   }
@@ -84,11 +115,13 @@ public class TransactionDao implements TransactionRepository {
   /**
    * Gets an list of transactions for different transaction hashes.
    *
+   * @param group the group the transaction belongs.
    * @param transactionHashes List of String
    * @return {@link Observable} of {@link Transaction} List
    */
   @Override
-  public Observable<List<Transaction>> getTransactions(List<String> transactionHashes) {
+  public Observable<List<Transaction>> getTransactions(
+      TransactionGroup group, List<String> transactionHashes) {
     throw new UnsupportedOperationException("Method not implemented");
   }
 
@@ -189,5 +222,18 @@ public class TransactionDao implements TransactionRepository {
               .announceAggregateBondedCosignature(cosignatureSignedTransaction);
           return new TransactionAnnounceResponse("Success");
         });
+  }
+
+  /**
+   * It searches entities of a type based on a criteria.
+   *
+   * @param criteria the criteria
+   * @return a page of entities.
+   */
+  @Override
+  public Observable<Page<Transaction>> search(TransactionSearchCriteria criteria) {
+      final SearchableTransactionCollection transactionCollection = getCollection(criteria.getGroup());
+      //TODO: paging logic
+      return Observable.fromCallable(() -> new Page<>(transactionCollection.search(criteria), 1, 1, 1, 1));
   }
 }

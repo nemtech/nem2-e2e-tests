@@ -29,6 +29,7 @@ import io.nem.symbol.automationHelpers.helper.AccountRestrictionHelper;
 import io.nem.symbol.core.utils.ExceptionUtils;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.mosaic.UnresolvedMosaicId;
+import io.nem.symbol.sdk.model.transaction.AccountMosaicRestrictionFlags;
 import io.nem.symbol.sdk.model.transaction.AccountRestrictionFlags;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -56,7 +57,7 @@ public class AccountRestrictionMosaic extends BaseTest {
   public void theFollowingAssetsAreRegisteredAndActive(
       final String userName, final List<String> assets) {
     final AssetRegistration assetRegistration = new AssetRegistration(getTestContext());
-    // Alice already has cat.currency registered to her. What happens if we try to register again?
+    // Alice already has network currency registered to her. What happens if we try to register again?
     ForkJoinPool customThreadPool = new ForkJoinPool(100);
     ExceptionUtils.propagate(
         () ->
@@ -80,7 +81,7 @@ public class AccountRestrictionMosaic extends BaseTest {
             .map(asset -> resolveMosaicId(asset))
             .collect(Collectors.toList());
     accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndWait(
-        signerAccount, AccountRestrictionFlags.ALLOW_INCOMING_MOSAIC, additions, new ArrayList<>());
+        signerAccount, AccountMosaicRestrictionFlags.ALLOW_INCOMING_MOSAIC, additions, new ArrayList<>());
   }
 
   @When("^(\\w+) blocks receiving transactions containing the following assets:$")
@@ -93,7 +94,7 @@ public class AccountRestrictionMosaic extends BaseTest {
             .map(asset -> resolveMosaicId(asset))
             .collect(Collectors.toList());
     accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndWait(
-        signerAccount, AccountRestrictionFlags.BLOCK_MOSAIC, additions, new ArrayList<>());
+        signerAccount, AccountMosaicRestrictionFlags.BLOCK_MOSAIC, additions, new ArrayList<>());
   }
 
   @When("^(\\w+) removes the restriction on the following allowed assets:$")
@@ -106,7 +107,7 @@ public class AccountRestrictionMosaic extends BaseTest {
             .map(asset -> resolveMosaicId(asset))
             .collect(Collectors.toList());
     accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndWait(
-        signerAccount, AccountRestrictionFlags.ALLOW_INCOMING_MOSAIC, new ArrayList<>(), deletions);
+        signerAccount, AccountMosaicRestrictionFlags.ALLOW_INCOMING_MOSAIC, new ArrayList<>(), deletions);
   }
 
   @When("^(\\w+) removes the restriction on the following blocked assets:$")
@@ -119,7 +120,7 @@ public class AccountRestrictionMosaic extends BaseTest {
             .map(asset -> resolveMosaicId(asset))
             .collect(Collectors.toList());
     accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndWait(
-        signerAccount, AccountRestrictionFlags.BLOCK_MOSAIC, new ArrayList<>(), deletions);
+        signerAccount, AccountMosaicRestrictionFlags.BLOCK_MOSAIC, new ArrayList<>(), deletions);
   }
 
   @When("^(\\w+) removes ([^\"]*) from blocked assets$")
@@ -159,7 +160,7 @@ public class AccountRestrictionMosaic extends BaseTest {
     List<UnresolvedMosaicId> deletions = new ArrayList<>();
     deletions.add(resolveMosaicId(asset));
     accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(
-        signerAccount, AccountRestrictionFlags.BLOCK_MOSAIC, additions, deletions);
+        signerAccount, AccountMosaicRestrictionFlags.BLOCK_MOSAIC, additions, deletions);
   }
 
   @When("^(\\w+) tries to block receiving ([^\"]*) assets$")
@@ -169,7 +170,7 @@ public class AccountRestrictionMosaic extends BaseTest {
     final List<UnresolvedMosaicId> deletions = new ArrayList<>();
     additions.add(resolveMosaicId(asset));
     accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(
-        signerAccount, AccountRestrictionFlags.BLOCK_MOSAIC, additions, deletions);
+        signerAccount, AccountMosaicRestrictionFlags.BLOCK_MOSAIC, additions, deletions);
   }
 
   @When("^(\\w+) tries to only allow receiving ([^\"]*) assets$")
@@ -179,7 +180,7 @@ public class AccountRestrictionMosaic extends BaseTest {
     final List<UnresolvedMosaicId> deletions = new ArrayList<>();
     additions.add(resolveMosaicId(asset));
     accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(
-        signerAccount, AccountRestrictionFlags.ALLOW_INCOMING_MOSAIC, additions, deletions);
+        signerAccount, AccountMosaicRestrictionFlags.ALLOW_INCOMING_MOSAIC, additions, deletions);
   }
 
   @When("^(\\w+) tries to remove ([^\"]*) from allowed assets$")
@@ -189,7 +190,7 @@ public class AccountRestrictionMosaic extends BaseTest {
     final List<UnresolvedMosaicId> deletions = new ArrayList<>();
     deletions.add(resolveMosaicId(asset));
     accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(
-        signerAccount, AccountRestrictionFlags.ALLOW_INCOMING_MOSAIC, additions, deletions);
+        signerAccount, AccountMosaicRestrictionFlags.ALLOW_INCOMING_MOSAIC, additions, deletions);
   }
 
   @Given("^(\\w+) has already (allowed|blocked) receiving (\\d+) different assets$")
@@ -198,12 +199,19 @@ public class AccountRestrictionMosaic extends BaseTest {
     // first register assets to another user than the given username.
     this.userHasGivenNumberOfDifferentAssetsRegisteredAndActive(username, count);
     List<String> assets = getTestContext().getScenarioContext().getContext("randomAssetsList");
-    // TODO: figure out how to confirm Alex is the correct user to use
-    if (restrictionType.equalsIgnoreCase("allowed")) {
-      this.allowsReceivingTransactionsContainingTheFollowingAssets(username, assets);
-    } else {
-      this.blocksReceivingTransactionsContainingTheFollowingAssets(username, assets);
-    }
+    final List<Runnable> runnables = new ArrayList<>();
+    for (int i = 0; i < count; i += 256) {
+      final List<String> subList = assets.subList(i, i + 256);
+      runnables.add(
+          () -> {
+            // TODO: figure out how to confirm Alex is the correct user to use
+            if (restrictionType.equalsIgnoreCase("allowed")) {
+              this.allowsReceivingTransactionsContainingTheFollowingAssets(username, subList);
+            } else {
+              this.blocksReceivingTransactionsContainingTheFollowingAssets(username, subList);
+            }
+          });
+      }
   }
 
   @When("^(\\w+) tries to (add|delete) more than (\\d+) restrictions in a transaction$")
@@ -214,14 +222,25 @@ public class AccountRestrictionMosaic extends BaseTest {
     // TODO: assuming that at least count + 1 assets are registered. May be better to check and
     // throw if not.
     List<UnresolvedMosaicId> modifications =
-        assets.stream().limit(count + 1).collect(Collectors.toList())
-                .parallelStream().map(asset -> resolveMosaicId(asset)).collect(Collectors.toList());
+        assets.parallelStream().map(asset -> resolveMosaicId(asset)).collect(Collectors.toList());
+
+//    for (int i = 0; i < ; i += 256) {
+//      List<UnresolvedMosaicId> subList = modifications.subList(i, i + 256);
+//      if (addOrDelete.equalsIgnoreCase("add")) {
+//        accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndWait(
+//                signerAccount, AccountRestrictionFlags.BLOCK_MOSAIC, subList, new ArrayList<>());
+//      } else if (addOrDelete.equalsIgnoreCase("delete")) {
+//        accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndWait(
+//                signerAccount, AccountRestrictionFlags.BLOCK_MOSAIC, new ArrayList<>(), subList);
+//      }
+//    }
+//    List<UnresolvedMosaicId> subList = modifications.subList(i, i + 256);
     if (addOrDelete.equalsIgnoreCase("add")) {
       accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(
-          signerAccount, AccountRestrictionFlags.BLOCK_MOSAIC, modifications, new ArrayList<>());
+          signerAccount, AccountMosaicRestrictionFlags.BLOCK_MOSAIC, modifications, new ArrayList<>());
     } else if (addOrDelete.equalsIgnoreCase("delete")) {
       accountRestrictionHelper.createAccountMosaicRestrictionTransactionAndAnnounce(
-          signerAccount, AccountRestrictionFlags.BLOCK_MOSAIC, new ArrayList<>(), modifications);
+          signerAccount, AccountMosaicRestrictionFlags.BLOCK_MOSAIC, new ArrayList<>(), modifications);
     }
   }
 

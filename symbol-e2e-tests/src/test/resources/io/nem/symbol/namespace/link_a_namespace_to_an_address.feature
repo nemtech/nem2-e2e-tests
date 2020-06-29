@@ -9,8 +9,7 @@ Feature: Link a namespace to an address
     Given Alice registered the namespace "sue"
     And Alice registered the asset "X"
     When Alice links the namespace "sue" to the address of Sue
-    Then she should receive a confirmation message
-    And Alice can send asset "X" to the namespace "sue" instead of the address of Sue
+    Then Alice can send asset "X" to the namespace "sue" instead of the address of Sue
 
   @bvt
   Scenario: An account unlink a namespace to an address
@@ -23,15 +22,14 @@ Feature: Link a namespace to an address
 
   @bvt
   Scenario: An account links a subnamespace to an address
-    Given Alice registered the namespace named "accounts" for 10 blocks
+    Given Alice registered the namespace "accounts"
     And Alice registered the subnamespace "accounts.sue"
     And Alice registered the asset "X"
     When Alice links the namespace "accounts.sue" to the address of Sue
-    Then she should receive a confirmation message
-    And Alice can send asset "X" to the namespace "accounts.sue" instead of the address of Sue
+    Then Alice can send asset "X" to the namespace "accounts.sue" instead of the address of Sue
 
   Scenario: An account unlink a subnamespace to an address
-    Given Alice registered the namespace named "accounts" for 10 blocks
+    Given Alice registered the namespace "accounts"
     And Alice registered the subnamespace "accounts.sue"
     And Alice registered the asset "X"
     And Alice links the namespace "accounts.sue" to the address of Sue

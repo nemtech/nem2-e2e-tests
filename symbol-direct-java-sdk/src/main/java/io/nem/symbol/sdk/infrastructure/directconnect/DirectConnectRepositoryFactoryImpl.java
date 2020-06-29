@@ -23,9 +23,10 @@ package io.nem.symbol.sdk.infrastructure.directconnect;
 import io.nem.symbol.sdk.api.*;
 import io.nem.symbol.sdk.infrastructure.common.CatapultContext;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.dao.*;
+import io.nem.symbol.sdk.infrastructure.directconnect.listener.ListenerImpl;
 import io.nem.symbol.sdk.model.blockchain.BlockInfo;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
 import io.nem.symbol.sdk.model.mosaic.NetworkCurrency;
+import io.nem.symbol.sdk.model.network.NetworkType;
 import io.reactivex.Observable;
 
 import java.math.BigInteger;
@@ -156,9 +157,17 @@ public class DirectConnectRepositoryFactoryImpl implements RepositoryFactory {
     return new TransactionDao(context);
   }
 
+  /**
+   * @return a newly created {@link TransactionStatusRepository}
+   */
+  @Override
+  public TransactionStatusRepository createTransactionStatusRepository() {
+    return new TransactionDao(context);
+  }
+
   @Override
   public MetadataRepository createMetadataRepository() {
-    throw new UnsupportedOperationException("Method not implemented");
+    return new MetadataDao(context);
   }
 
   @Override
@@ -173,7 +182,7 @@ public class DirectConnectRepositoryFactoryImpl implements RepositoryFactory {
 
   @Override
   public Listener createListener() {
-    throw new UnsupportedOperationException("Method not implemented");
+    return new ListenerImpl(context.getBrokerNodeContext());
   }
 
   @Override
@@ -183,4 +192,8 @@ public class DirectConnectRepositoryFactoryImpl implements RepositoryFactory {
 
   @Override
   public void close() {}
+
+  public CatapultContext getContext() {
+    return context;
+  }
 }

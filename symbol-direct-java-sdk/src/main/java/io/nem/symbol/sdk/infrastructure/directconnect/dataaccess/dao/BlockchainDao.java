@@ -21,10 +21,7 @@
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.dao;
 
 import io.nem.symbol.core.utils.ExceptionUtils;
-import io.nem.symbol.sdk.api.BlockRepository;
-import io.nem.symbol.sdk.api.ChainRepository;
-import io.nem.symbol.sdk.api.QueryParams;
-import io.nem.symbol.sdk.api.ReceiptRepository;
+import io.nem.symbol.sdk.api.*;
 import io.nem.symbol.sdk.infrastructure.common.CatapultContext;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.*;
 import io.nem.symbol.sdk.model.blockchain.*;
@@ -32,7 +29,6 @@ import io.nem.symbol.sdk.model.receipt.AddressResolutionStatement;
 import io.nem.symbol.sdk.model.receipt.MosaicResolutionStatement;
 import io.nem.symbol.sdk.model.receipt.Statement;
 import io.nem.symbol.sdk.model.receipt.TransactionStatement;
-import io.nem.symbol.sdk.model.transaction.Transaction;
 import io.reactivex.Observable;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
@@ -42,7 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /** Blockchain dao repository. */
 public class BlockchainDao implements BlockRepository, ChainRepository, ReceiptRepository {
@@ -89,50 +84,6 @@ public class BlockchainDao implements BlockRepository, ChainRepository, ReceiptR
   }
 
   /**
-   * Gets a list of transactions for a specific block.
-   *
-   * @param height Height of the block.
-   * @return List of transactions.
-   */
-  @Override
-  public Observable<List<Transaction>> getBlockTransactions(final BigInteger height) {
-    return Observable.fromCallable(
-        () ->
-            new TransactionsCollection(catapultContext.getDataAccessContext())
-                .findByBlockHeight(height.longValue()));
-  }
-
-  /**
-   * Gets list of transactions included in a block for a block height With pagination.
-   *
-   * @param height BigInteger
-   * @param queryParams QueryParams
-   * @return {@link Observable} of {@link Transaction} List
-   */
-  @Override
-  public Observable<List<Transaction>> getBlockTransactions(
-      BigInteger height, QueryParams queryParams) {
-    throw new UnsupportedOperationException("Method not implemented");
-  }
-
-  /**
-   * Gets a range of blocks.
-   *
-   * @param startHeight Start height.
-   * @param limit Number of blocks to get.
-   * @return List of blocks info.
-   */
-  @Override
-  public Observable<List<BlockInfo>> getBlocksByHeightWithLimit(BigInteger startHeight, int limit) {
-    return Observable.fromCallable(
-        () ->
-            new BlocksCollection(catapultContext.getDataAccessContext())
-                .find(startHeight, startHeight.add(BigInteger.valueOf(limit))).stream()
-                    .map(this::getBlockInfo)
-                    .collect(Collectors.toList()));
-  }
-
-  /**
    * @param height the height
    * @param hash the hash.
    * @return {@link Observable} of MerkleProofInfo
@@ -155,8 +106,8 @@ public class BlockchainDao implements BlockRepository, ChainRepository, ReceiptR
    * calculated root equals the one recorded in the block header, verifying that the transaction was
    * included in the block.
    *
-   * @param height height of the blockchain
-   * @param hash has of the blockchain
+   * @param height
+   * @param hash
    * @return {@link Observable} of MerkleProofInfo
    */
   @Override
@@ -240,15 +191,18 @@ public class BlockchainDao implements BlockRepository, ChainRepository, ReceiptR
   }
 
   private BlockInfo getBlockInfo(final FullBlockInfo fullBlockInfo) {
-    return BlockInfo.create(
+    return new BlockInfo(
+        fullBlockInfo.getRecordId(),
+        fullBlockInfo.getSize(),
         fullBlockInfo.getHash(),
         fullBlockInfo.getGenerationHash(),
         fullBlockInfo.getTotalFee(),
+        fullBlockInfo.getSubCacheMerkleRoots(),
         fullBlockInfo.getNumTransactions(),
         Optional.of(fullBlockInfo.getNumStatements()),
         fullBlockInfo.getSubCacheMerkleRoots(),
         fullBlockInfo.getSignature(),
-        fullBlockInfo.getSignerPublicAccount().getPublicKey().toHex(),
+        fullBlockInfo.getSignerPublicAccount(),
         fullBlockInfo.getNetworkType(),
         fullBlockInfo.getVersion(),
         fullBlockInfo.getType(),
@@ -260,7 +214,21 @@ public class BlockchainDao implements BlockRepository, ChainRepository, ReceiptR
         fullBlockInfo.getBlockTransactionsHash(),
         fullBlockInfo.getBlockReceiptsHash(),
         fullBlockInfo.getStateHash(),
-        fullBlockInfo.getBeneficiaryPublicAccount().getPublicKey().toHex());
+        fullBlockInfo.getProofGamma(),
+        fullBlockInfo.getProofScalar(),
+        fullBlockInfo.getProofVerificationHash(),
+        fullBlockInfo.getBeneficiaryAddress());
+  }
+
+  /**
+   * It searches entities of a type based on a criteria.
+   *
+   * @param criteria the criteria
+   * @return a page of entities.
+   */
+  @Override
+  public Observable<Page<BlockInfo>> search(BlockSearchCriteria criteria) {
+    return null;
   }
 }
 

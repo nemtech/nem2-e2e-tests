@@ -342,4 +342,16 @@ public class NamespaceHelper extends BaseHelper<NamespaceHelper> {
         .signAndAnnounceTransactionAndWait(
             account, () -> createMosaicAliasTransaction(AliasAction.UNLINK, namespaceId, mosaicId));
   }
+
+  public boolean isNamespaceExpired(final NamespaceInfo namespaceInfo) {
+    final BigInteger blockchainHeight = new BlockChainHelper(testContext).getBlockchainHeight();
+    final Integer namespaceGracePeriodInBlocks =
+        testContext.getSymbolConfig().getNamespaceGracePeriodInBlocks();
+    boolean result = namespaceInfo
+            .getEndHeight()
+            .subtract(BigInteger.valueOf(namespaceGracePeriodInBlocks))
+            .longValue()
+        <= blockchainHeight.longValue();
+    return result;
+  }
 }

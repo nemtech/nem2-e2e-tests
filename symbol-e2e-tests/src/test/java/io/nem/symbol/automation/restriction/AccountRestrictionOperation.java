@@ -26,7 +26,7 @@ import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
 import io.nem.symbol.automationHelpers.helper.AccountRestrictionHelper;
 import io.nem.symbol.sdk.model.account.Account;
-import io.nem.symbol.sdk.model.transaction.AccountRestrictionFlags;
+import io.nem.symbol.sdk.model.transaction.AccountOperationRestrictionFlags;
 import io.nem.symbol.sdk.model.transaction.TransactionType;
 
 import java.util.ArrayList;
@@ -57,13 +57,12 @@ public class AccountRestrictionOperation extends BaseTest {
       final String userName, final List<String> transactionTypesToBlock) {
     final Account userAccount = getUser(userName);
     final List<TransactionType> additions =
-        transactionTypesToBlock
-            .parallelStream()
+        transactionTypesToBlock.parallelStream()
             .map(transactionType -> TransactionType.valueOf(transactionType))
             .collect(Collectors.toList());
     accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndWait(
         userAccount,
-        AccountRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE,
+        AccountOperationRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE,
         additions,
         new ArrayList<>());
   }
@@ -73,13 +72,12 @@ public class AccountRestrictionOperation extends BaseTest {
       final String userName, final List<String> transactionTypesToBlock) {
     final Account userAccount = getUser(userName);
     final List<TransactionType> additions =
-        transactionTypesToBlock
-            .parallelStream()
+        transactionTypesToBlock.parallelStream()
             .map(transactionType -> TransactionType.valueOf(transactionType))
             .collect(Collectors.toList());
     accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndAnnounce(
         userAccount,
-        AccountRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE,
+        AccountOperationRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE,
         additions,
         new ArrayList<>());
   }
@@ -89,13 +87,12 @@ public class AccountRestrictionOperation extends BaseTest {
       final String userName, final List<String> transactionTypesToAllow) {
     final Account userAccount = getUser(userName);
     final List<TransactionType> additions =
-        transactionTypesToAllow
-            .parallelStream()
+        transactionTypesToAllow.parallelStream()
             .map(transactionType -> TransactionType.valueOf(transactionType))
             .collect(Collectors.toList());
     accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndWait(
         userAccount,
-        AccountRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE,
+        AccountOperationRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE,
         additions,
         new ArrayList<>());
   }
@@ -105,13 +102,12 @@ public class AccountRestrictionOperation extends BaseTest {
       final String userName, final List<String> transactionTypesToAllow) {
     final Account userAccount = getUser(userName);
     final List<TransactionType> additions =
-        transactionTypesToAllow
-            .parallelStream()
+        transactionTypesToAllow.parallelStream()
             .map(transactionType -> TransactionType.valueOf(transactionType))
             .collect(Collectors.toList());
     accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndAnnounce(
         userAccount,
-        AccountRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE,
+        AccountOperationRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE,
         additions,
         new ArrayList<>());
   }
@@ -123,7 +119,7 @@ public class AccountRestrictionOperation extends BaseTest {
     deletions.add(TransactionType.valueOf(transactionTypeToRemove));
     accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndWait(
         userAccount,
-        AccountRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE,
+        AccountOperationRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE,
         new ArrayList<>(),
         deletions);
   }
@@ -136,7 +132,7 @@ public class AccountRestrictionOperation extends BaseTest {
     deletions.add(TransactionType.valueOf(transactionTypeToRemove));
     accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndWait(
         userAccount,
-        AccountRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE,
+        AccountOperationRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE,
         new ArrayList<>(),
         deletions);
   }
@@ -149,7 +145,7 @@ public class AccountRestrictionOperation extends BaseTest {
     deletions.add(TransactionType.valueOf(transactionTypeToRemove));
     accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndAnnounce(
         userAccount,
-        AccountRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE,
+        AccountOperationRestrictionFlags.BLOCK_OUTGOING_TRANSACTION_TYPE,
         new ArrayList<>(),
         deletions);
   }
@@ -162,7 +158,7 @@ public class AccountRestrictionOperation extends BaseTest {
     deletions.add(TransactionType.valueOf(transactionTypeToRemove));
     accountRestrictionHelper.createAccountTransactionTypeRestrictionTransactionAndAnnounce(
         userAccount,
-        AccountRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE,
+        AccountOperationRestrictionFlags.ALLOW_OUTGOING_TRANSACTION_TYPE,
         new ArrayList<>(),
         deletions);
   }

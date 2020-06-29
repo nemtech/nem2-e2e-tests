@@ -22,21 +22,29 @@ package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongo
 
 import com.mongodb.client.model.Filters;
 import io.nem.symbol.core.utils.ConvertUtils;
+import io.nem.symbol.sdk.api.TransactionSearchCriteria;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
+import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.common.SearchableTransactionCollection;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.common.TransactionCurrentState;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers.EmbeddedTransactionMapper;
+import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers.MapperUtils;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers.TransactionMapper;
+import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.transaction.*;
+import io.reactivex.Observable;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.Binary;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /** Transaction collection base. */
-public abstract class TransactionCurrentCollectionBase implements TransactionCurrentState {
+public abstract class TransactionCollectionBase
+    implements TransactionCurrentState, SearchableTransactionCollection {
   private static final List<TransactionType> AGGREGATE_TRANSACTION_TYPES =
       Arrays.asList(TransactionType.AGGREGATE_COMPLETE, TransactionType.AGGREGATE_BONDED);
   /* Catapult collection. */
@@ -50,20 +58,12 @@ public abstract class TransactionCurrentCollectionBase implements TransactionCur
    * @param context Catapult context.
    * @param collectionName Collection name.
    */
-  public TransactionCurrentCollectionBase(
-      final DataAccessContext context, final String collectionName) {
+  public TransactionCollectionBase(final DataAccessContext context, final String collectionName) {
     catapultCollection =
         new CatapultCollection<>(
             context.getCatapultMongoDbClient(), collectionName, TransactionMapper::new);
     this.context = context;
   }
-
-  /**
-   * Returns transaction status group "failed", "unconfirmed", "confirmed", etc...
-   *
-   * @return transaction group name
-   */
-  protected abstract String getGroupStatus();
 
   private void addInnerTransactions(final Transaction transaction) {
     if (AGGREGATE_TRANSACTION_TYPES.contains(transaction.getType())) {
@@ -102,15 +102,29 @@ public abstract class TransactionCurrentCollectionBase implements TransactionCur
    * @param transactionHash Transaction hash.
    * @return Transaction.
    */
-  public Optional<Transaction> findByHash(final String transactionHash) {
+  public Optional<Transaction> getTransaction(final String transactionHash) {
     return findByHash(transactionHash, context.getDatabaseTimeoutInSeconds());
+  }
+
+  /**
+   * Gets an list of transactions for different transaction hashes.
+   *
+   * @param transactionHashes List of String
+   * @return {@link Observable} of {@link Transaction} List
+   */
+  public List<Transaction> getTransactions(final List<String> transactionHashes) {
+    return transactionHashes.stream()
+        .parallel()
+        .map(s -> getTransaction(s))
+        .filter(f -> f.isPresent())
+        .map(f -> f.get())
+        .collect(Collectors.toList());
   }
 
   /**
    * Find Transaction by hash.
    *
    * @param transactionHash Transaction hash.
-   * @param timeoutInSeconds Timeout for search.
    * @return Transaction.
    */
   public Optional<Transaction> findByHash(
@@ -169,5 +183,46 @@ public abstract class TransactionCurrentCollectionBase implements TransactionCur
         catapultCollection.find(
             Filters.or(signerFilters, addressFilter), context.getDatabaseTimeoutInSeconds());
     return addInnerTransactions(catapultCollection.ConvertResult(results));
+  }
+
+  private byte[] getAddressBytes(final Address address) {
+    return MapperUtils.fromAddressToByteBuffer(address).array();
+  }
+
+  private Bson toSearchCriteria(final TransactionSearchCriteria criteria) {
+    List<Bson> filters = new ArrayList<>();
+
+    if (criteria.getAddress() != null) {
+      final Bson addressFilter =
+          Filters.eq(
+              "meta.addresses", new Binary((byte) 0, getAddressBytes(criteria.getAddress())));
+      filters.add(addressFilter);
+    }
+
+    if (criteria.getSignerPublicKey() != null) {
+      final Bson signerFilter =
+          Filters.eq(
+              "transaction.signerPublicKey",
+              new Binary((byte) 0, criteria.getSignerPublicKey().getBytes()));
+      filters.add(signerFilter);
+    }
+
+    if (criteria.getEmbedded() == null || !criteria.getEmbedded()) {
+      filters.add(Filters.exists("meta.hash"));
+    }
+
+    return Filters.and(filters);
+  }
+
+  /**
+   * It searches entities of a type based on a criteria.
+   *
+   * @param criteria the criteria
+   * @return a page of entities.
+   */
+  public List<Transaction> search(final TransactionSearchCriteria criteria) {
+    final Bson filters = toSearchCriteria(criteria);
+
+    return catapultCollection.findR(filters, context.getDatabaseTimeoutInSeconds());
   }
 }

@@ -22,7 +22,7 @@ package io.nem.symbol.automationHelpers.helper;
 
 import io.nem.symbol.automationHelpers.common.TestContext;
 import io.nem.symbol.sdk.model.account.Account;
-import io.nem.symbol.sdk.model.account.PublicAccount;
+import io.nem.symbol.sdk.model.account.UnresolvedAddress;
 import io.nem.symbol.sdk.model.transaction.AccountMetadataTransaction;
 import io.nem.symbol.sdk.model.transaction.AccountMetadataTransactionFactory;
 import io.nem.symbol.sdk.model.transaction.SignedTransaction;
@@ -41,14 +41,23 @@ public class AccountMetadataHelper extends BaseHelper<AccountMetadataHelper> {
     super(testContext);
   }
 
-  private AccountMetadataTransaction createAccountMetadataTransaction(
-      final PublicAccount targetPublicAccount,
+  /**
+   * Creates an account metadata transaction.
+   *
+   * @param targetAddress Target address.
+   * @param scopedMetadataKey Scoped meta data Key.
+   * @param valueSizeDelta Value size delta.
+   * @param value Metadata value.
+   * @return Account metadata transaction.
+   */
+  public AccountMetadataTransaction createAccountMetadataTransaction(
+      final UnresolvedAddress targetAddress,
       final BigInteger scopedMetadataKey,
       final short valueSizeDelta,
       final String value) {
     final AccountMetadataTransactionFactory accountMetadataTransactionFactory =
         AccountMetadataTransactionFactory.create(
-            testContext.getNetworkType(), targetPublicAccount, scopedMetadataKey, value);
+            testContext.getNetworkType(), targetAddress, scopedMetadataKey, value);
     accountMetadataTransactionFactory.valueSizeDelta(valueSizeDelta);
     return buildTransaction(accountMetadataTransactionFactory);
   }
@@ -57,7 +66,7 @@ public class AccountMetadataHelper extends BaseHelper<AccountMetadataHelper> {
    * Creates an account metadata transaction and announce it to the network.
    *
    * @param account User account.
-   * @param targetPublicAccount Target public account.
+   * @param targetAddress Target address.
    * @param scopedMetadataKey Scoped meta data Key.
    * @param valueSizeDelta Value size delta.
    * @param value Metadata value.
@@ -65,7 +74,7 @@ public class AccountMetadataHelper extends BaseHelper<AccountMetadataHelper> {
    */
   public SignedTransaction createAccountMetadataAndAnnounce(
       final Account account,
-      final PublicAccount targetPublicAccount,
+      final UnresolvedAddress targetAddress,
       final BigInteger scopedMetadataKey,
       final short valueSizeDelta,
       final String value) {
@@ -74,7 +83,7 @@ public class AccountMetadataHelper extends BaseHelper<AccountMetadataHelper> {
         account,
         () ->
             createAccountMetadataTransaction(
-                targetPublicAccount, scopedMetadataKey, valueSizeDelta, value));
+                targetAddress, scopedMetadataKey, valueSizeDelta, value));
   }
 
   /**
@@ -82,15 +91,15 @@ public class AccountMetadataHelper extends BaseHelper<AccountMetadataHelper> {
    * status.
    *
    * @param account User account.
-   * @param targetPublicAccount Target public account.
+   * @param targetAddress Target address.
    * @param scopedMetadataKey Scoped meta data Key.
    * @param valueSizeDelta Value size delta.
    * @param value Metadata value.
    * @return Mosaic supply change transaction.
    */
-  public AccountMetadataTransaction submitMosaicSupplyChangeAndWait(
+  public AccountMetadataTransaction submitAccountMetadataAndWait(
       final Account account,
-      final PublicAccount targetPublicAccount,
+      final UnresolvedAddress targetAddress,
       final BigInteger scopedMetadataKey,
       final short valueSizeDelta,
       final String value) {
@@ -99,6 +108,6 @@ public class AccountMetadataHelper extends BaseHelper<AccountMetadataHelper> {
         account,
         () ->
             createAccountMetadataTransaction(
-                targetPublicAccount, scopedMetadataKey, valueSizeDelta, value));
+                targetAddress, scopedMetadataKey, valueSizeDelta, value));
   }
 }

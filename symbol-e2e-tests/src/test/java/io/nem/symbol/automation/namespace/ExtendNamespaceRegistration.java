@@ -24,12 +24,18 @@ import cucumber.api.java.en.And;
 import cucumber.api.java.en.When;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
+import io.nem.symbol.automationHelpers.helper.AccountHelper;
 import io.nem.symbol.automationHelpers.helper.NamespaceHelper;
+import io.nem.symbol.sdk.model.account.AccountInfo;
+import io.nem.symbol.sdk.model.message.PlainMessage;
+import io.nem.symbol.sdk.model.mosaic.Mosaic;
+import io.nem.symbol.sdk.model.mosaic.MosaicId;
 import io.nem.symbol.sdk.model.namespace.NamespaceInfo;
 import io.nem.symbol.sdk.model.transaction.NamespaceRegistrationTransaction;
 import io.nem.symbol.sdk.model.transaction.TransactionType;
 
 import java.math.BigInteger;
+import java.util.Collections;
 
 /** Extend namespace Registration tests. */
 public class ExtendNamespaceRegistration extends BaseTest {
@@ -52,9 +58,8 @@ public class ExtendNamespaceRegistration extends BaseTest {
     final NamespaceInfo namespaceInfo =
         getTestContext().getScenarioContext().getContext(NAMESPACE_INFO_KEY);
     getTestContext().getScenarioContext().setContext(NAMESPACE_FIRST_INFO_KEY, namespaceInfo);
-    final String actualNamespaceName = getActualNamespaceName(namespaceName);
     new RegisterNamespace(getTestContext())
-        .registerNamespaceForUserAndWait(userName, actualNamespaceName, duration);
+        .registerNamespaceForUserAndWait(userName, namespaceName, addMinDuration(duration));
   }
 
   @When(
@@ -63,7 +68,22 @@ public class ExtendNamespaceRegistration extends BaseTest {
       final String userName, final String namespaceName, final BigInteger duration) {
     new RegisterNamespace(getTestContext())
         .registerNamespaceForUserAndAnnounce(
-            userName, getActualNamespaceName(namespaceName), duration);
+            userName, resolveNamespaceName(namespaceName), duration);
+  }
+
+  @And("^(\\w+) ran out of funds$")
+  public void ranOutOfFunds(final String userName) {
+    final AccountInfo accountInfo =
+        new AccountHelper(getTestContext()).getAccountInfo(getUser(userName).getAddress());
+    final MosaicId mosaicId = getTestContext().getSymbolConfig().getCurrencyMosaicId();
+    final BigInteger amount = getMosaic(accountInfo, mosaicId).get().getAmount();
+    final BigInteger returnedValue =
+        amount.subtract(BigInteger.valueOf(17700)); // only leave tx fee
+    transferAssets(
+        userName,
+        AUTOMATION_USER_ALICE,
+        Collections.singletonList(new Mosaic(mosaicId, returnedValue)),
+        PlainMessage.Empty);
   }
 
   @And("^the namespace is now under grace period$")
@@ -85,16 +105,48 @@ public class ExtendNamespaceRegistration extends BaseTest {
   @And("^(\\w+) extended the namespace registration period for at least (\\d+) blocks?$")
   public void verifyNamespaceRegistrationExtension(
       final String userName, final BigInteger duration) {
+    final NamespaceInfo namespaceInfo =
+        getTestContext().getScenarioContext().getContext(NAMESPACE_INFO_KEY);
+    NamespaceInfo namespaceInfoCurrent;
+    do {
+      namespaceInfoCurrent =
+          new NamespaceHelper(getTestContext()).getNamespaceInfoWithRetry(namespaceInfo.getId());
+      getTestContext()
+          .getLogger()
+          .LogError(
+              "Current namespace height is "
+                  + namespaceInfoCurrent.getEndHeight()
+                  + " expecting "
+                  + namespaceInfo.getEndHeight().longValue());
+    } while (namespaceInfoCurrent.getEndHeight().longValue()
+        != namespaceInfo.getEndHeight().longValue());
     final NamespaceInfo namespaceFirstInfo =
         getTestContext().getScenarioContext().getContext(NAMESPACE_FIRST_INFO_KEY);
-    final int gracePeriod =
-        getTestContext().getConfigFileReader().getNamespaceGracePeriodInBlocks();
+    getTestContext()
+        .getLogger()
+        .LogError(
+            "First namespace info id:"
+                + namespaceFirstInfo.getId().getIdAsHex()
+                + " start: "
+                + namespaceFirstInfo.getStartHeight().longValue()
+                + " End: "
+                + namespaceFirstInfo.getEndHeight().longValue());
+    getTestContext()
+        .getLogger()
+        .LogError(
+            "Second namespace info id:"
+                + namespaceFirstInfo.getId().getIdAsHex()
+                + "  start: "
+                + namespaceInfo.getStartHeight().longValue()
+                + " End: "
+                + namespaceInfo.getEndHeight().longValue());
+    final int gracePeriod = getTestContext().getSymbolConfig().getNamespaceGracePeriodInBlocks();
     final BigInteger totalBlocks =
         namespaceFirstInfo
             .getEndHeight()
             .subtract(namespaceFirstInfo.getStartHeight())
             .subtract(BigInteger.valueOf(gracePeriod));
-    final BigInteger updateDuration = duration.add(totalBlocks);
+    final BigInteger updateDuration = addMinDuration(duration).add(totalBlocks);
     new RegisterNamespace(getTestContext())
         .verifyNamespaceInfo(userName, namespaceFirstInfo.getId(), updateDuration);
   }

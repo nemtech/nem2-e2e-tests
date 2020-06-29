@@ -20,8 +20,9 @@
 
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongoDb;
 
+import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.account.PublicAccount;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
+import io.nem.symbol.sdk.model.network.NetworkType;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -30,6 +31,8 @@ import java.util.Optional;
 /** The block info structure */
 public class FullBlockInfo {
 
+  private final String recordId;
+  private final Long size;
   private final String hash;
   private final String generationHash;
   private final BigInteger totalFee;
@@ -46,37 +49,47 @@ public class FullBlockInfo {
   private final BigInteger height;
   private final BigInteger timestamp;
   private final BigInteger difficulty;
-  private final Integer feeMultiplier;
+  private final Long feeMultiplier;
   private final String previousBlockHash;
   private final String blockTransactionsHash;
   private final String blockReceiptsHash;
   private final String stateHash;
-  private final PublicAccount beneficiaryPublicAccount;
+  private final Address beneficiaryAddress;
+  private final String proofGamma;
+  private final String proofVerificationHash;
+  private final String proofScalar;
 
   @SuppressWarnings("squid:S00107")
   private FullBlockInfo(
-      String hash,
-      String generationHash,
-      BigInteger totalFee,
-      Integer numTransactions,
-      Integer numStatements,
-      List<String> subCacheMerkleRoots,
-      List<String> statementMerkleTree,
-      List<String> transactionMerkleTree,
-      String signature,
-      PublicAccount signerPublicAccount,
-      NetworkType networkType,
-      Integer version,
-      int type,
-      BigInteger height,
-      BigInteger timestamp,
-      BigInteger difficulty,
-      Integer feeMultiplier,
-      String previousBlockHash,
-      String blockTransactionsHash,
-      String blockReceiptsHash,
-      String stateHash,
-      PublicAccount beneficiaryPublicAccount) {
+      final String recordId,
+      final Long size,
+      final String hash,
+      final String generationHash,
+      final BigInteger totalFee,
+      final Integer numTransactions,
+      final Integer numStatements,
+      final List<String> subCacheMerkleRoots,
+      final List<String> statementMerkleTree,
+      final List<String> transactionMerkleTree,
+      final String signature,
+      final PublicAccount signerPublicAccount,
+      final NetworkType networkType,
+      final Integer version,
+      final int type,
+      final BigInteger height,
+      final BigInteger timestamp,
+      final BigInteger difficulty,
+      final Long feeMultiplier,
+      final String previousBlockHash,
+      final String blockTransactionsHash,
+      final String blockReceiptsHash,
+      final String stateHash,
+      final Address beneficiaryAddress,
+      final String proofGamma,
+      final String proofVerificationHash,
+      final String proofScalar) {
+    this.recordId = recordId;
+    this.size = size;
     this.hash = hash;
     this.generationHash = generationHash;
     this.totalFee = totalFee;
@@ -98,11 +111,16 @@ public class FullBlockInfo {
     this.blockTransactionsHash = blockTransactionsHash;
     this.blockReceiptsHash = blockReceiptsHash;
     this.stateHash = stateHash;
-    this.beneficiaryPublicAccount = beneficiaryPublicAccount;
+    this.beneficiaryAddress = beneficiaryAddress;
+    this.proofGamma = proofGamma;
+    this.proofVerificationHash = proofVerificationHash;
+    this.proofScalar = proofScalar;
   }
 
   @SuppressWarnings("squid:S00107")
   public static FullBlockInfo create(
+      final String recordId,
+      final Long size,
       String hash,
       String generationHash,
       BigInteger totalFee,
@@ -119,18 +137,23 @@ public class FullBlockInfo {
       BigInteger height,
       BigInteger timestamp,
       BigInteger difficulty,
-      Integer feeMultiplier,
+      Long feeMultiplier,
       String previousBlockHash,
       String blockTransactionsHash,
       String blockReceiptsHash,
       String stateHash,
-      String beneficiaryPublicKey) {
+      String beneficiaryAddressString,
+      final String proofGamma,
+      final String proofVerificationHash,
+      final String proofScalar) {
     PublicAccount signerPublicAccount = FullBlockInfo.getPublicAccount(signer, networkType);
-    PublicAccount beneficiaryPublicAccount =
-        beneficiaryPublicKey == null
+    final Address beneficiaryAddress =
+        beneficiaryAddressString == null
             ? null
-            : FullBlockInfo.getPublicAccount(beneficiaryPublicKey, networkType);
+            : Address.createFromEncoded(beneficiaryAddressString);
     return new FullBlockInfo(
+        recordId,
+        size,
         hash,
         generationHash,
         totalFee,
@@ -152,7 +175,10 @@ public class FullBlockInfo {
         blockTransactionsHash,
         blockReceiptsHash,
         stateHash,
-        beneficiaryPublicAccount);
+        beneficiaryAddress,
+        proofGamma,
+        proofVerificationHash,
+        proofScalar);
   }
 
   /**
@@ -332,9 +358,9 @@ public class FullBlockInfo {
   /**
    * Returns the feeMultiplier defined by the harvester.
    *
-   * @return Integer
+   * @return Long
    */
-  public Integer getFeeMultiplier() {
+  public Long getFeeMultiplier() {
     return feeMultiplier;
   }
 
@@ -375,11 +401,46 @@ public class FullBlockInfo {
   }
 
   /**
-   * Returns the beneficiary public account.
+   * Returns the beneficiary address.
    *
-   * @return PublicAccount
+   * @return Address
    */
-  public PublicAccount getBeneficiaryPublicAccount() {
-    return beneficiaryPublicAccount;
+  public Address getBeneficiaryAddress() {
+    return beneficiaryAddress;
+  }
+
+  /**
+   * Gets proof gamma.
+   *
+   * @return Proof Gamma.
+   */
+  public String getProofGamma() {
+    return proofGamma;
+  }
+
+  /**
+   * Gets the proof Scalar.
+   *
+   * @return Proof scalar.
+   */
+  public String getProofScalar() {
+    return proofScalar;
+  }
+
+  /**
+   * Gets the proof verification hash.
+   *
+   * @return Proof verification hash.
+   */
+  public String getProofVerificationHash() {
+    return proofVerificationHash;
+  }
+
+  public String getRecordId() {
+    return recordId;
+  }
+
+  public Long getSize() {
+    return size;
   }
 }

@@ -9,7 +9,7 @@ Background: Create assets for transfer.
 
   @bvt
   Scenario Outline: An account sends an asset to another account
-    When Alice sends <amount> asset "<asset>" to Bob
+    When Alice sends <amount> asset of "<asset>" to Bob
     Then Bob should receive <amount> of asset "<asset>"
     And Alice "<asset>" balance should decrease by <amount> unit
 
@@ -19,22 +19,22 @@ Background: Create assets for transfer.
       | 2      | Y     |
 
   Scenario: An account sends an asset to itself
-    When Alice sends 1 asset "X" to Alice
+    When Alice sends 1 asset of "X" to Alice
     Then Alice balance should decrease by transaction fee
 
   @bvt
   Scenario Outline: An account tries to send an asset to an invalid account
-    When Alice tries to send 1 asset "Y" to <recipient>
+    When Alice tries to send 1 asset of "Y" to <recipient>
     Then she should receive the error "<error>"
     And Alice balance should remain intact
     Examples:
-      | recipient                                      | error                        |
-      | NAIBV5-BKEVGJ-IZQ4RP-224TYE-J3ZIUL-WDHUTI-X3HT | Failure_Core_Invalid_Address |
-      | MAIBV5-BKEVGJ-IZQ4RP-224TYE-J3ZIUL-WDHUTI-X3H5 | Failure_Core_Invalid_Address |
+      | recipient                                     | error                        |
+      | NAIBV5-BKEVGJ-IZQ4RP-224TYE-J3ZIUL-WDHUTI-X3Q | Failure_Core_Invalid_Address |
+      | MAIBV5-BKEVGJ-IZQ4RP-224TYE-J3ZIUL-WDHUTI-X3Y | Failure_Core_Invalid_Address |
 
   @bvt
   Scenario Outline: An account tries to send assets that does not have
-    When Alice tries to send <amount> asset "<asset>" to Sue
+    When Alice tries to send <amount> asset of "<asset>" to Sue
     Then she should receive the error "<error>"
     And Alice balance should remain intact
 

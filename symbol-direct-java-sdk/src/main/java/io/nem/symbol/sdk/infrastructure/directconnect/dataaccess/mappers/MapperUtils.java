@@ -24,6 +24,7 @@ import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.account.UnresolvedAddress;
 import io.nem.symbol.sdk.model.mosaic.MosaicId;
 import io.nem.symbol.sdk.model.mosaic.UnresolvedMosaicId;
+import io.nem.symbol.sdk.model.namespace.NamespaceId;
 import io.nem.symbol.sdk.model.receipt.*;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.codec.binary.Base32;
@@ -43,19 +44,22 @@ public final class MapperUtils {
    * @param name Name of the property.
    * @return BigInteger of the name.¬
    */
-  public static BigInteger extractBigInteger(final JsonObject jsonObject, final String name) {
+  public static BigInteger toBigInteger(final JsonObject jsonObject, final String name) {
     return BigInteger.valueOf(jsonObject.getLong(name));
   }
 
-  public static MosaicId getMosaicIdFromJson(final JsonObject jsonObject, final String name) {
-    return new MosaicId(MapperUtils.extractBigInteger(jsonObject, name));
+  public static MosaicId toMosaicId(final JsonObject jsonObject, final String name) {
+    return new MosaicId(MapperUtils.toBigInteger(jsonObject, name));
+  }
+
+  public static Address toAddress(final JsonObject jsonObject, final String name) {
+    return Address.createFromEncoded(jsonObject.getString(name));
   }
 
   public static AddressResolutionStatement createAddressResolutionStatement(
       final JsonObject receiptJsonObject) {
-    final BigInteger height = extractBigInteger(receiptJsonObject, "height");
-    final UnresolvedAddress unresolved =
-        Address.createFromEncoded(receiptJsonObject.getString("unresolved"));
+    final BigInteger height = toBigInteger(receiptJsonObject, "height");
+    final UnresolvedAddress unresolved = toUnresolvedAddress(receiptJsonObject, "unresolved");
     final List<ResolutionEntry<Address>> resolutionEntries =
         getResolutionEntries(
             receiptJsonObject,
@@ -72,8 +76,8 @@ public final class MapperUtils {
 
   public static MosaicResolutionStatement createMosaicResolutionStatement(
       final JsonObject receiptJsonObject) {
-    final BigInteger height = extractBigInteger(receiptJsonObject, "height");
-    final UnresolvedMosaicId unresolved = getMosaicIdFromJson(receiptJsonObject, "unresolved");
+    final BigInteger height = toBigInteger(receiptJsonObject, "height");
+    final UnresolvedMosaicId unresolved = toUnresolvedMosaicId(receiptJsonObject, "unresolved");
     final List<ResolutionEntry<MosaicId>> resolutionEntries =
         getResolutionEntries(
             receiptJsonObject,
@@ -81,7 +85,7 @@ public final class MapperUtils {
             (final JsonObject entryJsonObject) -> {
               final JsonObject sourceJsonObject = entryJsonObject.getJsonObject("source");
               final ReceiptSource receiptSource = getReceiptSource(sourceJsonObject);
-              final MosaicId mosaicId = getMosaicIdFromJson(entryJsonObject, "resolved");
+              final MosaicId mosaicId = toMosaicId(entryJsonObject, "resolved");
               return ResolutionEntry.forMosaicId(mosaicId, receiptSource);
             });
     return new MosaicResolutionStatement(height, unresolved, resolutionEntries);
@@ -110,4 +114,23 @@ public final class MapperUtils {
     final String hexAddress = jsonObject.getString(name);
     return io.nem.symbol.core.utils.MapperUtils.toUnresolvedAddress(hexAddress);
   }
+
+  public static UnresolvedMosaicId toUnresolvedMosaicId(
+      final JsonObject jsonObject, final String name) {
+    return NamespaceId.createFromId(MapperUtils.toBigInteger(jsonObject, name));
+  }
+
+    public static String toRecordId(final JsonObject jsonObject) {
+        return jsonObject.getString("_id.$oid");
+    }
+
+    /**
+     * Converts to an int by an unsigned conversion.
+     *
+     * @param value Signed short.
+     * @return Positive integer.
+     */
+    public static Long toUnsignedLong(final Integer value) {
+        return Integer.toUnsignedLong(value);
+    }
 }

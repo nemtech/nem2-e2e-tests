@@ -145,6 +145,18 @@ class CatapultCollection<T, U extends Function<JsonObject, T>>
         (List<Document>) mongoCollection.find().into(new ArrayList<Document>());
     return ConvertResult(documents);
   }
+  /**
+   * Find documents.
+   *
+   * @param queryParams Query parameter.
+   * @param timeoutInSeconds Timeout in seconds.
+   * @return List of T
+   */
+  public List<T> findR(final Bson queryParams, final int timeoutInSeconds) {
+    final List<Document> documents =
+            find(queryParams, timeoutInSeconds);
+    return ConvertResult(documents);
+  }
 
   /**
    * Find documents.
@@ -212,6 +224,18 @@ class CatapultCollection<T, U extends Function<JsonObject, T>>
   public Optional<T> findOne(
       final String keyName, final byte[] keyValueBytes, final int timeoutInSeconds) {
     List<T> results = find(keyName, keyValueBytes, timeoutInSeconds);
+    return GetOneResult(results);
+  }
+
+  /**
+   * Find documents.
+   *
+   * @param queryParams Query parameter.
+   * @param timeoutInSeconds Timeout in seconds.
+   * @return List of T
+   */
+  public Optional<T> findOneR(final Bson queryParams, final int timeoutInSeconds) {
+    List<T> results = findR(queryParams, timeoutInSeconds);
     return GetOneResult(results);
   }
 }

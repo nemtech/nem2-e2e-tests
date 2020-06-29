@@ -57,7 +57,7 @@ public class SendAsset extends BaseTest {
     transferHelper = new TransferHelper(testContext);
   }
 
-  @When("^(\\w+) sends (\\d+) asset \"(.*)\" to (\\w+)$")
+  @When("^(\\w+) sends (\\d+) asset of \"(.*)\" to (\\w+)$")
   public void transferAsset(
       final String sender,
       final BigInteger amount,
@@ -112,9 +112,10 @@ public class SendAsset extends BaseTest {
     final long amountAfter = mosaicAfter.get().getAmount().longValue();
     final String errorMessage =
         "Recipient("
-            + recipientAccountInfoAfter.getAddress()
+            + recipientAccountInfoAfter.getAddress().pretty()
             + ") did not receive Asset mosaic id:"
-            + mosaicId;
+            + mosaicId.getIdAsLong();
+    final BigInteger fees = getUserFee(recipientAccountInfoAfter.getPublicAccount(), mosaicId);
     //		getTestContext().getLogger().LogInfo("Recipient Account Info before: %s\n",
     // recipientAccountInfo.toString());
     //		getTestContext().getLogger().LogInfo("Mosaic before: %s = %d\n\n", initialMosaic,
@@ -125,7 +126,7 @@ public class SendAsset extends BaseTest {
     final BigInteger actualAmount =
         getActualMosaicQuantity(getNamespaceIdFromName(assetName), amount);
     assertEquals(errorMessage, true, mosaicAfter.isPresent());
-    assertEquals(errorMessage, actualAmount.longValue(), amountAfter - initialAmount);
+    assertEquals(errorMessage, actualAmount.longValue(), amountAfter - initialAmount + fees.longValue());
   }
 
   @And("^(\\w+) \"(.*)\" balance should decrease by (\\d+) units?$")
@@ -171,7 +172,7 @@ public class SendAsset extends BaseTest {
   public void VerifyAssetIntact(final String userName) {
     VerifyAssetsState(
         userName,
-        (final PublicAccount publicAccount, final UnresolvedMosaicId mosaicId) -> BigInteger.ZERO);
+        (final PublicAccount publicAccount, final UnresolvedMosaicId mosaicId) -> getUserFee(publicAccount, mosaicId));
   }
 
   @And("^(\\w+) balance should decrease by transaction fee$")
@@ -182,7 +183,7 @@ public class SendAsset extends BaseTest {
             getUserFee(publicAccount, mosaicId));
   }
 
-  @When("^(\\w+) tries to send (-?\\d+) asset \"(.*)\" to (.*)$")
+  @When("^(\\w+) tries to send (-?\\d+) asset of \"(.*)\" to (.*)$")
   public void triesToTransferAsset(
       final String sender,
       final BigInteger amount,

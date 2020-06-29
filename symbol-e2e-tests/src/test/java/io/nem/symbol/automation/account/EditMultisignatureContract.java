@@ -31,6 +31,7 @@ import io.nem.symbol.automationHelpers.helper.TransactionHelper;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.MultisigAccountInfo;
 import io.nem.symbol.sdk.model.account.PublicAccount;
+import io.nem.symbol.sdk.model.account.UnresolvedAddress;
 import io.nem.symbol.sdk.model.transaction.*;
 
 import java.util.*;
@@ -51,17 +52,6 @@ public class EditMultisignatureContract extends BaseTest {
     multisigAccountHelper = new MultisigAccountHelper(testContext);
   }
 
-  private AggregateTransaction createAggregateTransaction(
-      final boolean isBonded, final List<Transaction> innerTransaction) {
-    final AggregateTransaction aggregateTransaction =
-        isBonded
-            ? new AggregateHelper(getTestContext())
-                .createAggregateBondedTransaction(innerTransaction)
-            : new AggregateHelper(getTestContext())
-                .createAggregateCompleteTransaction(innerTransaction);
-    return aggregateTransaction;
-  }
-
   private void createModifyMultisigAccount(
       final String userName,
       final byte minimumApproval,
@@ -75,39 +65,35 @@ public class EditMultisignatureContract extends BaseTest {
             .<MultisigAccountModificationTransaction>findTransaction(
                 TransactionType.MULTISIG_ACCOUNT_MODIFICATION)
             .get();
-    final List<PublicAccount> accountsAdditions =
-        originalMultisigAccountModificationTransaction.getPublicKeyAdditions();
-    final List<PublicAccount> accountsDeletions =
-        originalMultisigAccountModificationTransaction.getPublicKeyDeletions();
+    final List<UnresolvedAddress> accountsAdditions =
+        originalMultisigAccountModificationTransaction.getAddressAdditions();
+    final List<UnresolvedAddress> accountsDeletions =
+        originalMultisigAccountModificationTransaction.getAddressDeletions();
     getTestContext().clearTransaction();
     boolean requireBondedTransaction =
         originalMultisigAccountModificationTransaction.getMinApprovalDelta() > 1;
-    final List<PublicAccount> publicAccountsAddition = new ArrayList<>();
-    final List<PublicAccount> publicAccountsDeletion = new ArrayList<>();
+    final List<UnresolvedAddress> addressAdditions = new ArrayList<>();
+    final List<UnresolvedAddress> addressDeletions = new ArrayList<>();
     for (List<String> entry : operationList) {
       final Account account = getUser(entry.get(0));
       if (entry.get(1).equalsIgnoreCase("add")) {
-        publicAccountsAddition.add(account.getPublicAccount());
-        accountsAdditions.add(account.getPublicAccount());
+        addressAdditions.add(account.getAddress());
+        accountsAdditions.add(account.getAddress());
         requireBondedTransaction = true;
       } else if (entry.get(1).equalsIgnoreCase("remove")) {
-        publicAccountsDeletion.add(account.getPublicAccount());
-        accountsDeletions.add(account.getPublicAccount());
+        addressDeletions.add(account.getAddress());
+        accountsDeletions.add(account.getAddress());
         accountsAdditions.removeIf(
-            publicAccount -> publicAccount.equals(account.getPublicAccount()));
+            address -> address.equals(account.getAddress()));
       }
     }
 
     final MultisigAccountModificationTransaction modifyMultisigAccountTransaction =
         multisigAccountHelper.createMultisigAccountModificationTransaction(
-            minimumApproval, minimumRemoval, publicAccountsAddition, publicAccountsDeletion);
+            minimumApproval, minimumRemoval, addressAdditions, addressDeletions);
     final List<Transaction> innerTransactions =
         Arrays.asList(
             modifyMultisigAccountTransaction.toAggregate(multiSigAccount.getPublicAccount()));
-    final AggregateTransaction aggregateTransaction =
-        createAggregateTransaction(requireBondedTransaction, innerTransactions);
-    final TransactionHelper transactionHelper = new TransactionHelper(getTestContext());
-    transactionHelper.signTransaction(aggregateTransaction, signerAccount);
     final byte newApproval =
         (byte)
             (originalMultisigAccountModificationTransaction.getMinApprovalDelta()
@@ -119,6 +105,10 @@ public class EditMultisignatureContract extends BaseTest {
         multisigAccountHelper.createMultisigAccountModificationTransaction(
             newApproval, newRemoval, accountsAdditions, accountsDeletions);
     getTestContext().addTransaction(newMultisigAccountModificationTransaction);
+    final AggregateTransaction aggregateTransaction =
+            new AggregateHelper(getTestContext()).createAggregateTransaction(requireBondedTransaction, innerTransactions, newApproval);
+    final TransactionHelper transactionHelper = new TransactionHelper(getTestContext());
+    transactionHelper.signTransaction(aggregateTransaction, signerAccount);
   }
 
   @And("^\"(\\w+)\" update the cosignatories of the multisignature:$")
@@ -140,23 +130,32 @@ public class EditMultisignatureContract extends BaseTest {
   @And("^\"(\\w+)\" accepted the transaction$")
   @When("^\"(\\w+)\" accepts the transaction$")
   public void cosignTransaction(final String cosigner) {
-    final Account account = getUser(cosigner);
+    final Account cosignerAccount = getUser(cosigner);
     final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
     final AccountHelper accountHelper = new AccountHelper(getTestContext());
     final AggregateTransaction aggregateTransaction =
         accountHelper.getAggregateBondedTransaction(
-            PublicAccount.createFromPublicKey(
-                signedTransaction.getSigner().getPublicKey().toHex(),
-                getTestContext().getNetworkType()),
+                signedTransaction.getSigner(),
+//            cosignerAccount.getPublicAccount(),
             signedTransaction);
-    // TODO: update when bug is fix - https://github.com/nemtech/catapult-rest/issues/244
-    //    accountHelper.getAggregateBondedTransaction(account.getPublicAccount(),
-    // signedTransaction);
     final AggregateHelper aggregateHelper = new AggregateHelper(getTestContext());
     final String hash = aggregateTransaction.getTransactionInfo().get().getHash().get();
     int numOfCosigner = getTestContext().getScenarioContext().isContains(hash) ? getTestContext().getScenarioContext().getContext(hash) : 0;
     getTestContext().getScenarioContext().setContext(hash, numOfCosigner + 1);
-    aggregateHelper.cosignAggregateBonded(account, aggregateTransaction);
+    aggregateHelper.cosignAggregateBonded(cosignerAccount, aggregateTransaction);
+  }
+
+  @When("^\"(\\w+)\" resign the bonded transaction from (\\w+)$")
+  public void resignTransaction(final String cosigner, final String source) {
+    final Account cosignerAccount = getUser(cosigner);
+    final Account sourceAccount = getUser(source);
+    final AccountHelper accountHelper = new AccountHelper(getTestContext());
+    final AggregateTransaction aggregateTransaction =
+            accountHelper.getAggregateBondedTransactions(sourceAccount.getAddress()).get(0);
+    final AggregateHelper aggregateHelper = new AggregateHelper(getTestContext());
+    aggregateHelper.cosignAggregateBonded(cosignerAccount, aggregateTransaction);
+    getTestContext().setSignedTransaction(new SignedTransaction(sourceAccount.getPublicAccount(), "",
+            aggregateTransaction.getTransactionInfo().get().getHash().get(), aggregateTransaction.getType()));
   }
 
   @And("^(\\w+) become a regular account$")
@@ -175,7 +174,7 @@ public class EditMultisignatureContract extends BaseTest {
   @When(
       "^(\\w+) creates a contract to change approval by (-?\\d+) units and removal by (-?\\d+) units$")
   public void publishMultisigSettingsUpdate(
-      final String userName, final byte approvalDetla, final byte removalDelta) {
-    createModifyMultisigAccount(userName, approvalDetla, removalDelta, new ArrayList<>());
+      final String userName, final byte approvalDelta, final byte removalDelta) {
+    createModifyMultisigAccount(userName, approvalDelta, removalDelta, new ArrayList<>());
   }
 }

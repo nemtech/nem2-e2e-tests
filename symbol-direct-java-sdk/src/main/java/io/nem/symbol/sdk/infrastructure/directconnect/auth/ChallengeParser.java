@@ -49,7 +49,7 @@ public class ChallengeParser {
    *
    * @param packet The raw packet to parse.
    * @param packetType The expected packet type.
-   * @return Parsed packet.
+   * @returns Parsed packet.
    */
   public static ByteBuffer tryParseChallenge(final Packet packet, final PacketType packetType) {
     if (!isPacketHeaderValid(packet.getPacketHeader(), packetType, CHALLENGE_PACKET_SIZE)) {

@@ -20,15 +20,16 @@
 
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers;
 
-import io.nem.symbol.sdk.model.account.PublicAccount;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
+import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.mosaic.MosaicFlags;
 import io.nem.symbol.sdk.model.mosaic.MosaicId;
 import io.nem.symbol.sdk.model.mosaic.MosaicInfo;
+import io.nem.symbol.sdk.model.network.NetworkType;
 import io.vertx.core.json.JsonObject;
 
 import java.math.BigInteger;
 import java.util.function.Function;
+;
 
 /** Mosaics mapper. */
 public class MosaicInfoMapper implements Function<JsonObject, MosaicInfo> {
@@ -51,24 +52,24 @@ public class MosaicInfoMapper implements Function<JsonObject, MosaicInfo> {
    * @return Mosaic info.
    */
   public MosaicInfo apply(final JsonObject jsonObject) {
+    final String recordId = MapperUtils.toRecordId(jsonObject);
     final JsonObject mosaicJsonObject = jsonObject.getJsonObject("mosaic");
-    final MosaicId mosaicId = new MosaicId(MapperUtils.extractBigInteger(mosaicJsonObject, "id"));
-    final BigInteger supply = MapperUtils.extractBigInteger(mosaicJsonObject, "supply");
-    final BigInteger height = MapperUtils.extractBigInteger(mosaicJsonObject, "startHeight");
-    final PublicAccount owner =
-        PublicAccount.createFromPublicKey(
-            mosaicJsonObject.getString("ownerPublicKey"), networkType);
+    final MosaicId mosaicId = new MosaicId(MapperUtils.toBigInteger(mosaicJsonObject, "id"));
+    final BigInteger supply = MapperUtils.toBigInteger(mosaicJsonObject, "supply");
+    final BigInteger height = MapperUtils.toBigInteger(mosaicJsonObject, "startHeight");
+    final Address owner = Address.createFromEncoded(mosaicJsonObject.getString("ownerAddress"));
     final int revision = mosaicJsonObject.getInteger("revision");
     final int flags = mosaicJsonObject.getLong("flags").intValue();
     final MosaicFlags mosaicFlags = MosaicFlags.create(flags);
     final int divisibility = mosaicJsonObject.getInteger("divisibility");
     final Long duration = mosaicJsonObject.getLong("duration");
-    return MosaicInfo.create(
+    return new MosaicInfo(
+        recordId,
         mosaicId,
         supply,
         height,
         owner,
-        revision,
+        MapperUtils.toUnsignedLong(revision),
         mosaicFlags,
         divisibility,
         BigInteger.valueOf(duration));

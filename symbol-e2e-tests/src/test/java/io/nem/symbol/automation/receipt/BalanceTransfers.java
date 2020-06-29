@@ -26,7 +26,7 @@ import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
 import io.nem.symbol.automationHelpers.helper.BlockChainHelper;
 import io.nem.symbol.sdk.model.account.Account;
-import io.nem.symbol.sdk.model.account.PublicAccount;
+import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.mosaic.MosaicInfo;
 import io.nem.symbol.sdk.model.namespace.NamespaceInfo;
 import io.nem.symbol.sdk.model.receipt.BalanceTransferReceipt;
@@ -49,7 +49,7 @@ public class BalanceTransfers extends BaseTest {
   }
 
   private BigInteger getBalanceTransferCost(
-      final PublicAccount publicAccount, final BigInteger height, final ReceiptType receiptType) {
+      final Address address, final BigInteger height, final ReceiptType receiptType) {
     final Statement statement = new BlockChainHelper(getTestContext()).getBlockReceipts(height);
     final Optional<BalanceTransferReceipt> receiptCost =
         statement.getTransactionStatements().stream()
@@ -60,7 +60,7 @@ public class BalanceTransfers extends BaseTest {
                   if (receipt.getType() == receiptType) {
                     final BalanceTransferReceipt balanceTransferReceipt =
                         (BalanceTransferReceipt) receipt;
-                    if (balanceTransferReceipt.getSender().equals(publicAccount)) {
+                    if (balanceTransferReceipt.getSenderAddress().equals(address)) {
                       return true;
                     }
                   }
@@ -81,7 +81,7 @@ public class BalanceTransfers extends BaseTest {
   @When("^she checks how much cost extending the namespace$")
   public void checksExtendingNamespaceCost() {}
 
-  @Then("^(\\w+) should get that registering the asset \"(.*)\" cost \"(\\d+)\" cat.currency$")
+  @Then("^(\\w+) should get that registering the asset \"(.*)\" cost \"(\\d+)\" network currency$")
   public void verifyAssetCost(
       final String userName, final String assetName, final BigInteger cost) {
     final Account account = getUser(userName);
@@ -89,8 +89,14 @@ public class BalanceTransfers extends BaseTest {
     final BigInteger transactionHeight = mosaicInfo.getStartHeight();
     final BigInteger actualCost =
         getBalanceTransferCost(
-            account.getPublicAccount(), transactionHeight, ReceiptType.MOSAIC_RENTAL_FEE);
-    final BigInteger exceptedCost = getCalculatedDynamicFee(cost, transactionHeight);
+            account.getAddress(), transactionHeight, ReceiptType.MOSAIC_RENTAL_FEE);
+    final BigInteger exceptedCost =
+        getTestContext()
+            .getRepositoryFactory()
+            .createNetworkRepository()
+            .getRentalFees()
+            .blockingFirst()
+            .getEffectiveMosaicRentalFee();
     assertEquals(
         "Asset registration cost did not match for asset id:"
             + mosaicInfo.getMosaicId().getIdAsLong()
@@ -100,7 +106,7 @@ public class BalanceTransfers extends BaseTest {
         actualCost.longValue());
   }
 
-  @Then("^(\\w+) should get that registering the namespace cost \"(\\d+)\" cat.currency$")
+  @Then("^(\\w+) should get that registering the namespace cost \"(\\d+)\" network currency$")
   public void verifyNamespaceRegisterCost(final String userName, final BigInteger cost) {
     final Account account = getUser(userName);
     final NamespaceInfo namespaceInfo =
@@ -108,18 +114,27 @@ public class BalanceTransfers extends BaseTest {
     final BigInteger transactionHeight = namespaceInfo.getStartHeight();
     final BigInteger actualCost =
         getBalanceTransferCost(
-            account.getPublicAccount(), transactionHeight, ReceiptType.NAMESPACE_RENTAL_FEE);
-    final BigInteger exceptedCost = getCalculatedDynamicFee(cost, namespaceInfo.getStartHeight());
+            account.getAddress(), transactionHeight, ReceiptType.NAMESPACE_RENTAL_FEE);
+    final BigInteger rootNamespaceRentalFee =
+        getTestContext()
+            .getRepositoryFactory()
+            .createNetworkRepository()
+            .getRentalFees()
+            .blockingFirst()
+            .getEffectiveRootNamespaceRentalFeePerBlock();
+    final BigInteger exceptedCost = rootNamespaceRentalFee.multiply(addMinDuration(cost));
     assertEquals(
         "Namespace registration cost did not match for namespace id:"
             + namespaceInfo.getId().getIdAsLong()
             + " height: "
-            + transactionHeight,
+            + transactionHeight
+            + " rental fee per block: "
+            + rootNamespaceRentalFee.longValue(),
         exceptedCost.longValue(),
         actualCost.longValue());
   }
 
-  @Then("^(\\w+) should get that extending the namespace cost \"(\\d+)\" cat.currency$")
+  @Then("^(\\w+) should get that extending the namespace cost \"(\\d+)\" network currency$")
   public void verifyNamespaceExtendCost(final String userName, final BigInteger cost) {
     final Account account = getUser(userName);
     final NamespaceRegistrationTransaction namespaceRegistrationTransaction =
@@ -131,8 +146,15 @@ public class BalanceTransfers extends BaseTest {
         namespaceRegistrationTransaction.getTransactionInfo().get().getHeight();
     final BigInteger actualCost =
         getBalanceTransferCost(
-            account.getPublicAccount(), transactionHeight, ReceiptType.NAMESPACE_RENTAL_FEE);
-    final BigInteger exceptedCost = getCalculatedDynamicFee(cost, transactionHeight);
+            account.getAddress(), transactionHeight, ReceiptType.NAMESPACE_RENTAL_FEE);
+    final BigInteger exceptedCost =
+        getTestContext()
+            .getRepositoryFactory()
+            .createNetworkRepository()
+            .getRentalFees()
+            .blockingFirst()
+            .getEffectiveRootNamespaceRentalFeePerBlock()
+            .multiply(addMinDuration(cost));
     assertEquals(
         "Namespace extension cost did not match for namespace id:"
             + namespaceRegistrationTransaction.getNamespaceId().getIdAsLong()

@@ -21,15 +21,22 @@
 package io.nem.symbol.automation.receipt;
 
 import cucumber.api.java.en.And;
+import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import cucumber.api.java.sl.In;
 import io.nem.symbol.automation.common.BaseTest;
+import io.nem.symbol.automationHelpers.common.SymbolConfig;
 import io.nem.symbol.automationHelpers.common.TestContext;
+import io.nem.symbol.automationHelpers.helper.AccountHelper;
 import io.nem.symbol.automationHelpers.helper.BlockChainHelper;
 import io.nem.symbol.automationHelpers.helper.MosaicHelper;
 import io.nem.symbol.core.crypto.PublicKey;
 import io.nem.symbol.sdk.model.account.Account;
+import io.nem.symbol.sdk.model.account.AccountInfo;
+import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.account.PublicAccount;
+import io.nem.symbol.sdk.model.blockchain.BlockInfo;
 import io.nem.symbol.sdk.model.mosaic.Mosaic;
 import io.nem.symbol.sdk.model.namespace.NamespaceId;
 import io.nem.symbol.sdk.model.receipt.BalanceChangeReceipt;
@@ -71,30 +78,30 @@ public class BalanceChanges extends BaseTest {
       final ReceiptType receiptType,
       final String namespaceName,
       final BigInteger actualAmount,
-      final PublicKey targetPublicKey) {
+      final Address targetAddress) {
     final NamespaceId namespaceId = resolveNamespaceIdFromName(namespaceName);
     final Mosaic mosaic =
         new MosaicHelper(getTestContext()).getMosaicFromNamespace(namespaceId, actualAmount);
-    verifyBalanceChangeReceipt(receiptHeight, receiptType, mosaic, targetPublicKey);
+    verifyBalanceChangeReceipt(receiptHeight, receiptType, mosaic, targetAddress);
   }
 
   private void verifyBalanceChangeReceipt(
       final BigInteger receiptHeight,
       final ReceiptType receiptType,
       final BigInteger actualAmount,
-      final PublicKey targetPublicKey) {
+      final Address targetAddress) {
     final Mosaic mosaic =
         new MosaicHelper(getTestContext())
             .getMosaicFromNamespace(
                 getTestContext().getNetworkCurrency().getNamespaceId().get(), actualAmount);
-    verifyBalanceChangeReceipt(receiptHeight, receiptType, mosaic, targetPublicKey);
+    verifyBalanceChangeReceipt(receiptHeight, receiptType, mosaic, targetAddress);
   }
 
   private void verifyBalanceChangeReceipt(
       final BigInteger receiptHeight,
       final ReceiptType receiptType,
       final Mosaic actualMosaic,
-      final PublicKey targetPublicKey) {
+      final Address targetAddress) {
     final BalanceChangeReceipt balanceChangeReceipt = getBalanceChange(receiptHeight, receiptType);
     assertEquals(
         "Receipt amount failed for " + receiptType + " @" + receiptHeight.longValue(),
@@ -106,8 +113,8 @@ public class BalanceChanges extends BaseTest {
         balanceChangeReceipt.getMosaicId().getIdAsLong());
     assertEquals(
         "Receipt target public failed for " + receiptType + " @" + receiptHeight.longValue(),
-        targetPublicKey.toHex(),
-        balanceChangeReceipt.getAccount().getPublicKey().toHex());
+            targetAddress.plain(),
+        balanceChangeReceipt.getTargetAddress().plain());
   }
 
   @When("^she checks if the contract has concluded$")
@@ -147,17 +154,17 @@ public class BalanceChanges extends BaseTest {
     waitForBlockChainHeight(hashLockTransaction.getTransactionInfo().get().getHeight().longValue());
   }
 
-  @Then("^(\\w+) should get (\\d+) \"cat.currency\" returned to her account$")
+  @Then("^(\\w+) should get (\\d+) \"network currency\" returned to her account$")
   public void verifyLockHashReturnedReceipt(final String userName, final BigInteger amount) {
     final Account account = getUser(userName);
     final BigInteger receiptHeight =
         getTestContext().getScenarioContext().getContext(RECEIPT_HEIGHT);
     final ReceiptType receiptType = getTestContext().getScenarioContext().getContext(RECEIPT_TYPE);
     verifyBalanceChangeReceipt(
-        receiptHeight, receiptType, amount, account.getPublicAccount().getPublicKey());
+        receiptHeight, receiptType, amount, account.getAddress());
   }
 
-  @Then("^(\\w+) should have (\\d+) \"cat.currency\" sent from her account$")
+  @Then("^(\\w+) should have (\\d+) \"network currency\" sent from her account$")
   public void verifyLockHashSentReceipt(final String userName, final BigInteger amount) {
     final Account account = getUser(userName);
     final HashLockTransaction hashLockTransaction =
@@ -168,17 +175,17 @@ public class BalanceChanges extends BaseTest {
         receiptHeight,
         ReceiptType.LOCK_HASH_CREATED,
         amount,
-        account.getPublicAccount().getPublicKey());
+        account.getAddress());
   }
 
-  @Then("^harvesting account should get (\\d+) \"cat.currency\" from the hash lock$")
+  @Then("^harvesting account should get (\\d+) \"network currency\" from the hash lock$")
   public void verifyLockHashExpired(final BigInteger amount) {
     final PublicAccount harvesterPublicAccount = getTestContext().getHarvesterPublicAccount();
     final BigInteger receiptHeight =
         getTestContext().getScenarioContext().getContext(RECEIPT_HEIGHT);
     final ReceiptType receiptType = getTestContext().getScenarioContext().getContext(RECEIPT_TYPE);
     verifyBalanceChangeReceipt(
-        receiptHeight, receiptType, amount, harvesterPublicAccount.getPublicKey());
+        receiptHeight, receiptType, amount, harvesterPublicAccount.getAddress());
   }
 
   @When("^she checks if the locked mosaics for the previous secret transaction have been locked$")
@@ -202,7 +209,7 @@ public class BalanceChanges extends BaseTest {
         receiptType,
         namespaceName,
         amount,
-        account.getPublicAccount().getPublicKey());
+        account.getAddress());
   }
 
   @And("^the secret lock expires$")
@@ -244,7 +251,7 @@ public class BalanceChanges extends BaseTest {
         receiptType,
         namespaceName,
         amount,
-        account.getPublicAccount().getPublicKey());
+        account.getAddress());
   }
 
   @When("^(\\w+) checks if the previous transaction has been proved$")
@@ -275,6 +282,31 @@ public class BalanceChanges extends BaseTest {
         receiptType,
         namespaceName,
         amount,
-        recipientAccount.getPublicAccount().getPublicKey());
+        recipientAccount.getAddress());
+  }
+
+  private Long calculateHarvestingAmount(final Long totalFee, final SymbolConfig config) {
+    return totalFee * (100 - config.getHarvestNetworkPercentage()) / 100;
+  }
+
+  @When("^(\\w+) checks the fees obtained$")
+  public void checksHarvestingFee(final String harvester) {
+    final TransferTransaction transferTransaction =
+        getTestContext().<TransferTransaction>findTransaction(TransactionType.TRANSFER).get();
+    final BigInteger height = transferTransaction.getTransactionInfo().get().getHeight();
+    final BlockChainHelper blockChainHelper = new BlockChainHelper(getTestContext());
+    final BlockInfo blockInfo = blockChainHelper.getBlockByHeight(height);
+    final PublicAccount publicAccount =
+        PublicAccount.createFromPublicKey(
+            getTestContext().getConfigFileReader().getHarvesterPublicKey(),
+            getTestContext().getNetworkType());
+    final Long totalFee = blockInfo.getFeeMultiplier() * transferTransaction.getSize();
+    final Mosaic mosaic = new Mosaic(getTestContext().getSymbolConfig().getCurrencyMosaicId(),
+            BigInteger.valueOf( calculateHarvestingAmount(totalFee, getTestContext().getSymbolConfig())));
+    verifyBalanceChangeReceipt(
+        height,
+        ReceiptType.HARVEST_FEE,
+        mosaic,
+        publicAccount.getAddress());
   }
 }

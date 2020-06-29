@@ -177,7 +177,7 @@ public class AccountRestrictionHelper extends BaseHelper<AccountRestrictionHelpe
    */
   public AccountMosaicRestrictionTransaction createAccountMosaicRestrictionTransactionAndWait(
       Account account,
-      AccountRestrictionFlags restrictionType,
+      AccountMosaicRestrictionFlags restrictionType,
       List<UnresolvedMosaicId> additions,
       List<UnresolvedMosaicId> deletions) {
 
@@ -196,7 +196,7 @@ public class AccountRestrictionHelper extends BaseHelper<AccountRestrictionHelpe
    */
   public AccountAddressRestrictionTransaction createAccountAddressRestrictionTransactionAndWait(
       Account account,
-      AccountRestrictionFlags restrictionType,
+      AccountAddressRestrictionFlags restrictionType,
       List<UnresolvedAddress> additions,
       List<UnresolvedAddress> deletions) {
 
@@ -216,7 +216,7 @@ public class AccountRestrictionHelper extends BaseHelper<AccountRestrictionHelpe
   public AccountOperationRestrictionTransaction
       createAccountTransactionTypeRestrictionTransactionAndWait(
           Account account,
-          AccountRestrictionFlags restrictionType,
+          AccountOperationRestrictionFlags restrictionType,
           List<TransactionType> additions,
           List<TransactionType> deletions) {
 
@@ -237,7 +237,7 @@ public class AccountRestrictionHelper extends BaseHelper<AccountRestrictionHelpe
    */
   public SignedTransaction createAccountMosaicRestrictionTransactionAndAnnounce(
       Account account,
-      AccountRestrictionFlags restrictionType,
+      AccountMosaicRestrictionFlags restrictionType,
       List<UnresolvedMosaicId> additions,
       List<UnresolvedMosaicId> deletions) {
     final TransactionHelper transactionHelper = new TransactionHelper(testContext);
@@ -255,7 +255,7 @@ public class AccountRestrictionHelper extends BaseHelper<AccountRestrictionHelpe
    */
   public SignedTransaction createAccountAddressRestrictionTransactionAndAnnounce(
       Account account,
-      AccountRestrictionFlags restrictionType,
+      AccountAddressRestrictionFlags restrictionType,
       List<UnresolvedAddress> additions,
       List<UnresolvedAddress> deletions) {
     final TransactionHelper transactionHelper = new TransactionHelper(testContext);
@@ -273,7 +273,7 @@ public class AccountRestrictionHelper extends BaseHelper<AccountRestrictionHelpe
    */
   public SignedTransaction createAccountTransactionTypeRestrictionTransactionAndAnnounce(
       Account account,
-      AccountRestrictionFlags restrictionType,
+      AccountOperationRestrictionFlags restrictionType,
       List<TransactionType> additions,
       List<TransactionType> deletions) {
     final TransactionHelper transactionHelper = new TransactionHelper(testContext);
@@ -291,7 +291,7 @@ public class AccountRestrictionHelper extends BaseHelper<AccountRestrictionHelpe
    * @return
    */
   private AccountMosaicRestrictionTransaction createAccountMosaicRestrictionTransaction(
-      AccountRestrictionFlags restrictionType,
+      AccountMosaicRestrictionFlags restrictionType,
       List<UnresolvedMosaicId> additions,
       List<UnresolvedMosaicId> deletions) {
     final AccountMosaicRestrictionTransactionFactory accountMosaicRestrictionTransactionFactory =
@@ -307,7 +307,7 @@ public class AccountRestrictionHelper extends BaseHelper<AccountRestrictionHelpe
    * @return
    */
   private AccountAddressRestrictionTransaction createAccountAddressRestrictionTransaction(
-      AccountRestrictionFlags restrictionType,
+      AccountAddressRestrictionFlags restrictionType,
       List<UnresolvedAddress> additions,
       List<UnresolvedAddress> deletions) {
     final AccountAddressRestrictionTransactionFactory accountAddressRestrictionTransactionFactory =
@@ -323,7 +323,7 @@ public class AccountRestrictionHelper extends BaseHelper<AccountRestrictionHelpe
    * @return
    */
   private AccountOperationRestrictionTransaction createAccountTransactionTypeRestrictionTransaction(
-      AccountRestrictionFlags restrictionType,
+      AccountOperationRestrictionFlags restrictionType,
       List<TransactionType> additions,
       List<TransactionType> deletions) {
     final AccountOperationRestrictionTransactionFactory

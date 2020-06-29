@@ -20,9 +20,7 @@
 
 package io.nem.symbol.sdk.infrastructure.directconnect.network;
 
-import io.nem.symbol.core.crypto.KeyPair;
-import io.nem.symbol.core.crypto.PublicKey;
-
+import java.io.File;
 import java.util.HashMap;
 
 /** Catapult node context. */
@@ -33,40 +31,29 @@ public class CatapultNodeContext {
   private static final HashMap<String, AuthenticatedSocket> clientHashMap = new HashMap<>();
   /* Host name. */
   private final String hostName;
-  /* Server port. */
-  private final int serverPort;
-  /* Socket timeout in milliseconds. */
-  private final int socketTimeoutInMillseconds;
-  /* Catapult server public key. */
-  private final PublicKey publicKey;
-  private final KeyPair clientKeyPair;
   private final AuthenticatedSocket authenticatedSocket;
 
   /**
    * Constructor.
    *
-   * @param publicKey Catapult server public key.
-   * @param clientKeyPair Client key pair.
+   * @param automationKey Automation host certificate.
+   * @param automationCertificate Automation host certificate.
+   * @param nodeCertificate Node certificate.
    * @param hostName Host name.
    * @param serverPort Api server port.
-   * @param socketTimeoutInMilliseconds Socket timeout in Milliseconds.
    */
   public CatapultNodeContext(
-      final PublicKey publicKey,
-      final KeyPair clientKeyPair,
+      final File automationKey,
+      final File automationCertificate,
+      final File nodeCertificate,
       final String hostName,
-      final int serverPort,
-      final int socketTimeoutInMilliseconds) {
-    this.publicKey = publicKey;
+      final int serverPort) {
     this.hostName = hostName;
-    this.serverPort = serverPort;
-    this.socketTimeoutInMillseconds = socketTimeoutInMilliseconds;
-    this.clientKeyPair = clientKeyPair;
     final String key = hostName + serverPort;
     if (!clientHashMap.containsKey(key)) {
-      final SocketClient socket =
-          SocketFactory.OpenSocket(hostName, serverPort, socketTimeoutInMilliseconds);
-      this.authenticatedSocket = AuthenticatedSocket.create(socket, publicKey, clientKeyPair);
+      this.authenticatedSocket =
+          AuthenticatedSocket.create(
+              hostName, serverPort, automationKey, automationCertificate, nodeCertificate);
       clientHashMap.put(key, authenticatedSocket);
     } else {
       this.authenticatedSocket = clientHashMap.get(key);

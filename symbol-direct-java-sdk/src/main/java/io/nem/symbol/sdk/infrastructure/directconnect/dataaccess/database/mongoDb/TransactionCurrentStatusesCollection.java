@@ -73,4 +73,14 @@ public class TransactionCurrentStatusesCollection implements TransactionCurrentS
   public Optional<TransactionStatus> getStatus(final String hash) {
     return findOne(hash, 0);
   }
+
+  /**
+   * Returns transaction status group "failed", "unconfirmed", "confirmed", etc...
+   *
+   * @return transaction group name
+   */
+  @Override
+  public String getGroupStatus() {
+    return "failed";
+  }
 }

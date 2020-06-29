@@ -21,7 +21,7 @@
 package io.nem.symbol.automationHelpers.helper;
 
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
+import io.nem.symbol.sdk.model.network.NetworkType;
 
 /** Network Helper */
 public class NetworkHelper {

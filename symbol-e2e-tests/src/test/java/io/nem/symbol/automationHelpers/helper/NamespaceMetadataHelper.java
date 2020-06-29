@@ -50,7 +50,7 @@ public class NamespaceMetadataHelper extends BaseHelper<NamespaceMetadataHelper>
     final NamespaceMetadataTransactionFactory namespaceMetadataTransactionFactory =
         NamespaceMetadataTransactionFactory.create(
             testContext.getNetworkType(),
-            targetPublicAccount,
+            targetPublicAccount.getAddress(),
             namespaceId,
             scopedMetadataKey,
             value);

@@ -20,24 +20,27 @@
 
 package io.nem.symbol.automation.listener;
 
+import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
 import io.nem.symbol.automationHelpers.helper.AggregateHelper;
+import io.nem.symbol.automationHelpers.helper.BlockChainHelper;
 import io.nem.symbol.sdk.api.Listener;
 import io.nem.symbol.sdk.model.account.*;
 import io.nem.symbol.sdk.model.blockchain.BlockInfo;
+import io.nem.symbol.sdk.model.namespace.NamespaceId;
 import io.nem.symbol.sdk.model.transaction.CosignatureSignedTransaction;
 import io.nem.symbol.sdk.model.transaction.SignedTransaction;
 import io.nem.symbol.sdk.model.transaction.Transaction;
 import io.nem.symbol.sdk.model.transaction.TransactionStatusError;
 import io.reactivex.Observable;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
 import static org.junit.Assert.assertEquals;
@@ -104,14 +107,6 @@ public class ReceiveNotification extends BaseTest {
     return getObservable(userName);
   }
 
-  private <T> T getObserableValueWithTimeout(final Observable<T> observable) {
-    return observable
-        .timeout(
-            getTestContext().getConfigFileReader().getDatabaseQueryTimeoutInSeconds(),
-            TimeUnit.SECONDS)
-        .blockingFirst();
-  }
-
   @Given("^(\\w+) is register to receive notification from the blockchain$")
   public void registerListener(final String username) {
     openListener();
@@ -120,7 +115,16 @@ public class ReceiveNotification extends BaseTest {
   @When("^(\\w+) waits for a next block$")
   public void waitForNextBlock(final String username) {
     Listener listener = getListener();
-    final BlockInfo blockInfo = getObserableValueWithTimeout(listener.newBlock().take(1));
+    final BlockInfo blockInfo = getObservableValueWithQueryTimeout(listener.newBlock().take(1));
+    getTestContext().getScenarioContext().setContext(BLOCK_INFO_NAME, blockInfo);
+  }
+
+  @And("^(\\w+) waits for (\\d+) blocks?$")
+  public void waitForBlock(final String username, final BigInteger numOfBlocks) {
+    final BigInteger height = new BlockChainHelper(getTestContext()).getBlockchainHeight().add(numOfBlocks);
+    final Listener listener = getListener();
+    final BlockInfo blockInfo = getObservableValueWithTimeout(listener.newBlock().filter(b -> b.getHeight().equals(height)).take(1),
+            (numOfBlocks.intValue() + 2) * getTestContext().getSymbolConfig().getBlockGenerationTargetTime());
     getTestContext().getScenarioContext().setContext(BLOCK_INFO_NAME, blockInfo);
   }
 
@@ -157,7 +161,7 @@ public class ReceiveNotification extends BaseTest {
   public void listenForTransactionNotification(final String userName) {
     final String hash = getTestContext().getSignedTransaction().getHash();
     final Transaction transaction =
-        getObserableValueWithTimeout(
+        getObservableValueWithQueryTimeout(
             getTransactionObservable(userName)
                 .filter(t -> t.getTransactionInfo().get().getHash().get().equalsIgnoreCase(hash)));
     assertTrue("The correct message was not received for hash " + hash, transaction != null);
@@ -168,19 +172,25 @@ public class ReceiveNotification extends BaseTest {
   public void listenForRemoveNotification(final String userName) {
     final String hash = getTestContext().getSignedTransaction().getHash();
     final boolean found =
-        !getObserableValueWithTimeout(getHashObservable(userName).filter(h -> h.equalsIgnoreCase(hash))).isEmpty();
+        !getObservableValueWithQueryTimeout(getHashObservable(userName).filter(h -> h.equalsIgnoreCase(hash))).isEmpty();
     assertTrue("The remove message was not received for hash " + hash, found);
   }
 
   @Then("^(\\w+) should receive an error notification")
   public void listenForErrorNotification(final String userName) {
     final String hash = getTestContext().getSignedTransaction().getHash();
-    final boolean found =
-        !getErrorObservable(userName)
-            .filter(status -> status.getHash().equalsIgnoreCase(hash))
-            .isEmpty()
-            .blockingGet();
-    assertTrue("The remove message was not received for hash " + hash, found);
+    final TransactionStatusError error =
+        getObservableValueWithQueryTimeout(getErrorObservable(userName)
+            .filter(status -> status.getHash().equalsIgnoreCase(hash)));
+    assertEquals("The remove message was not received for hash ", hash, error.getHash());
+  }
+
+  @Given("^(\\w+) register alias \"(\\w+)\" to receive confirmed transaction notification$")
+  public void registerConfirmedListener(final String username, final String alias) {
+    final NamespaceId namespaceId = resolveNamespaceIdFromName(alias);
+    final String encoded = namespaceId.encoded(getTestContext().getNetworkType());
+    final Address addressEncoded = Address.createFromEncoded(encoded);
+    setTransactionObservable(username, (address, listener) -> listener.confirmed(addressEncoded));
   }
 
   @Given("^(\\w+) register to receive confirmed transaction notification$")
@@ -218,7 +228,7 @@ public class ReceiveNotification extends BaseTest {
   public void listenForCosignTransactionNotification(final String userName, final String cosigner) {
     final SignedTransaction signedTransaction = getTestContext().getSignedTransaction();
     final CosignatureSignedTransaction cosignatureSignedTransaction =
-        getObserableValueWithTimeout(
+        getObservableValueWithQueryTimeout(
             getCosignTransactionObservable(cosigner)
                 .filter(t -> t.getParentHash().equalsIgnoreCase(signedTransaction.getHash())));
     assertTrue(
@@ -231,17 +241,15 @@ public class ReceiveNotification extends BaseTest {
   }
 
   private boolean isMultisig(
-      final MultisigAccountGraphInfo multisigAccountGraphInfo, final PublicAccount publicAccount) {
-    return multisigAccountGraphInfo.getMultisigAccounts().values().stream()
+      final MultisigAccountGraphInfo multisigAccountGraphInfo, final Address address) {
+    return multisigAccountGraphInfo.getMultisigEntries().values().stream()
         .anyMatch(
             m ->
                 m.stream()
                     .anyMatch(
                         s ->
-                            s.getAccount()
-                                .getPublicKey()
-                                .toHex()
-                                .equalsIgnoreCase(publicAccount.getPublicKey().toHex())));
+                            s.getAccountAddress().encoded()
+                                .equalsIgnoreCase(address.encoded())));
   }
 
   @Given("^(\\w+) register to auto sign bonded contracts$")
@@ -257,26 +265,26 @@ public class ReceiveNotification extends BaseTest {
                 new MultisigAccountGraphInfo(new HashMap<Integer, List<MultisigAccountInfo>>()))
             .blockingFirst();
     final AggregateHelper aggregateHelper = new AggregateHelper(getTestContext());
-    if (multisigAccountGraphInfo.getMultisigAccounts().isEmpty()) {
+    if (multisigAccountGraphInfo.getMultisigEntries().isEmpty()) {
       getListener()
           .aggregateBondedAdded(account.getAddress())
           .subscribe(t -> aggregateHelper.cosignAggregateBonded(account, t));
       return;
     }
 
-    multisigAccountGraphInfo.getMultisigAccounts().values().stream()
+    multisigAccountGraphInfo.getMultisigEntries().values().stream()
         .flatMap(m -> m.stream())
         .distinct()
         .forEach(
             multisigAccountInfo -> {
-              if (!isMultisig(multisigAccountGraphInfo, multisigAccountInfo.getAccount())) {
+              if (!isMultisig(multisigAccountGraphInfo, multisigAccountInfo.getAccountAddress())) {
                 getListener()
-                    .aggregateBondedAdded(multisigAccountInfo.getAccount().getAddress())
+                    .aggregateBondedAdded(multisigAccountInfo.getAccountAddress())
                     .subscribe(
                         t ->
                             aggregateHelper.cosignAggregateBonded(
                                 getUserAccountFromContext(
-                                    multisigAccountInfo.getAccount().getAddress()),
+                                    multisigAccountInfo.getAccountAddress()),
                                 t));
               }
             });

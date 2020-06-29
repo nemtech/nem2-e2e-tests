@@ -49,7 +49,7 @@ public class MosaicMetadataHelper extends BaseHelper<MosaicMetadataHelper> {
       final String value) {
     final MosaicMetadataTransactionFactory mosaicMetadataTransactionFactory =
         MosaicMetadataTransactionFactory.create(
-            testContext.getNetworkType(), targetPublicAccount, mosaicId, scopedMetadataKey, value);
+            testContext.getNetworkType(), targetPublicAccount.getAddress(), mosaicId, scopedMetadataKey, value);
     mosaicMetadataTransactionFactory.valueSizeDelta(valueSizeDelta);
     return buildTransaction(mosaicMetadataTransactionFactory);
   }

@@ -21,7 +21,6 @@
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers;
 
 import io.nem.symbol.sdk.model.account.Address;
-import io.nem.symbol.sdk.model.account.PublicAccount;
 import io.nem.symbol.sdk.model.mosaic.MosaicId;
 import io.nem.symbol.sdk.model.namespace.*;
 import io.vertx.core.json.JsonObject;
@@ -52,21 +51,18 @@ public class NamespacesMapper implements Function<JsonObject, NamespaceInfo> {
     for (int i = 0; i < depth; i++) {
       levels.add(
           NamespaceId.createFromId(
-              MapperUtils.extractBigInteger(namespaceJsonObject, "level" + i)));
+              MapperUtils.toBigInteger(namespaceJsonObject, "level" + i)));
     }
     final NamespaceId parentId =
-        NamespaceId.createFromId(MapperUtils.extractBigInteger(namespaceJsonObject, "parentId"));
+        NamespaceId.createFromId(MapperUtils.toBigInteger(namespaceJsonObject, "parentId"));
     final Address address =
         Address.createFromEncoded(namespaceJsonObject.getString("ownerAddress"));
-    final PublicAccount owner =
-        new PublicAccount(
-            namespaceJsonObject.getString("ownerPublicKey"), address.getNetworkType());
     final BigInteger startHeight =
-        MapperUtils.extractBigInteger(namespaceJsonObject, "startHeight");
-    final BigInteger endHeight = MapperUtils.extractBigInteger(namespaceJsonObject, "endHeight");
+        MapperUtils.toBigInteger(namespaceJsonObject, "startHeight");
+    final BigInteger endHeight = MapperUtils.toBigInteger(namespaceJsonObject, "endHeight");
     final Alias alias = getAlias(namespaceJsonObject);
     return new NamespaceInfo(
-        active, index, metaId, type, depth, levels, parentId, owner, startHeight, endHeight, alias);
+        active, index, metaId, type, depth, levels, parentId, address, startHeight, endHeight, alias);
   }
 
   /**
@@ -86,7 +82,7 @@ public class NamespacesMapper implements Function<JsonObject, NamespaceInfo> {
         return new AddressAlias(address);
       case MOSAIC:
         final MosaicId mosaicId =
-            new MosaicId(MapperUtils.extractBigInteger(aliasObject, "mosaicId"));
+            new MosaicId(MapperUtils.toBigInteger(aliasObject, "mosaicId"));
         return new MosaicAlias(mosaicId);
     }
     throw new IllegalStateException("Alias factory was not found.");

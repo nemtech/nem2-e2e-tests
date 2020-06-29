@@ -4,7 +4,6 @@ import io.nem.symbol.automationHelpers.common.TestContext;
 import io.nem.symbol.sdk.model.transaction.Deadline;
 import io.nem.symbol.sdk.model.transaction.Transaction;
 import io.nem.symbol.sdk.model.transaction.TransactionFactory;
-import io.nem.symbol.sdk.model.transaction.TransactionType;
 
 import java.math.BigInteger;
 import java.util.function.Supplier;
@@ -33,13 +32,23 @@ public abstract class BaseHelper<U extends BaseHelper> {
    * @return Transaction.
    */
   protected <T extends Transaction> T buildTransaction(final TransactionFactory<T> factory) {
+    return buildFactoryTransaction(factory).build();
+  }
+
+  /**
+   * Gets the common properties for all transactions.
+   *
+   * @param factory Transaction factory.
+   * @return Factory transaction.
+   */
+  protected <T extends Transaction> TransactionFactory<T> buildFactoryTransaction(
+      final TransactionFactory<T> factory) {
     final Deadline deadlineLocal = deadlineSupplier.get();
-    final T transaction = factory.deadline(deadlineLocal).maxFee(maxFee).build();
-    final int fee = maxFee.intValue() != 0 ? maxFee.intValue() :
-            // TODO: calculate the number of cosigners for bonded but for now set to max of 25.
-            (transaction.getSize() + (transaction.getType() == TransactionType.AGGREGATE_BONDED ? 96 * 25 : 0))
-            * testContext.getConfigFileReader().getMinFeeMultiplier().intValue();
-    return factory.deadline(deadlineLocal).maxFee(BigInteger.valueOf(fee)).build();
+    final T transaction = factory.build();
+    final Long feeMultiplier = testContext.getMinFeeMultiplier();
+    final Long fee =
+        maxFee.intValue() != 0 ? maxFee.intValue() : transaction.getSize() * feeMultiplier;
+    return factory.deadline(deadlineLocal).maxFee(BigInteger.valueOf(fee));
   }
 
   private U getThis() {

@@ -10,11 +10,10 @@ Feature: Link a namespace to an asset
     Given Alice registered the namespace "token"
     And Alice registered the asset "X"
     When Alice links the namespace "token" to the asset "X"
-    Then she should receive a confirmation message
-    And Alice can send "token" instead of asset "X" to Bob
+    Then Alice can send "token" instead of asset "X" to Bob
 
   @bvt
-  Scenario: An account tries to send an asset using namespace alias to an assest after unlinking it
+  Scenario: An account tries to send an asset using namespace alias to an asset after unlinking it
     Given Alice registered the namespace "asset"
     And Alice registered the asset "T"
     And Alice links the namespace "asset" to the asset "T"
@@ -29,20 +28,20 @@ Feature: Link a namespace to an asset
     And Alice links the namespace "assetexpire" to the asset "T"
     And the asset is now expired
     When Alice unlinks the namespace "assetexpire" from the asset "T"
-    Then she should receive a confirmation message
+    And Alice tries to send "assetexpire" instead of asset "T" to Bob
+    Then she should receive the error "FAILURE_CORE_INSUFFICIENT_BALANCE"
 
   @bvt
   Scenario: An account is able to send an asset using a subnamespace alias
-    Given Alice registered the namespace named "alice" for 10 blocks
+    Given Alice registered the namespace "alice"
     And Alice registered the subnamespace "alice.token"
     And Alice registered the asset "X"
     When Alice links the namespace "alice.token" to the asset "X"
-    Then she should receive a confirmation message
-    And Alice can send "alice.token" instead of asset "X" to Bob
+    Then Alice can send "alice.token" instead of asset "X" to Bob
 
   @bvt
-  Scenario: An account tries to send an asset using namespace alias to an assest after unlinking it
-    Given Alice registered the namespace named "alice" for 10 blocks
+  Scenario: An account tries to send an asset using namespace alias to an asset after unlinking it
+    Given Alice registered the namespace "alice"
     And Alice registered the subnamespace "alice.asset"
     And Alice registered the asset "T"
     And Alice links the namespace "alice.asset" to the asset "T"
@@ -55,6 +54,20 @@ Feature: Link a namespace to an asset
     Given Alice registered the namespace "unknownasset"
     When Alice tries to send "unknownasset" instead of asset "T" to Bob
     Then she should receive the error "FAILURE_CORE_INSUFFICIENT_BALANCE"
+
+  Scenario: An account swap an asset from a namespace alias
+    Given Alice registered the namespace "token"
+    And  Alice has registered expiring asset "T" for 6 blocks with supply 200 units
+    And Alice links the namespace "token" to the asset "T"
+    And Alice can send "token" instead of asset "T" to Bob
+    And Alice unlinks the namespace "token" from the asset "T"
+    And Alice has registered expiring asset "U" for 6 blocks with supply 200 units
+    When Alice links the namespace "token" to the asset "U"
+    And Alice can send "token" instead of asset "U" to Bob
+    And Alice unlinks the namespace "token" from the asset "U"
+    And Alice has registered expiring asset "Y" for 6 blocks with supply 200 units
+    Then Alice links the namespace "token" to the asset "Y"
+    And Alice can send "token" instead of asset "Y" to Bob
 
   Scenario: An account tries to link a namespace already in use (asset) to an asset
     Given Alice registered the namespace "token"

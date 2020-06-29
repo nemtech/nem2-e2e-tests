@@ -107,7 +107,7 @@ public class NamespaceDao implements NamespaceRepository {
    * Gets the MosaicId from a MosaicAlias
    *
    * @param namespaceId - the namespaceId of the namespace
-   * @return Observable of &lt;{@link MosaicId}&gt;
+   * @return Observable of <{@link MosaicId}>
    */
   @Override
   public Observable<MosaicId> getLinkedMosaicId(NamespaceId namespaceId) {
@@ -127,7 +127,7 @@ public class NamespaceDao implements NamespaceRepository {
    * Gets the Address from a AddressAlias
    *
    * @param namespaceId - the namespaceId of the namespace
-   * @return Observable of &lt;{@link MosaicId}&gt;
+   * @return Observable of <{@link MosaicId}>
    */
   @Override
   public Observable<Address> getLinkedAddress(NamespaceId namespaceId) {

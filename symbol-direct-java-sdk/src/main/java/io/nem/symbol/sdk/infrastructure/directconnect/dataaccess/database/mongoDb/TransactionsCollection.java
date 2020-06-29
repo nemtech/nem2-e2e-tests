@@ -26,7 +26,7 @@ import io.nem.symbol.sdk.model.transaction.Transaction;
 import java.util.List;
 
 /** Transactions collection. */
-public class TransactionsCollection extends TransactionCurrentCollectionBase {
+public class TransactionsCollection extends TransactionCollectionBase {
   /**
    * Constructor.
    *
@@ -53,7 +53,7 @@ public class TransactionsCollection extends TransactionCurrentCollectionBase {
    * @return transaction group name of "confirmed".
    */
   @Override
-  protected String getGroupStatus() {
+  public String getGroupStatus() {
     return "confirmed";
   }
 }

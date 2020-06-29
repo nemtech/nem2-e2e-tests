@@ -29,6 +29,7 @@ import io.nem.symbol.sdk.infrastructure.directconnect.DirectConnectRepositoryFac
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.BlocksCollection;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.FullBlockInfo;
+import io.nem.symbol.sdk.infrastructure.directconnect.network.BrokerNodeContext;
 import io.nem.symbol.sdk.infrastructure.directconnect.network.CatapultNodeContext;
 import io.nem.symbol.sdk.infrastructure.vertx.RepositoryFactoryVertxImpl;
 import io.nem.symbol.sdk.model.account.Account;
@@ -73,25 +74,15 @@ public class RepositoryFactoryImpl {
     final DataAccessContext dataAccessContext =
         new DataAccessContext(
             configFileReader.getMongodbHost(), configFileReader.getMongodbPort(), 0 /* timeout */);
-    FullBlockInfo firstBlock =
-        ExceptionUtils.propagate(() -> new BlocksCollection(dataAccessContext).find(1).get());
-
-    final PublicKey apiServerPublicKey =
-        PublicKey.fromHexString(configFileReader.getApiServerPublicKey());
-
-    final String automationPrivateKey = configFileReader.getAutomationPrivateKey();
-    final Account account =
-        automationPrivateKey == null
-            ? Account.generateNewAccount(firstBlock.getNetworkType())
-            : Account.createFromPrivateKey(automationPrivateKey, firstBlock.getNetworkType());
     final CatapultNodeContext apiNodeContext =
         new CatapultNodeContext(
-            apiServerPublicKey,
-            account.getKeyPair(),
+            configFileReader.getAutomationKeyFile(),
+            configFileReader.getAutomationCertificateFile(),
+            configFileReader.getApiServerCertificateFile(),
             configFileReader.getApiHost(),
-            configFileReader.getApiPort(),
-            configFileReader.getSocketTimeoutInMilliseconds());
-    final CatapultContext catapultContext = new CatapultContext(apiNodeContext, dataAccessContext);
+            configFileReader.getApiPort());
+    final BrokerNodeContext brokerNodeContext = new BrokerNodeContext(configFileReader.getBrokerHost(), configFileReader.getBrokerPort());
+    final CatapultContext catapultContext = new CatapultContext(apiNodeContext, dataAccessContext, brokerNodeContext, configFileReader.getSymbolConfigPath());
     return new DirectConnectRepositoryFactoryImpl(catapultContext);
   }
 

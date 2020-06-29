@@ -20,7 +20,6 @@
 
 package io.nem.symbol.automationHelpers.common;
 
-import cucumber.api.java.ca.Atesa;
 import io.nem.symbol.automationHelpers.config.ConfigFileReader;
 import io.nem.symbol.automationHelpers.helper.TransactionHelper;
 import io.nem.symbol.core.utils.ExceptionUtils;
@@ -28,10 +27,9 @@ import io.nem.symbol.sdk.api.RepositoryFactory;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.PublicAccount;
 import io.nem.symbol.sdk.model.blockchain.BlockInfo;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
-import io.nem.symbol.sdk.model.mosaic.MosaicId;
 import io.nem.symbol.sdk.model.mosaic.NetworkCurrency;
 import io.nem.symbol.sdk.model.mosaic.UnresolvedMosaicId;
+import io.nem.symbol.sdk.model.network.NetworkType;
 import io.nem.symbol.sdk.model.transaction.*;
 
 import java.math.BigInteger;
@@ -48,9 +46,9 @@ public class TestContext {
   private final PublicAccount harvesterPublicAccount;
   private final Map<String, List<Transaction>> userFeeMap = new ConcurrentHashMap<>();
   private final RepositoryFactory repositoryFactory;
+  private final SymbolConfig symbolConfig;
   private SignedTransaction signedTransaction;
   private Log logger;
-  private MosaicId networkCurrencyMosaicId;
 
   /** Constructor. */
   public TestContext() {
@@ -64,6 +62,9 @@ public class TestContext {
     harvesterPublicAccount =
         PublicAccount.createFromPublicKey(
             configFileReader.getHarvesterPublicKey(), getNetworkType());
+    symbolConfig =
+        new SymbolConfig(
+            repositoryFactory.createNetworkRepository().getNetworkProperties().blockingFirst());
   }
 
   /**
@@ -173,12 +174,12 @@ public class TestContext {
   }
 
   /**
-   * Get the generation hash from the server.
+   * Gets server config.
    *
-   * @return Generation hash.
+   * @return Server config.
    */
-  public String getGenerationHash() {
-    return ExceptionUtils.propagate(() -> repositoryFactory.getGenerationHash().toFuture().get());
+  public SymbolConfig getSymbolConfig() {
+    return symbolConfig;
   }
 
   /**
@@ -196,18 +197,9 @@ public class TestContext {
    * @return Namespace id.
    */
   public NetworkCurrency getNetworkCurrency() {
-    return NetworkCurrency.CAT_CURRENCY;
-  }
-
-  public MosaicId getNetworkCurrencyMosaicId() {
-    if (networkCurrencyMosaicId == null) {
-      networkCurrencyMosaicId =
-          repositoryFactory
-              .createNamespaceRepository()
-              .getLinkedMosaicId(getNetworkCurrency().getNamespaceId().get())
-              .blockingFirst();
-    }
-    return networkCurrencyMosaicId;
+    // return repositoryFactory.getNetworkCurrency().blockingFirst();
+    //return NetworkCurrency.CAT_CURRENCY;
+    return NetworkCurrency.SYMBOL_XYM;
   }
 
   /**
@@ -217,6 +209,17 @@ public class TestContext {
    */
   public PublicAccount getHarvesterPublicAccount() {
     return harvesterPublicAccount;
+  }
+
+  public long getMinFeeMultiplier() {
+    final long calculatedFee =
+        getRepositoryFactory()
+            .createNetworkRepository()
+            .getTransactionFees()
+            .blockingFirst()
+            .getLowestFeeMultiplier();
+    final int minConfigValue = getConfigFileReader().getMinFeeMultiplier().intValue();
+    return calculatedFee < minConfigValue ? minConfigValue : calculatedFee;
   }
 
   /**
@@ -236,7 +239,7 @@ public class TestContext {
 
   public BigInteger getFeesForUser(final PublicAccount publicAccount, final UnresolvedMosaicId id) {
     boolean isNetworkCurrency =
-        Arrays.asList(getNetworkCurrency(), getNetworkCurrencyMosaicId().getId())
+        Arrays.asList(getNetworkCurrency(), symbolConfig.getCurrencyMosaicId().getId())
             .contains(id.getId());
     if (!isNetworkCurrency) {
       return BigInteger.ZERO;
@@ -244,25 +247,32 @@ public class TestContext {
     final TransactionHelper transactionHelper = new TransactionHelper(this);
     final List<Transaction> userTransactions =
         userFeeMap.getOrDefault(publicAccount.getPublicKey().toHex(), new LinkedList<>());
-    final Integer fee =  userTransactions.parallelStream().map( transaction -> {
-      final TransactionStatus status = transactionHelper.getTransactionStatus(transaction.getTransactionInfo().get().getHash().get());
-      if (status.getGroup() != TransactionState.CONFIRMED) {
-        return 0;
-      }
-      final BlockInfo blockInfo =
-          repositoryFactory
-              .createBlockRepository()
-              .getBlockByHeight(transaction.getTransactionInfo().get().getHeight())
-              .blockingFirst();
-      return transaction.getSize() * blockInfo.getFeeMultiplier();
-      //      if (transaction.getType() == TransactionType.AGGREGATE_BONDED) {
-      //        final String hash = transaction.getTransactionInfo().get().getHash().get();
-      //        final int coSigner = getScenarioContext().isContains(hash) ?
-      // getScenarioContext().getContext(hash) : 0;
-      //        userFee = userFee.add(BigInteger.valueOf((coSigner * 96)*
-      // blockInfo.getFeeMultiplier()));
-      //      }
-    }).reduce(0, Integer::sum);
+    final Long fee =
+        userTransactions
+            .parallelStream()
+            .map(
+                transaction -> {
+                  final TransactionStatus status =
+                      transactionHelper.getTransactionStatus(
+                          transaction.getTransactionInfo().get().getHash().get());
+                  if (status.getGroup() != TransactionState.CONFIRMED) {
+                    return 0;
+                  }
+                  final BlockInfo blockInfo =
+                      repositoryFactory
+                          .createBlockRepository()
+                          .getBlockByHeight(transaction.getTransactionInfo().get().getHeight())
+                          .blockingFirst();
+                  return transaction.getSize() * blockInfo.getFeeMultiplier();
+                  //      if (transaction.getType() == TransactionType.AGGREGATE_BONDED) {
+                  //        final String hash =
+                  // transaction.getTransactionInfo().get().getHash().get();
+                  //        final int coSigner = getScenarioContext().isContains(hash) ?
+                  // getScenarioContext().getContext(hash) : 0;
+                  //        userFee = userFee.add(BigInteger.valueOf((coSigner * 96)*
+                  // blockInfo.getFeeMultiplier()));
+                  //      }
+                }).mapToLong(x -> (Long)x).sum();
     return BigInteger.valueOf(fee.intValue());
   }
 

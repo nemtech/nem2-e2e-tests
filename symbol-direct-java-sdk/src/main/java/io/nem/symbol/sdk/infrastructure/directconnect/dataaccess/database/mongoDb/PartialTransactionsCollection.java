@@ -23,7 +23,7 @@ package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongo
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.common.DataAccessContext;
 
 /** Partial transactions collection. */
-public class PartialTransactionsCollection extends TransactionCurrentCollectionBase {
+public class PartialTransactionsCollection extends TransactionCollectionBase {
   /**
    * Constructor.
    *
@@ -39,7 +39,7 @@ public class PartialTransactionsCollection extends TransactionCurrentCollectionB
    * @return transaction group name of "partial".
    */
   @Override
-  protected String getGroupStatus() {
+  public String getGroupStatus() {
     return "partial";
   }
 }

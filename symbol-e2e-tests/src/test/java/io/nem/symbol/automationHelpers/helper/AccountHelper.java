@@ -22,13 +22,15 @@ package io.nem.symbol.automationHelpers.helper;
 
 import io.nem.symbol.automationHelpers.common.TestContext;
 import io.nem.symbol.core.utils.ExceptionUtils;
+import io.nem.symbol.sdk.api.TransactionSearchCriteria;
 import io.nem.symbol.sdk.model.account.*;
-import io.nem.symbol.sdk.model.blockchain.NetworkType;
 import io.nem.symbol.sdk.model.message.PlainMessage;
 import io.nem.symbol.sdk.model.mosaic.Mosaic;
 import io.nem.symbol.sdk.model.mosaic.MosaicId;
+import io.nem.symbol.sdk.model.network.NetworkType;
 import io.nem.symbol.sdk.model.transaction.AggregateTransaction;
 import io.nem.symbol.sdk.model.transaction.SignedTransaction;
+import io.nem.symbol.sdk.model.transaction.TransactionGroup;
 import io.nem.symbol.sdk.model.transaction.TransactionState;
 
 import java.math.BigInteger;
@@ -36,6 +38,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /** Account helper. */
 public class AccountHelper {
@@ -139,19 +142,19 @@ public class AccountHelper {
   /**
    * Gets aggregate bonded transactions for an account.
    *
-   * @param publicAccount Public account.
+   * @param address Public account.
    * @return List of aggregate transaction.
    */
   public List<AggregateTransaction> getAggregateBondedTransactions(
-      final PublicAccount publicAccount) {
+      final Address address) {
     return ExceptionUtils.propagate(
         () ->
-            testContext
-                .getRepositoryFactory()
-                .createAccountRepository()
-                .aggregateBondedTransactions(publicAccount)
-                .toFuture()
-                .get());
+            testContext.getRepositoryFactory().createTransactionRepository()
+                .search(
+                    new TransactionSearchCriteria(TransactionGroup.PARTIAL).address(address))
+                .toFuture().get().getData().stream()
+                .map(transaction -> (AggregateTransaction) transaction)
+                .collect(Collectors.toList()));
   }
 
   /**
@@ -174,11 +177,12 @@ public class AccountHelper {
    */
   public AggregateTransaction getAggregateBondedTransaction(
       final PublicAccount publicAccount, final SignedTransaction signedTransaction) {
+    try {
     new TransactionHelper(testContext)
         .waitForTransactionStatus(signedTransaction.getHash(), TransactionState.PARTIAL);
     final Supplier supplier =
         () -> new IllegalArgumentException(CommonHelper.toString(signedTransaction));
-    return getAggregateBondedTransactions(publicAccount).stream()
+    return getAggregateBondedTransactions(publicAccount.getAddress()).stream()
         .filter(
             t ->
                 t.getTransactionInfo()
@@ -188,6 +192,9 @@ public class AccountHelper {
                     .equalsIgnoreCase(signedTransaction.getHash()))
         .findFirst()
         .orElseThrow(supplier);
+    } catch(final Exception ex) {
+      throw new IllegalArgumentException("Failed to get aggregate tx - " + CommonHelper.toString(signedTransaction), ex);
+    }
   }
 
   /**

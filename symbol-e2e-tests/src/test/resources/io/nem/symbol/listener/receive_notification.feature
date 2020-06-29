@@ -27,14 +27,35 @@ Feature: Receive a notification
     Then Alice should receive a transaction notification
 
   @bvt
+  Scenario: Alice use alias address in transaction and get notification when in confirmed state.
+    Given Alice registered the namespace "sue"
+    And Alice registered the asset "X"
+    And Alice links the namespace "sue" to the address of Sue
+#    And Alice register to receive confirmed transaction notification
+    And Sue register alias "sue" to receive confirmed transaction notification
+    When Alice can send asset "X" to the namespace "sue" instead of the address of Sue
+    Then Sue should receive a transaction notification
+#    And Alice should receive a transaction notification
+
+  @bvt
   Scenario: Alice gets notification when invalid transaction failed
     Given Alice register to receive error transaction notification
+    And Alice defined the following bonded escrow contract:
+      | type          | sender | recipient | data               |
+      | send-an-asset | Alice  | Bob       | 1 network currency |
+      | send-an-asset | Bob    | Sue       | 2 network currency |
+    When she publishes no funds bonded contract
+    Then Alice should receive an error notification
+
+  @bvt
+  Scenario: Alice registers for confirmed notification when transaction failed
+    Given Alice register to receive confirmed transaction notification
     And Alice defined the following bonded escrow contract:
       | type          | sender | recipient | data           |
       | send-an-asset | Alice  | Bob       | 1 cat.currency |
       | send-an-asset | Bob    | Sue       | 2 cat.currency |
     When she publishes no funds bonded contract
-    Then Alice should receive an error notification
+    Then Alice should receive a transaction notification
 
   @bvt
   Scenario: Alice gets notification when aggregate bonded transaction requires signing.
@@ -43,7 +64,7 @@ Feature: Receive a notification
     And Sue register to receive a notification when a bonded transaction requires signing
     And Alice defined the following bonded escrow contract:
       | type          | sender | recipient | data            |
-      | send-an-asset | Alice  | Bob       | 20 cat.currency |
+      | send-an-asset | Alice  | Bob       | 20 network currency |
       | send-an-asset | Sue    | Alice     | 2 euros         |
     When Alice published the bonded contract
     Then Alice should receive a transaction notification
@@ -55,7 +76,7 @@ Feature: Receive a notification
     Given Alice register to receive notification when bonded transaction is signed by all cosigners
     And Alice defined the following bonded escrow contract:
       | type          | sender | recipient | data            |
-      | send-an-asset | Alice  | Bob       | 20 cat.currency |
+      | send-an-asset | Alice  | Bob       | 20 network currency |
       | send-an-asset | Sue    | Alice     | 2 euros         |
     And Alice published the bonded contract
     When "Sue" accepts the transaction
@@ -66,7 +87,7 @@ Feature: Receive a notification
     Given Alice register to receive notification when bonded transaction is signed by Sue
     And Alice defined the following bonded escrow contract:
       | type          | sender | recipient | data            |
-      | send-an-asset | Alice  | Bob       | 20 cat.currency |
+      | send-an-asset | Alice  | Bob       | 20 network currency |
       | send-an-asset | Sue    | Alice     | 2 euros         |
     And Alice published the bonded contract
     When "Sue" accepts the transaction
@@ -86,10 +107,10 @@ Feature: Receive a notification
     And Computer register to receive a notification when a bonded transaction requires signing
     And Tom register to receive a notification when a bonded transaction requires signing
     And Phone defined the following bonded escrow contract:
-      | type          | sender   | recipient | data           |
-      | send-an-asset | Computer | Sue       | 5 cat.currency |
-      | send-an-asset | Tom      | Bob       | 2 cat.currency |
-      | send-an-asset | Alice    | Phone     | 2 cat.currency |
+      | type          | sender   | recipient | data               |
+      | send-an-asset | Computer | Sue       | 5 network currency |
+      | send-an-asset | Tom      | Bob       | 2 network currency |
+      | send-an-asset | Alice    | Phone     | 2 network currency |
     And Phone published the bonded contract
     Then Alice should receive a transaction notification
     And Computer should receive a transaction notification
