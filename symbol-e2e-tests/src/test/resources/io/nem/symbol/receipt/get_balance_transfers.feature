@@ -23,12 +23,12 @@ Feature: Get balance transfers
   Scenario Outline: Alice wants to get the cost of registering a namespace
     Given Alice registers a namespace named "<name>" for <duration> block
     When she checks how much cost registering the namespace
-    Then Alice should get that registering the namespace cost "<cost>" network currency
+    Then Alice should get the namespace cost of "<cost>" network currency for registering "<name>"
 
     Examples:
-      | name  | duration | cost |
-      | test1 | 6        | 6    |
-      | test2 | 10       | 10   |
+      | name   | duration | cost |
+      | first  | 6        | 6    |
+      | second | 10       | 10   |
 
   Scenario Outline: Alice wants to get the cost of extending a namespace
     Given Alice registers a namespace named "token" for 6 block

@@ -30,61 +30,64 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-/** Namespace mapper. */
+/**
+ * Namespace mapper.
+ */
 public class NamespacesMapper implements Function<JsonObject, NamespaceInfo> {
-  /**
-   * Creates a namespace info object from json.
-   *
-   * @param jsonObject Json object.
-   * @return namespace info.
-   */
-  public NamespaceInfo apply(final JsonObject jsonObject) {
-    final JsonObject metaJsonObject = jsonObject.getJsonObject("meta");
-    final boolean active = metaJsonObject.getBoolean("active");
-    final Integer index = metaJsonObject.getInteger("index");
-    final JsonObject namespaceJsonObject = jsonObject.getJsonObject("namespace");
-    final String metaId = "";
-    final NamespaceRegistrationType type =
-        NamespaceRegistrationType.rawValueOf(namespaceJsonObject.getInteger("registrationType"));
-    final Integer depth = namespaceJsonObject.getInteger("depth");
-    final List<NamespaceId> levels = new ArrayList<>(depth);
-    for (int i = 0; i < depth; i++) {
-      levels.add(
-          NamespaceId.createFromId(
-              MapperUtils.toBigInteger(namespaceJsonObject, "level" + i)));
+    /**
+     * Creates a namespace info object from json.
+     *
+     * @param jsonObject Json object.
+     * @return namespace info.
+     */
+    public NamespaceInfo apply(final JsonObject jsonObject) {
+        final String id = MapperUtils.toRecordId(jsonObject);
+        final JsonObject metaJsonObject = jsonObject.getJsonObject("meta");
+        final boolean active = metaJsonObject.getBoolean("active");
+        final Integer index = metaJsonObject.getInteger("index");
+        final JsonObject namespaceJsonObject = jsonObject.getJsonObject("namespace");
+        final String metaId = "";
+        final NamespaceRegistrationType type =
+                NamespaceRegistrationType.rawValueOf(namespaceJsonObject.getInteger("registrationType"));
+        final Integer depth = namespaceJsonObject.getInteger("depth");
+        final List<NamespaceId> levels = new ArrayList<>(depth);
+        for (int i = 0; i < depth; i++) {
+            levels.add(
+                    NamespaceId.createFromId(
+                            MapperUtils.toBigInteger(namespaceJsonObject, "level" + i)));
+        }
+        final NamespaceId parentId =
+                NamespaceId.createFromId(MapperUtils.toBigInteger(namespaceJsonObject, "parentId"));
+        final Address address =
+                Address.createFromEncoded(namespaceJsonObject.getString("ownerAddress"));
+        final BigInteger startHeight =
+                MapperUtils.toBigInteger(namespaceJsonObject, "startHeight");
+        final BigInteger endHeight = MapperUtils.toBigInteger(namespaceJsonObject, "endHeight");
+        final Alias alias = getAlias(namespaceJsonObject);
+        return new NamespaceInfo(
+                id, active, index, metaId, type, depth, levels, parentId, address, startHeight, endHeight, alias);
     }
-    final NamespaceId parentId =
-        NamespaceId.createFromId(MapperUtils.toBigInteger(namespaceJsonObject, "parentId"));
-    final Address address =
-        Address.createFromEncoded(namespaceJsonObject.getString("ownerAddress"));
-    final BigInteger startHeight =
-        MapperUtils.toBigInteger(namespaceJsonObject, "startHeight");
-    final BigInteger endHeight = MapperUtils.toBigInteger(namespaceJsonObject, "endHeight");
-    final Alias alias = getAlias(namespaceJsonObject);
-    return new NamespaceInfo(
-        active, index, metaId, type, depth, levels, parentId, address, startHeight, endHeight, alias);
-  }
 
-  /**
-   * Gets the alias if present
-   *
-   * @param jsonObject Json object.
-   * @return Alias.
-   */
-  public Alias getAlias(final JsonObject jsonObject) {
-    final JsonObject aliasObject = jsonObject.getJsonObject("alias");
-    final AliasType aliasType = AliasType.rawValueOf(aliasObject.getInteger("type"));
-    switch (aliasType) {
-      case NONE:
-        return new EmptyAlias();
-      case ADDRESS:
-        final Address address = Address.createFromEncoded(aliasObject.getString("address"));
-        return new AddressAlias(address);
-      case MOSAIC:
-        final MosaicId mosaicId =
-            new MosaicId(MapperUtils.toBigInteger(aliasObject, "mosaicId"));
-        return new MosaicAlias(mosaicId);
+    /**
+     * Gets the alias if present
+     *
+     * @param jsonObject Json object.
+     * @return Alias.
+     */
+    public Alias getAlias(final JsonObject jsonObject) {
+        final JsonObject aliasObject = jsonObject.getJsonObject("alias");
+        final AliasType aliasType = AliasType.rawValueOf(aliasObject.getInteger("type"));
+        switch (aliasType) {
+            case NONE:
+                return new EmptyAlias();
+            case ADDRESS:
+                final Address address = Address.createFromEncoded(aliasObject.getString("address"));
+                return new AddressAlias(address);
+            case MOSAIC:
+                final MosaicId mosaicId =
+                        new MosaicId(MapperUtils.toBigInteger(aliasObject, "mosaicId"));
+                return new MosaicAlias(mosaicId);
+        }
+        throw new IllegalStateException("Alias factory was not found.");
     }
-    throw new IllegalStateException("Alias factory was not found.");
-  }
 }

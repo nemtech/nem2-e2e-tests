@@ -22,6 +22,7 @@ package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers;
 
 import io.nem.symbol.sdk.model.account.*;
 import io.nem.symbol.sdk.model.mosaic.Mosaic;
+import io.nem.symbol.sdk.model.mosaic.ResolvedMosaic;
 import io.vertx.core.json.JsonObject;
 
 import java.math.BigInteger;
@@ -30,49 +31,53 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/** Account info mapper. */
+/**
+ * Account info mapper.
+ */
 public class AccountInfoMapper implements Function<JsonObject, AccountInfo> {
-  /**
-   * Converts a json object to account info.
-   *
-   * @param jsonObject Json object.
-   * @return Account info.
-   */
-  public AccountInfo apply(final JsonObject jsonObject) {
-    final JsonObject accountJsonObject = jsonObject.getJsonObject("account");
-    final Address address = Address.createFromEncoded(accountJsonObject.getString("address"));
-    final BigInteger addressHeight =
-        MapperUtils.toBigInteger(accountJsonObject, "addressHeight");
-    final String publicKey = accountJsonObject.getString("publicKey");
-    final BigInteger publicHeight =
-        MapperUtils.toBigInteger(accountJsonObject, "publicKeyHeight");
-    final ImportancesMapper importancesMapper = new ImportancesMapper();
-    final List<Importances> importances =
-        accountJsonObject.getJsonArray("importances").stream()
-            .map(jsonObj -> importancesMapper.apply((JsonObject) jsonObj))
-            .collect(Collectors.toList());
-    final Importances importance =
-        importances.size() > 0
-            ? importances.get(0)
-            : new Importances(BigInteger.ZERO, BigInteger.ZERO);
+    /**
+     * Converts a json object to account info.
+     *
+     * @param jsonObject Json object.
+     * @return Account info.
+     */
+    public AccountInfo apply(final JsonObject jsonObject) {
+        final String id = MapperUtils.toRecordId(jsonObject);
+        final JsonObject accountJsonObject = jsonObject.getJsonObject("account");
+        final Address address = Address.createFromEncoded(accountJsonObject.getString("address"));
+        final BigInteger addressHeight =
+                MapperUtils.toBigInteger(accountJsonObject, "addressHeight");
+        final String publicKey = accountJsonObject.getString("publicKey");
+        final BigInteger publicHeight =
+                MapperUtils.toBigInteger(accountJsonObject, "publicKeyHeight");
+        final ImportancesMapper importancesMapper = new ImportancesMapper();
+        final List<Importances> importances =
+                accountJsonObject.getJsonArray("importances").stream()
+                        .map(jsonObj -> importancesMapper.apply((JsonObject) jsonObj))
+                        .collect(Collectors.toList());
+        final Importances importance =
+                importances.size() > 0
+                        ? importances.get(0)
+                        : new Importances(BigInteger.ZERO, BigInteger.ZERO);
 
-    final MosaicMapper mosaicMapper = new MosaicMapper();
-    final List<Mosaic> mosaics =
-        accountJsonObject.getJsonArray("mosaics").stream()
-            .map(jsonObj -> mosaicMapper.apply((JsonObject) jsonObj))
-            .collect(Collectors.toList());
-    final List<ActivityBucket> activityBuckets = new ArrayList<>();
-    final SupplementalAccountKeys accountKeys = null;
-    return new AccountInfo(
-        address,
-        addressHeight,
-        publicKey,
-        publicHeight,
-        importance.getValue(),
-        importance.getHeight(),
-        mosaics,
-        AccountType.UNLINKED,
-            accountKeys,
-            activityBuckets);
-  }
+        final MosaicMapper mosaicMapper = new MosaicMapper();
+        final List<ResolvedMosaic> resolvedMosaics =
+                accountJsonObject.getJsonArray("mosaics").stream()
+                        .map(jsonObj -> new ResolvedMosaicMapper().apply((JsonObject) jsonObj))
+                        .collect(Collectors.toList());
+        final List<ActivityBucket> activityBuckets = new ArrayList<>();
+        final SupplementalAccountKeys accountKeys = null;
+        return new AccountInfo(
+                id,
+                address,
+                addressHeight,
+                publicKey,
+                publicHeight,
+                importance.getValue(),
+                importance.getHeight(),
+                resolvedMosaics,
+                AccountType.UNLINKED,
+                accountKeys,
+                activityBuckets);
+    }
 }

@@ -26,7 +26,7 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.automationHelpers.helper.*;
+import io.nem.symbol.automationHelpers.helper.sdk.*;
 import io.nem.symbol.core.utils.ExceptionUtils;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.AccountInfo;
@@ -105,8 +105,8 @@ public class AssetRegistration extends BaseTest {
     final AccountInfo newAccountInfo =
         new AccountHelper(getTestContext()).getAccountInfo(initialAccountInfo.getAddress());
     final MosaicId mosaicId = new MosaicHelper(getTestContext()).getNetworkCurrencyMosaicId();
-    final Mosaic mosaicBefore = getMosaic(initialAccountInfo, mosaicId).get();
-    final Mosaic mosaicAfter = getMosaic(newAccountInfo, mosaicId).get();
+    final ResolvedMosaic mosaicBefore = getMosaic(initialAccountInfo, mosaicId).get();
+    final ResolvedMosaic mosaicAfter = getMosaic(newAccountInfo, mosaicId).get();
     assertEquals(mosaicBefore.getId(), mosaicAfter.getId());
     final BigInteger fee = getUserFee(initialAccountInfo.getPublicAccount());
     final long exceptedFee = amountChange == 0 ? 0 : fee.longValue();

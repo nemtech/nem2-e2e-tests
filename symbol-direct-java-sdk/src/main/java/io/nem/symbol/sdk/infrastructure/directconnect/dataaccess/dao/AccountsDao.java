@@ -21,21 +21,16 @@
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.dao;
 
 import io.nem.symbol.sdk.api.AccountRepository;
-import io.nem.symbol.sdk.api.TransactionSearchCriteria;
+import io.nem.symbol.sdk.api.AccountSearchCriteria;
+import io.nem.symbol.sdk.api.Page;
 import io.nem.symbol.sdk.infrastructure.common.CatapultContext;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.AccountsCollection;
-import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.PartialTransactionsCollection;
-import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.UnconfirmedTransactionsCollection;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers.MapperUtils;
 import io.nem.symbol.sdk.model.account.AccountInfo;
 import io.nem.symbol.sdk.model.account.Address;
-import io.nem.symbol.sdk.model.account.PublicAccount;
-import io.nem.symbol.sdk.model.transaction.AggregateTransaction;
-import io.nem.symbol.sdk.model.transaction.Transaction;
 import io.reactivex.Observable;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /** Account dao repository. */
 public class AccountsDao implements AccountRepository {
@@ -75,5 +70,16 @@ public class AccountsDao implements AccountRepository {
   @Override
   public Observable<List<AccountInfo>> getAccountsInfo(List<Address> addresses) {
     throw new UnsupportedOperationException("Method not implemented");
+  }
+
+  /**
+   * It searches entities of a type based on a criteria.
+   *
+   * @param criteria the criteria
+   * @return a page of entities.
+   */
+  @Override
+  public Observable<Page<AccountInfo>> search(AccountSearchCriteria criteria) {
+    return null;
   }
 }

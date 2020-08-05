@@ -26,20 +26,21 @@ import io.vertx.core.json.JsonObject;
 import java.util.function.Function;
 
 public class AddressResolutionStatementsMapper
-    implements Function<JsonObject, AddressResolutionStatement> {
-  /**
-   * Converts a json object to resolution statement
-   *
-   * @param jsonObject Json object.
-   * @return Resolution statement.
-   */
-  @Override
-  public AddressResolutionStatement apply(final JsonObject jsonObject) {
-    return createAddressResolutionStatement(jsonObject.getJsonObject("statement"));
-  }
+        implements Function<JsonObject, AddressResolutionStatement> {
+    /**
+     * Converts a json object to resolution statement
+     *
+     * @param jsonObject Json object.
+     * @return Resolution statement.
+     */
+    @Override
+    public AddressResolutionStatement apply(final JsonObject jsonObject) {
+        return createAddressResolutionStatement(jsonObject);
+    }
 
-  private AddressResolutionStatement createAddressResolutionStatement(
-      final JsonObject receiptJsonObject) {
-    return MapperUtils.createAddressResolutionStatement(receiptJsonObject);
-  }
+    private AddressResolutionStatement createAddressResolutionStatement(
+            final JsonObject jsonObject) {
+        final String id = MapperUtils.toRecordId(jsonObject);
+        return MapperUtils.createAddressResolutionStatement(id, jsonObject.getJsonObject("statement"));
+    }
 }

@@ -20,97 +20,195 @@
 
 package io.nem.symbol.automation.metadata;
 
-import io.nem.symbol.automation.common.BaseTest;
+import cucumber.api.java.en.And;
+import cucumber.api.java.en.Given;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import io.nem.symbol.automation.account.CreateMultisignatureContract;
+import io.nem.symbol.automation.account.EditMultisignatureContract;
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.automationHelpers.helper.AccountMetadataHelper;
-import io.nem.symbol.automationHelpers.helper.AggregateHelper;
-import io.nem.symbol.automationHelpers.helper.CommonHelper;
-import io.nem.symbol.automationHelpers.helper.TransactionHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.CommonHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.MosaicMetadataHelper;
 import io.nem.symbol.sdk.api.MetadataRepository;
+import io.nem.symbol.sdk.api.MetadataSearchCriteria;
+import io.nem.symbol.sdk.infrastructure.MetadataTransactionServiceImpl;
 import io.nem.symbol.sdk.model.account.Account;
+import io.nem.symbol.sdk.model.account.Address;
+import io.nem.symbol.sdk.model.account.UnresolvedAddress;
 import io.nem.symbol.sdk.model.metadata.Metadata;
 import io.nem.symbol.sdk.model.metadata.MetadataType;
-import io.nem.symbol.sdk.model.transaction.AccountMetadataTransaction;
-import io.nem.symbol.sdk.model.transaction.AggregateTransaction;
+import io.nem.symbol.sdk.model.mosaic.MosaicId;
+import io.nem.symbol.sdk.model.mosaic.UnresolvedMosaicId;
+import io.nem.symbol.sdk.model.transaction.MetadataTransaction;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
+public class MosaicMetadata extends MetadataBase<UnresolvedMosaicId> {
 
-public class MosaicMetadata extends BaseTest {
-
-  public MosaicMetadata(final TestContext testContext) {
-    super(testContext);
-  }
-  // @Given("^(\\w+) request (\\w+) to notarized her \"(.+?)\"$")
-  public void createDigitalDocument(
-      final String userName, final String notaryName, final String documentName) {
-    final Account userAccount = getUserWithCurrency(userName);
-    final Account notaryAccount = getUser(notaryName);
-    final BigInteger documentKey = BigInteger.valueOf(new Random().nextLong());
-    final String document = CommonHelper.getRandonStringWithMaxLength(512);
-    final AccountMetadataTransaction accountMetadataTransaction =
-        new AccountMetadataHelper(getTestContext())
-            .createAccountMetadataTransaction(
-                userAccount.getAddress(),
-                documentKey,
-                (short) document.getBytes().length,
-                document);
-    final AggregateTransaction aggregateTransaction =
-        new AggregateHelper(getTestContext())
-            .createAggregateBondedTransaction(
-                Arrays.asList(
-                    accountMetadataTransaction.toAggregate(notaryAccount.getPublicAccount())),
-                1);
-    final TransactionHelper transactionHelper = new TransactionHelper(getTestContext());
-    transactionHelper.signTransaction(aggregateTransaction, notaryAccount);
-    storeDocumentInfo(documentName, documentKey, document);
-  }
-
-  // @Then("^(\\w+) should have her \"(.+?)\" attached to the account by (\\w+)$")
-  public void verifyDigitDocument(
-      final String targetName, final String documentName, final String senderName) {
-    waitForLastTransactionToComplete();
-    final Account targetAccount = getUser(targetName);
-    final Account senderAccount = getUser(senderName);
-    final Pair<BigInteger, String> documentInfoKey = getDocumentInfo(documentName);
-    final MetadataRepository metadataRepository =
-        getTestContext().getRepositoryFactory().createMetadataRepository();
-    //    final List<Metadata> metadata =
-    //        metadataRepository
-    //            .getAccountMetadataByKey(
-    //                targetAccount.getAddress(), documentInfoKey.getKey())
-    //            .blockingFirst();
-    final Metadata metadata =
-        metadataRepository
-            .getAccountMetadataByKeyAndSender(
-                targetAccount.getAddress(), documentInfoKey.getKey(), senderAccount.getAddress())
-            .blockingFirst();
-    assertEquals(
-        "Document did not match",
-        documentInfoKey.getValue(),
-        metadata.getMetadataEntry().getValue());
-    assertEquals(
-        "Document type doesn't match",
-        MetadataType.ACCOUNT,
-        metadata.getMetadataEntry().getMetadataType());
-    assertEquals(
-        "Document key doesn't match",
-        documentInfoKey.getKey(),
-        metadata.getMetadataEntry().getScopedMetadataKey());
-    assertEquals(
-        "Sender public key doesn't match",
-        senderAccount.getAddress().encoded(),
-        metadata.getMetadataEntry().getSourceAddress().encoded());
-    assertEquals(
-        "Owner public key doesn't match",
-        targetAccount.getAddress().encoded(),
-        metadata.getMetadataEntry().getTargetAddress().encoded());
-    if (metadata.getMetadataEntry().getMetadataType() != MetadataType.ACCOUNT) {
-      assertEquals("Target id does not match", 0, metadata.getMetadataEntry().getTargetId().get());
+    public MosaicMetadata(final TestContext testContext) {
+        super(testContext, MetadataType.MOSAIC);
     }
-  }
+
+    @Given("^(\\w+) request (\\w+) to add a document \"(.+?)\" to asset \"(\\w+)\"$")
+    public void createDigitalDocument(
+            final String sourceName, final String targetName, final String documentName, final String assetName) {
+        final int numOfCosigners = 1;
+        final MosaicId mosaicId = resolveMosaicId(assetName);
+        createDocument(targetName, sourceName, documentName, mosaicId, numOfCosigners);
+    }
+
+    @Then("^(\\w+) asset \"(\\w+)\" should have document \"(.+?)\" attached by (\\w+)$")
+    public void verifyDigitDocument(
+            final String targetName, final String assetName, final String documentName, final String sourceName) {
+        final MosaicId targetId = resolveMosaicId(assetName);
+        verifyDocument(targetName, documentName, sourceName, targetId);
+    }
+
+    @Given("^(\\w+) added a document \"(.+?)\" to (\\w+) asset \"(\\w+)\"$")
+    public void createNotarizedDocument(
+            final String sourceName, final String documentName, final String targetName, final String assetName) {
+        createDigitalDocument(sourceName, targetName, documentName, assetName);
+        new CreateMultisignatureContract(getTestContext()).publishBondedTransaction(sourceName);
+        new EditMultisignatureContract(getTestContext()).cosignTransaction(targetName);
+        waitForLastTransactionToComplete();
+    }
+
+    @And("^(\\w+) request to update the \"(.+?)\" on (\\w+) asset \"(\\w+)\" with change of (-?\\d+) characters?$")
+    public void updateNotarizedDocument(
+            final String sourceName, final String documentName, final String targetName, final String assetName, final int delta) {
+        final int numOfCosigner = 1;
+        final MosaicId targetId = resolveMosaicId(assetName);
+        modifyDigitalDocument(targetName, sourceName, documentName, delta, numOfCosigner, targetId);
+    }
+
+    @Given("^(\\w+) adds a document \"(.+?)\" to asset \"(\\w+)\"$")
+    public void createSelfDocument(final String userName, final String documentName, final String assetName) {
+        final int numOfCosigners = 0;
+        final MosaicId targetId = resolveMosaicId(assetName);
+        createDocument(userName, userName, documentName, targetId, numOfCosigners);
+    }
+
+    @Then("^(\\w+) should have document \"(.+?)\" attached to asset \"(\\w+)\"$")
+    public void verifySelfDocument(final String targetName, final String documentName, final String assetName) {
+        final MosaicId targetId = resolveMosaicId(assetName);
+        verifyDocument(targetName, documentName, targetName, targetId);
+    }
+
+    @Given("^(\\w+) added a document \"(.+?)\" to asset \"(\\w+)\"$")
+    public void addSelfDocument(final String userName, final String documentName, final String assetName) {
+        createSelfDocument(userName, documentName, assetName);
+        new CreateMultisignatureContract(getTestContext()).publishTransaction(userName);
+        waitForLastTransactionToComplete();
+    }
+
+    @When("^(\\w+) updates document \"(.+?)\" on asset \"(\\w+)\" with change of (-?\\d+) characters?$")
+    public void updateSelfDocument(
+            final String userName, final String documentName, final String assetName, final int delta) {
+        final int numOfCosigner = 0;
+        final MosaicId targetId = resolveMosaicId(assetName);
+        modifyDigitalDocument(userName, userName, documentName, delta, numOfCosigner, targetId);
+        new CreateMultisignatureContract(getTestContext()).publishTransaction(userName);
+        waitForLastTransactionToComplete();
+    }
+
+    @Given("^(\\w+) tries to add document \"(.+?)\" to asset (\\w+)$ owned by (\\w+)")
+    public void triesToCreateNotarizedDocument(
+            final String sourceName, final String documentName, final String assetName, final String targetName) {
+        createDigitalDocument(sourceName, targetName, documentName, assetName);
+        new CreateMultisignatureContract(getTestContext()).publishBondedTransaction(sourceName);
+        new EditMultisignatureContract(getTestContext()).cosignTransaction(targetName);
+    }
+
+    @When("^(\\w+) adds document \"(\\w+)\" to asset \"(\\w+)\" using Sarah alias \"(\\w+)\"$")
+    public void createDocumentUsingAlias(
+            final String sourceName,
+            final String documentName,
+            final String assetName,
+            final String targetName,
+            final String alias) {
+        final MosaicId targetId = resolveMosaicId(assetName);
+        final int numOfCosigner = 1;
+        createDocumentWithAlias(alias, sourceName, documentName, targetId, numOfCosigner);
+        new CreateMultisignatureContract(getTestContext()).publishBondedTransaction(sourceName);
+        new EditMultisignatureContract(getTestContext()).cosignTransaction(targetName);
+    }
+
+    @Given("^(\\w+) tries to add a document with invalid length to asset \"(\\w+)\"$")
+    public void createDocumentWithInvalidLength(final String userName, final String assetName) {
+        final String document = CommonHelper.getRandonStringWithMaxLength(500);
+        final Account sourceAccount = getUserWithCurrency(userName);
+        final short documentLength = 0;
+        final int numOfCosigners = 0;
+        final MosaicId targetId = resolveMosaicId(assetName);
+        createDocument(sourceAccount.getAddress(), sourceAccount, "test", document, documentLength, targetId, numOfCosigners);
+        new CreateMultisignatureContract(getTestContext()).publishTransaction(userName);
+    }
+
+    @Given("^(\\w+) tries to add a document to asset \"(\\w+)\" without embedded in aggregate transaction$")
+    public void triesToAddDocumentWithoutAggregate(final String userName, final String assetName) {
+        final Account userAccount = getUserWithCurrency(userName);
+        final BigInteger documentKey = createRandomDocumentKey();
+        final String document = CommonHelper.getRandonStringWithMaxLength(512);
+        final MosaicId targetId = resolveMosaicId(assetName);
+        new MosaicMetadataHelper(getTestContext())
+                .createAccountMetadataAndAnnounce(
+                        userAccount,
+                        userAccount.getAddress(),
+                        documentKey,
+                        targetId,
+                        (short) document.getBytes().length,
+                        document);
+    }
+
+    @When("^(\\w+) tries to update document \"(.+?)\" with invalid length to asset \"(\\w+)\"$")
+    public void createDocumentWithInvalidDelta(final String userName, final String documentName, final String assetName) {
+        final Pair<BigInteger, String> documentInfoKey = getDocumentInfo(documentName);
+        final Account sourceAccount = getUserWithCurrency(userName);
+        final MosaicId targetid = resolveMosaicId(assetName);
+        final short documentLength = 10;
+        final int numOfCosigners = 0;
+        createDocument(
+                sourceAccount.getAddress(),
+                sourceAccount,
+                documentName,
+                documentInfoKey.getValue(),
+                documentLength,
+                targetid,
+                numOfCosigners);
+        new CreateMultisignatureContract(getTestContext()).publishTransaction(userName);
+    }
+
+    @Override
+    protected MetadataTransaction createMetaTransaction(UnresolvedAddress targetAddress,
+                                                        BigInteger scopedMetadataKey,
+                                                        UnresolvedMosaicId targetId,
+                                                        short valueSizeDelta,
+                                                        String value) {
+        return new MosaicMetadataHelper(getTestContext()).createMosaicMetadataTransaction(targetAddress, scopedMetadataKey, targetId, valueSizeDelta, value);
+    }
+
+    @Override
+    protected Metadata getMetadata(Address targetAddress,
+                                   Address sourceAddress,
+                                   BigInteger scopedMetadataKey,
+                                   UnresolvedMosaicId targetId) {
+        final MetadataRepository metadataRepository =
+                getTestContext().getRepositoryFactory().createMetadataRepository();
+        return metadataRepository.search(new MetadataSearchCriteria().metadataType(metadataType).targetAddress(
+                targetAddress).scopedMetadataKey(scopedMetadataKey).sourceAddress(sourceAddress).targetId(new MosaicId(targetId.getId())))
+                .blockingFirst().getData().get(0);
+    }
+
+    @Override
+    protected MetadataTransaction getModifyTransaction(final Address targetAddress,
+                                                       final Address sourceAddress,
+                                                       final BigInteger documentKey,
+                                                       final String updateDocument,
+                                                       final UnresolvedMosaicId targetId) {
+        return new MetadataTransactionServiceImpl(getTestContext().getRepositoryFactory())
+                .createMosaicMetadataTransactionFactory(
+                        targetAddress, documentKey, updateDocument, sourceAddress, targetId)
+                .blockingFirst().build();
+    }
 }

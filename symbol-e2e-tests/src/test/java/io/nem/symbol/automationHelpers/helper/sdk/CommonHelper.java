@@ -18,7 +18,7 @@
  * along with Catapult.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.nem.symbol.automationHelpers.helper;
+package io.nem.symbol.automationHelpers.helper.sdk;
 
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
@@ -27,6 +27,7 @@ import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.AccountInfo;
 import io.nem.symbol.sdk.model.mosaic.Mosaic;
 import io.nem.symbol.sdk.model.mosaic.MosaicId;
+import io.nem.symbol.sdk.model.mosaic.ResolvedMosaic;
 import io.nem.symbol.sdk.model.network.NetworkType;
 import io.nem.symbol.sdk.model.transaction.CosignatureSignedTransaction;
 import io.nem.symbol.sdk.model.transaction.SignedTransaction;
@@ -170,11 +171,11 @@ public class CommonHelper {
       final long expectedAmountChange) {
     final AccountInfo newAccountInfo =
         new AccountHelper(testContext).getAccountInfo(intialAccountInfo.getAddress());
-    final Optional<Mosaic> mosaicBefore =
+    final Optional<ResolvedMosaic> mosaicBefore =
         intialAccountInfo.getMosaics().stream()
             .filter(mosaic -> mosaic.getId().getIdAsLong() == mosaicId.getIdAsLong())
             .findAny();
-    final Mosaic mosaicAfter =
+    final ResolvedMosaic mosaicAfter =
         newAccountInfo.getMosaics().stream()
             .filter(mosaic -> mosaic.getId().getIdAsLong() == mosaicId.getIdAsLong())
             .findAny()

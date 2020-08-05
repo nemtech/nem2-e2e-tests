@@ -26,7 +26,7 @@ import cucumber.api.java.Before;
 import cucumber.runtime.ScenarioImpl;
 import io.nem.symbol.automationHelpers.common.Log;
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.automationHelpers.helper.CommonHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.CommonHelper;
 import io.nem.symbol.sdk.api.Listener;
 import org.junit.Rule;
 import org.junit.rules.Timeout;

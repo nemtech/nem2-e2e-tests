@@ -25,7 +25,11 @@ import io.nem.symbol.sdk.model.account.UnresolvedAddress;
 import io.nem.symbol.sdk.model.mosaic.MosaicId;
 import io.nem.symbol.sdk.model.mosaic.UnresolvedMosaicId;
 import io.nem.symbol.sdk.model.namespace.NamespaceId;
-import io.nem.symbol.sdk.model.receipt.*;
+import io.nem.symbol.sdk.model.receipt.AddressResolutionStatement;
+import io.nem.symbol.sdk.model.receipt.MosaicResolutionStatement;
+import io.nem.symbol.sdk.model.receipt.ReceiptSource;
+import io.nem.symbol.sdk.model.receipt.ReceiptType;
+import io.nem.symbol.sdk.model.receipt.ResolutionEntry;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.codec.binary.Base32;
 
@@ -57,7 +61,7 @@ public final class MapperUtils {
   }
 
   public static AddressResolutionStatement createAddressResolutionStatement(
-      final JsonObject receiptJsonObject) {
+      final String id, final JsonObject receiptJsonObject) {
     final BigInteger height = toBigInteger(receiptJsonObject, "height");
     final UnresolvedAddress unresolved = toUnresolvedAddress(receiptJsonObject, "unresolved");
     final List<ResolutionEntry<Address>> resolutionEntries =
@@ -71,11 +75,11 @@ public final class MapperUtils {
                   Address.createFromEncoded(entryJsonObject.getString("resolved"));
               return ResolutionEntry.forAddress(address, receiptSource);
             });
-    return new AddressResolutionStatement(height, unresolved, resolutionEntries);
+    return new AddressResolutionStatement(id, height, unresolved, resolutionEntries);
   }
 
   public static MosaicResolutionStatement createMosaicResolutionStatement(
-      final JsonObject receiptJsonObject) {
+      final String id, final JsonObject receiptJsonObject) {
     final BigInteger height = toBigInteger(receiptJsonObject, "height");
     final UnresolvedMosaicId unresolved = toUnresolvedMosaicId(receiptJsonObject, "unresolved");
     final List<ResolutionEntry<MosaicId>> resolutionEntries =
@@ -88,7 +92,7 @@ public final class MapperUtils {
               final MosaicId mosaicId = toMosaicId(entryJsonObject, "resolved");
               return ResolutionEntry.forMosaicId(mosaicId, receiptSource);
             });
-    return new MosaicResolutionStatement(height, unresolved, resolutionEntries);
+    return new MosaicResolutionStatement(id, height, unresolved, resolutionEntries);
   }
 
   private static ReceiptSource getReceiptSource(final JsonObject sourceJsonObject) {

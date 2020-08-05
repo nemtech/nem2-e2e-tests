@@ -21,10 +21,10 @@
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.dao;
 
 import io.nem.symbol.sdk.api.NamespaceRepository;
-import io.nem.symbol.sdk.api.QueryParams;
+import io.nem.symbol.sdk.api.NamespaceSearchCriteria;
+import io.nem.symbol.sdk.api.Page;
 import io.nem.symbol.sdk.infrastructure.common.CatapultContext;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.database.mongoDb.NamespacesCollection;
-import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers.MapperUtils;
 import io.nem.symbol.sdk.model.account.AccountNames;
 import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.mosaic.MosaicId;
@@ -35,121 +35,104 @@ import io.nem.symbol.sdk.model.namespace.NamespaceInfo;
 import io.nem.symbol.sdk.model.namespace.NamespaceName;
 import io.reactivex.Observable;
 
-import java.util.List;;
+import java.util.List;
 
-/** Namespace dao repository. */
+;
+
+/**
+ * Namespace dao repository.
+ */
 public class NamespaceDao implements NamespaceRepository {
-  /* Catapult context. */
-  private final CatapultContext catapultContext;
+    /* Catapult context. */
+    private final CatapultContext catapultContext;
 
-  /**
-   * Constructor.
-   *
-   * @param context Catapult context.
-   */
-  public NamespaceDao(final CatapultContext context) {
-    this.catapultContext = context;
-  }
+    /**
+     * Constructor.
+     *
+     * @param context Catapult context.
+     */
+    public NamespaceDao(final CatapultContext context) {
+        this.catapultContext = context;
+    }
 
-  @Override
-  public Observable<NamespaceInfo> getNamespace(NamespaceId namespaceId) {
-    return Observable.fromCallable(
-        () ->
-            new NamespacesCollection(catapultContext.getDataAccessContext())
-                .findById(namespaceId.getId().longValue())
-                .get());
-  }
+    @Override
+    public Observable<NamespaceInfo> getNamespace(NamespaceId namespaceId) {
+        return Observable.fromCallable(
+                () ->
+                        new NamespacesCollection(catapultContext.getDataAccessContext())
+                                .findById(namespaceId.getId().longValue())
+                                .get());
+    }
 
-  /**
-   * Gets list of NamespaceInfo for an account. With pagination.
-   *
-   * @param address Address
-   * @param queryParams QueryParans
-   * @return {@link Observable} of {@link NamespaceInfo} List
-   */
-  @Override
-  public Observable<List<NamespaceInfo>> getNamespacesFromAccount(
-      Address address, QueryParams queryParams) {
-    throw new UnsupportedOperationException("Method not implemented");
-  }
+    /**
+     * Gets list of NamespaceName for different namespaceIds.
+     *
+     * @param namespaceIds List of NamespaceId
+     * @return {@link Observable} of {@link NamespaceName} List
+     */
+    @Override
+    public Observable<List<NamespaceName>> getNamespaceNames(List<NamespaceId> namespaceIds) {
+        throw new UnsupportedOperationException("Method not implemented");
+    }
 
-  @Override
-  public Observable<List<NamespaceInfo>> getNamespacesFromAccount(final Address address) {
-    return Observable.fromCallable(
-        () ->
-            new NamespacesCollection(catapultContext.getDataAccessContext())
-                .findByAddress(MapperUtils.fromAddressToByteBuffer(address).array()));
-  }
+    /**
+     * Gets the MosaicId from a MosaicAlias
+     *
+     * @param namespaceId - the namespaceId of the namespace
+     * @return Observable of <{@link MosaicId}>
+     */
+    @Override
+    public Observable<MosaicId> getLinkedMosaicId(NamespaceId namespaceId) {
+        return getNamespace(namespaceId)
+                .map(namespaceInfo -> namespaceInfo.getAlias())
+                .map(
+                        alias -> {
+                            if (AliasType.MOSAIC == alias.getType()) {
+                                return (MosaicId) alias.getAliasValue();
+                            }
+                            throw new IllegalArgumentException(
+                                    "Namespace id " + namespaceId.getIdAsHex() + "  does not have a MosaicId alias.");
+                        });
+    }
 
-  /**
-   * Gets list of NamespaceInfo for different account.
-   *
-   * @param addresses List of Address
-   * @return {@link Observable} of {@link NamespaceInfo} List
-   */
-  @Override
-  public Observable<List<NamespaceInfo>> getNamespacesFromAccounts(List<Address> addresses) {
-    throw new UnsupportedOperationException("Method not implemented");
-  }
+    /**
+     * Gets the Address from a AddressAlias
+     *
+     * @param namespaceId - the namespaceId of the namespace
+     * @return Observable of <{@link MosaicId}>
+     */
+    @Override
+    public Observable<Address> getLinkedAddress(NamespaceId namespaceId) {
+        return getNamespace(namespaceId)
+                .map(namespaceInfo -> namespaceInfo.getAlias())
+                .map(
+                        alias -> {
+                            if (AliasType.ADDRESS == alias.getType()) {
+                                return (Address) alias.getAliasValue();
+                            }
+                            throw new IllegalArgumentException(
+                                    "Namespace id " + namespaceId.getIdAsHex() + "  does not have an Address alias.");
+                        });
+    }
 
-  /**
-   * Gets list of NamespaceName for different namespaceIds.
-   *
-   * @param namespaceIds List of NamespaceId
-   * @return {@link Observable} of {@link NamespaceName} List
-   */
-  @Override
-  public Observable<List<NamespaceName>> getNamespaceNames(List<NamespaceId> namespaceIds) {
-    throw new UnsupportedOperationException("Method not implemented");
-  }
+    @Override
+    public Observable<List<AccountNames>> getAccountsNames(List<Address> list) {
+        return null;
+    }
 
-  /**
-   * Gets the MosaicId from a MosaicAlias
-   *
-   * @param namespaceId - the namespaceId of the namespace
-   * @return Observable of <{@link MosaicId}>
-   */
-  @Override
-  public Observable<MosaicId> getLinkedMosaicId(NamespaceId namespaceId) {
-    return getNamespace(namespaceId)
-        .map(namespaceInfo -> namespaceInfo.getAlias())
-        .map(
-            alias -> {
-              if (AliasType.MOSAIC == alias.getType()) {
-                return (MosaicId) alias.getAliasValue();
-              }
-              throw new IllegalArgumentException(
-                  "Namespace id " + namespaceId.getIdAsHex() + "  does not have a MosaicId alias.");
-            });
-  }
+    @Override
+    public Observable<List<MosaicNames>> getMosaicsNames(List<MosaicId> list) {
+        return null;
+    }
 
-  /**
-   * Gets the Address from a AddressAlias
-   *
-   * @param namespaceId - the namespaceId of the namespace
-   * @return Observable of <{@link MosaicId}>
-   */
-  @Override
-  public Observable<Address> getLinkedAddress(NamespaceId namespaceId) {
-    return getNamespace(namespaceId)
-        .map(namespaceInfo -> namespaceInfo.getAlias())
-        .map(
-            alias -> {
-              if (AliasType.ADDRESS == alias.getType()) {
-                return (Address) alias.getAliasValue();
-              }
-              throw new IllegalArgumentException(
-                  "Namespace id " + namespaceId.getIdAsHex() + "  does not have an Address alias.");
-            });
-  }
-
-  @Override
-  public Observable<List<AccountNames>> getAccountsNames(List<Address> list) {
-    return null;
-  }
-
-  @Override
-  public Observable<List<MosaicNames>> getMosaicsNames(List<MosaicId> list) {
-    return null;
-  }
+    /**
+     * It searches entities of a type based on a criteria.
+     *
+     * @param criteria the criteria
+     * @return a page of entities.
+     */
+    @Override
+    public Observable<Page<NamespaceInfo>> search(NamespaceSearchCriteria criteria) {
+        return null;
+    }
 }

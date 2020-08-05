@@ -26,7 +26,7 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.automationHelpers.helper.NamespaceHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.NamespaceHelper;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.AccountInfo;
 import io.nem.symbol.sdk.model.namespace.NamespaceId;
@@ -70,7 +70,7 @@ public class RegisterNamespace extends BaseTest {
     final NamespaceInfo namespaceInfo =
         new NamespaceHelper(getTestContext())
             .getNamespaceInfoWithRetry(namespaceRegistrationTransaction.getNamespaceId());
-    getTestContext().getLogger().LogError("actual name" + randomName);
+    getTestContext().getLogger().LogError("actual name:" + randomName + " id:" + namespaceInfo.getId().getIdAsLong());
     getTestContext().getScenarioContext().setContext(NAMESPACE_INFO_KEY, namespaceInfo);
     getTestContext().clearTransaction();
     getTestContext().addTransaction(namespaceRegistrationTransaction);

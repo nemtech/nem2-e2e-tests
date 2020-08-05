@@ -21,7 +21,7 @@
 package io.nem.symbol.automationHelpers.common;
 
 import io.nem.symbol.automationHelpers.config.ConfigFileReader;
-import io.nem.symbol.automationHelpers.helper.TransactionHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.TransactionHelper;
 import io.nem.symbol.core.utils.ExceptionUtils;
 import io.nem.symbol.sdk.api.RepositoryFactory;
 import io.nem.symbol.sdk.model.account.Account;
@@ -197,9 +197,9 @@ public class TestContext {
    * @return Namespace id.
    */
   public NetworkCurrency getNetworkCurrency() {
-    // return repositoryFactory.getNetworkCurrency().blockingFirst();
+     return repositoryFactory.getNetworkCurrency().blockingFirst();
     //return NetworkCurrency.CAT_CURRENCY;
-    return NetworkCurrency.SYMBOL_XYM;
+    //return NetworkCurrency.SYMBOL_XYM;
   }
 
   /**

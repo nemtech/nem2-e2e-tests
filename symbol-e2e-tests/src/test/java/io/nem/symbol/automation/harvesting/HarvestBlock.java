@@ -24,12 +24,13 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.automationHelpers.helper.*;
+import io.nem.symbol.automationHelpers.helper.sdk.*;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.AccountInfo;
 import io.nem.symbol.sdk.model.account.PublicAccount;
 import io.nem.symbol.sdk.model.blockchain.BlockInfo;
 import io.nem.symbol.sdk.model.mosaic.Mosaic;
+import io.nem.symbol.sdk.model.mosaic.ResolvedMosaic;
 import io.nem.symbol.sdk.model.transaction.*;
 
 import java.math.BigInteger;
@@ -68,12 +69,12 @@ public class HarvestBlock extends BaseTest {
 		final BigInteger height = transferTransaction.getTransactionInfo().get().getHeight();
 		final BlockInfo blockInfo = new BlockChainHelper(getTestContext()).getBlockByHeight(height);
 		final AccountInfo accountInfoBefore = getAccountInfoFromContext(harvester);
-		final Mosaic initialMosaic =
+		final ResolvedMosaic initialMosaic =
 				getMosaic(accountInfoBefore, getTestContext().getSymbolConfig().getCurrencyMosaicId())
 						.get();
 		final AccountInfo accountInfoAfter =
 				new AccountHelper(getTestContext()).getAccountInfo(accountInfoBefore.getAddress());
-		final Mosaic mosaicAfter =
+		final ResolvedMosaic mosaicAfter =
 				getMosaic(accountInfoAfter, getTestContext().getSymbolConfig().getCurrencyMosaicId()).get();
 		assertEquals(
 				"Harvesting account did not increase by the correct account",

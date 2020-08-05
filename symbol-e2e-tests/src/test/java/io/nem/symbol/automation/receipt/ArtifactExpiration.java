@@ -25,7 +25,7 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.automationHelpers.helper.BlockChainHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.BlockChainHelper;
 import io.nem.symbol.sdk.model.mosaic.MosaicId;
 import io.nem.symbol.sdk.model.mosaic.MosaicInfo;
 import io.nem.symbol.sdk.model.namespace.NamespaceId;
@@ -33,11 +33,12 @@ import io.nem.symbol.sdk.model.namespace.NamespaceInfo;
 import io.nem.symbol.sdk.model.receipt.ArtifactExpiryReceipt;
 import io.nem.symbol.sdk.model.receipt.ReceiptType;
 import io.nem.symbol.sdk.model.receipt.ReceiptVersion;
-import io.nem.symbol.sdk.model.receipt.Statement;
+import io.nem.symbol.sdk.model.receipt.TransactionStatement;
 import io.nem.symbol.sdk.model.transaction.NamespaceRegistrationTransaction;
 import io.nem.symbol.sdk.model.transaction.TransactionType;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
@@ -87,9 +88,9 @@ public class ArtifactExpiration extends BaseTest {
   public void verifyAssetExpiredReceipt() {
     final MosaicInfo mosaicInfo = getMosaicInfo(MOSAIC_INFO_KEY);
     final BigInteger endHeight = mosaicInfo.getStartHeight().add(mosaicInfo.getDuration());
-    final Statement statement = new BlockChainHelper(getTestContext()).getBlockReceipts(endHeight);
+    final List<TransactionStatement> statement = new BlockChainHelper(getTestContext()).getBlockTransactionStatementByHeight(endHeight);
     final boolean expiredReceiptFound =
-        statement.getTransactionStatements().stream()
+        statement.stream()
             .anyMatch(
                 t ->
                     t.getReceipts().stream()
@@ -118,9 +119,9 @@ public class ArtifactExpiration extends BaseTest {
         getTestContext().getScenarioContext().getContext(CHECK_NAMESPACE_TYPE);
     final NamespaceInfo namespaceInfo =
         getTestContext().getScenarioContext().getContext(NAMESPACE_INFO_KEY);
-    final Statement statement = new BlockChainHelper(getTestContext()).getBlockReceipts(height);
+    final List<TransactionStatement> statement = new BlockChainHelper(getTestContext()).getBlockTransactionStatementByHeight(height);
     final boolean expiredReceiptFound =
-        statement.getTransactionStatements().stream()
+        statement.stream()
             .anyMatch(
                 t ->
                     t.getReceipts().stream()

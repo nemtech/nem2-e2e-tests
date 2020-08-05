@@ -26,7 +26,7 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.When;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.automationHelpers.helper.*;
+import io.nem.symbol.automationHelpers.helper.sdk.*;
 import io.nem.symbol.core.utils.ExceptionUtils;
 import io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.common.RetryCommand;
 import io.nem.symbol.sdk.model.account.Account;
@@ -36,6 +36,7 @@ import io.nem.symbol.sdk.model.account.PublicAccount;
 import io.nem.symbol.sdk.model.message.PlainMessage;
 import io.nem.symbol.sdk.model.mosaic.Mosaic;
 import io.nem.symbol.sdk.model.mosaic.MosaicId;
+import io.nem.symbol.sdk.model.mosaic.ResolvedMosaic;
 import io.nem.symbol.sdk.model.namespace.NamespaceId;
 import io.nem.symbol.sdk.model.transaction.*;
 
@@ -175,12 +176,12 @@ public class CreateEscrowContract extends BaseTest {
     for (final Mosaic mosaic : mosaics) {
       final MosaicId mosaicId =
           new NamespaceHelper(getTestContext()).getLinkedMosaicId((NamespaceId) mosaic.getId());
-      final Optional<Mosaic> initialMosaic = getMosaic(recipientAccountInfo, mosaicId);
+      final Optional<ResolvedMosaic> initialMosaic = getMosaic(recipientAccountInfo, mosaicId);
       final long initialAmount =
           initialMosaic.isPresent() ? initialMosaic.get().getAmount().longValue() : 0;
       final AccountInfo recipientAccountInfoAfter =
           new AccountHelper(getTestContext()).getAccountInfo(recipientAccountInfo.getAddress());
-      final Optional<Mosaic> mosaicAfter = getMosaic(recipientAccountInfoAfter, mosaicId);
+      final Optional<ResolvedMosaic> mosaicAfter = getMosaic(recipientAccountInfoAfter, mosaicId);
       final String errorMessage =
           "Recipient("
               + recipientAccountInfoAfter.getAddress().pretty()
@@ -198,10 +199,10 @@ public class CreateEscrowContract extends BaseTest {
     for (final Mosaic mosaic : mosaics) {
       final MosaicId mosaicId =
           new NamespaceHelper(getTestContext()).getLinkedMosaicId((NamespaceId) mosaic.getId());
-      final Mosaic initialMosaic = getMosaic(senderAccountInfo, mosaicId).get();
+      final ResolvedMosaic initialMosaic = getMosaic(senderAccountInfo, mosaicId).get();
       final AccountInfo senderAccountInfoAfter =
           new AccountHelper(getTestContext()).getAccountInfo(senderAccountInfo.getAddress());
-      final Mosaic mosaicAfter = getMosaic(senderAccountInfoAfter, mosaicId).get();
+      final ResolvedMosaic mosaicAfter = getMosaic(senderAccountInfoAfter, mosaicId).get();
       final BigInteger fees =
           getUserFee(senderAccountInfo.getPublicAccount(), initialMosaic.getId());
       assertEquals(

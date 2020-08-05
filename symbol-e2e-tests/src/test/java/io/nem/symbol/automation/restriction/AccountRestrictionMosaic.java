@@ -25,12 +25,11 @@ import cucumber.api.java.en.When;
 import io.nem.symbol.automation.asset.AssetRegistration;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.automationHelpers.helper.AccountRestrictionHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.AccountRestrictionHelper;
 import io.nem.symbol.core.utils.ExceptionUtils;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.mosaic.UnresolvedMosaicId;
 import io.nem.symbol.sdk.model.transaction.AccountMosaicRestrictionFlags;
-import io.nem.symbol.sdk.model.transaction.AccountRestrictionFlags;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.ArrayList;

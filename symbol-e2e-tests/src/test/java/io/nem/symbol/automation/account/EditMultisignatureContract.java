@@ -24,13 +24,12 @@ import cucumber.api.java.en.And;
 import cucumber.api.java.en.When;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.automationHelpers.helper.AccountHelper;
-import io.nem.symbol.automationHelpers.helper.AggregateHelper;
-import io.nem.symbol.automationHelpers.helper.MultisigAccountHelper;
-import io.nem.symbol.automationHelpers.helper.TransactionHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.AccountHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.AggregateHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.MultisigAccountHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.TransactionHelper;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.MultisigAccountInfo;
-import io.nem.symbol.sdk.model.account.PublicAccount;
 import io.nem.symbol.sdk.model.account.UnresolvedAddress;
 import io.nem.symbol.sdk.model.transaction.*;
 

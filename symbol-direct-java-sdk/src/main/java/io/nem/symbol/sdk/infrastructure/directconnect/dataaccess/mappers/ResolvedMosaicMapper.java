@@ -20,27 +20,40 @@
 
 package io.nem.symbol.sdk.infrastructure.directconnect.dataaccess.mappers;
 
-import io.nem.symbol.sdk.model.receipt.MosaicResolutionStatement;
+import io.nem.symbol.sdk.model.mosaic.Mosaic;
+import io.nem.symbol.sdk.model.mosaic.MosaicId;
+import io.nem.symbol.sdk.model.mosaic.ResolvedMosaic;
 import io.vertx.core.json.JsonObject;
 
 import java.util.function.Function;
 
-public class MosaicResolutionStatementsMapper
-        implements Function<JsonObject, MosaicResolutionStatement> {
-    /**
-     * Converts a json object to resolution statement
-     *
-     * @param jsonObject Json object.
-     * @return Resolution statement.
-     */
-    @Override
-    public MosaicResolutionStatement apply(final JsonObject jsonObject) {
-        return createMosaicResolutionStatement(jsonObject);
-    }
+/** Mosaic mapper. */
+public class ResolvedMosaicMapper implements Function<JsonObject, ResolvedMosaic> {
+  final String mosaicIdPropertyName;
 
-    private MosaicResolutionStatement createMosaicResolutionStatement(
-            final JsonObject jsonObject) {
-        final String id = MapperUtils.toRecordId(jsonObject);
-        return MapperUtils.createMosaicResolutionStatement(id, jsonObject.getJsonObject("statement"));
-    }
+  /** Constructor. */
+  public ResolvedMosaicMapper() {
+    this("id");
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param mosaicIdPropertyName MosaicId property name.
+   */
+  public ResolvedMosaicMapper(final String mosaicIdPropertyName) {
+    this.mosaicIdPropertyName = mosaicIdPropertyName;
+  }
+
+  /**
+   * Create a mosaic object from json.
+   *
+   * @param jsonObject Json object.
+   * @return Mosaic object.
+   */
+  public ResolvedMosaic apply(final JsonObject jsonObject) {
+    return new ResolvedMosaic(
+        new MosaicId(MapperUtils.toBigInteger(jsonObject, mosaicIdPropertyName)),
+        MapperUtils.toBigInteger(jsonObject, "amount"));
+  }
 }

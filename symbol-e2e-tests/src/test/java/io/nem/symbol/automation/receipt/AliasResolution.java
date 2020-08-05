@@ -26,9 +26,9 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.automationHelpers.helper.BlockChainHelper;
-import io.nem.symbol.automationHelpers.helper.NamespaceHelper;
-import io.nem.symbol.automationHelpers.helper.TransferHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.BlockChainHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.NamespaceHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.TransferHelper;
 import io.nem.symbol.sdk.model.account.Account;
 import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.message.PlainMessage;
@@ -37,7 +37,7 @@ import io.nem.symbol.sdk.model.mosaic.MosaicId;
 import io.nem.symbol.sdk.model.namespace.NamespaceId;
 import io.nem.symbol.sdk.model.receipt.AddressResolutionStatement;
 import io.nem.symbol.sdk.model.receipt.MosaicResolutionStatement;
-import io.nem.symbol.sdk.model.receipt.Statement;
+import io.nem.symbol.sdk.model.receipt.TransactionStatement;
 import io.nem.symbol.sdk.model.transaction.TransferTransaction;
 
 import java.math.BigInteger;
@@ -80,12 +80,12 @@ public class AliasResolution extends BaseTest {
       final String userName, final String recipientAlias, final String recipientName) {
     final Account recipientAccount = getUser(recipientName);
     final TransferTransaction transferTransaction = waitForLastTransactionToComplete();
-    final Statement statement =
+    final List<AddressResolutionStatement> statement =
         new BlockChainHelper(getTestContext())
-            .getBlockReceipts(transferTransaction.getTransactionInfo().get().getHeight());
+            .getAddressResolutionStatementsByHeight(transferTransaction.getTransactionInfo().get().getHeight());
     final NamespaceId recipientUnresolvedAddress = resolveNamespaceIdFromName(recipientAlias);
     final Optional<AddressResolutionStatement> addressResolutionStatement =
-        statement.getAddressResolutionStatements().stream()
+        statement.stream()
                 .filter(r -> ((NamespaceId)r.getUnresolved()).getIdAsLong() == recipientUnresolvedAddress.getIdAsLong())
             .findAny();
     assertTrue(
@@ -104,11 +104,11 @@ public class AliasResolution extends BaseTest {
     final NamespaceId namespaceId = resolveNamespaceIdFromName(assetName);
     final MosaicId mosaicId = new NamespaceHelper(getTestContext()).getLinkedMosaicId(namespaceId);
     final TransferTransaction transferTransaction = waitForLastTransactionToComplete();
-    final Statement statement =
+    final List<MosaicResolutionStatement> statement =
         new BlockChainHelper(getTestContext())
-            .getBlockReceipts(transferTransaction.getTransactionInfo().get().getHeight());
+            .getMosaicResolutionStatementsByHeight(transferTransaction.getTransactionInfo().get().getHeight());
     final Optional<MosaicResolutionStatement> mosaicIdResolutionStatement =
-        statement.getMosaicResolutionStatement().stream()
+        statement.stream()
             .filter(r -> r.getUnresolved().getIdAsLong() == namespaceId.getIdAsLong())
             .findAny();
     assertTrue(

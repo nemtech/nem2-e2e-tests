@@ -21,19 +21,14 @@
 package io.nem.symbol.automation.receipt;
 
 import cucumber.api.java.en.And;
-import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import cucumber.api.java.sl.In;
 import io.nem.symbol.automation.common.BaseTest;
 import io.nem.symbol.automationHelpers.common.SymbolConfig;
 import io.nem.symbol.automationHelpers.common.TestContext;
-import io.nem.symbol.automationHelpers.helper.AccountHelper;
-import io.nem.symbol.automationHelpers.helper.BlockChainHelper;
-import io.nem.symbol.automationHelpers.helper.MosaicHelper;
-import io.nem.symbol.core.crypto.PublicKey;
+import io.nem.symbol.automationHelpers.helper.sdk.BlockChainHelper;
+import io.nem.symbol.automationHelpers.helper.sdk.MosaicHelper;
 import io.nem.symbol.sdk.model.account.Account;
-import io.nem.symbol.sdk.model.account.AccountInfo;
 import io.nem.symbol.sdk.model.account.Address;
 import io.nem.symbol.sdk.model.account.PublicAccount;
 import io.nem.symbol.sdk.model.blockchain.BlockInfo;
@@ -41,11 +36,12 @@ import io.nem.symbol.sdk.model.mosaic.Mosaic;
 import io.nem.symbol.sdk.model.namespace.NamespaceId;
 import io.nem.symbol.sdk.model.receipt.BalanceChangeReceipt;
 import io.nem.symbol.sdk.model.receipt.ReceiptType;
-import io.nem.symbol.sdk.model.receipt.Statement;
+import io.nem.symbol.sdk.model.receipt.TransactionStatement;
 import io.nem.symbol.sdk.model.transaction.*;
 
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -61,9 +57,9 @@ public class BalanceChanges extends BaseTest {
 
   private BalanceChangeReceipt getBalanceChange(
       final BigInteger height, final ReceiptType receiptType) {
-    final Statement statement = new BlockChainHelper(getTestContext()).getBlockReceipts(height);
+    final List<TransactionStatement> statement = new BlockChainHelper(getTestContext()).getBlockTransactionStatementByHeight(height);
     final Optional<BalanceChangeReceipt> balanceChangeReceipt =
-        statement.getTransactionStatements().stream()
+        statement.stream()
             .map(s -> s.getReceipts())
             .flatMap(Collection::stream)
             .filter(receipt -> receipt.getType() == receiptType)

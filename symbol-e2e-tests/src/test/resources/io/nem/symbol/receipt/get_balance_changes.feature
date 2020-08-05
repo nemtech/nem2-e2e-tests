@@ -15,6 +15,7 @@ Feature: Get balance changes
     When Tom checks the fees obtained
     Then Tom should be able to see the resulting fees
 
+    @Manual
   Scenario: Alice wants to see her resulting fees after harvesting a block using a remote account
     Given Dan is running a node
     And Alice delegated her account importance to "Bob"
