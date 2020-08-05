@@ -1,0 +1,15 @@
+---
+- hosts: all:!spammer*
+  gather_facts: no
+  tasks:
+  - name: symbol down
+    shell: |
+      cd ~/symbol-testnet/{{type}}
+      docker-compose down
+  - name: symbol status
+    shell: |
+      cd ~/symbol-testnet/{{type}}
+      docker-compose ps
+    register: result
+  - debug:
+      var: result

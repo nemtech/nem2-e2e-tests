@@ -1,0 +1,54 @@
+---
+- hosts: all:!spammer*
+  gather_facts: no
+  remote_user: ubuntu
+  tasks:
+    - name: install python-pip
+      apt:
+        state: latest
+        name: python3-pip
+      become: yes
+    - name: install docker python library required by ansible
+      pip:
+        name:
+        - docker
+    - name: stop container monitoring
+      docker_container:
+        name: monit-cont_1
+        state: stopped
+        image: tech-bureau/monit-cont:latest
+        # - name: "List all known variables and facts"
+    #   debug:
+    #     var: hostvars[inventory_hostname]
+    # - name: Get info on docker host and list images
+    #   docker_host_info:
+    #     images: yes
+    #     containers: yes
+    #   register: docker_info
+    # - name: print containers info
+    #   debug:
+    #     msg: "IMAGE: {{ item.Image }}, NAMES: {{ item.Names }}"
+    #   loop: "{{ docker_info.containers }}"
+    - name: identify any running pumba containers
+      shell: docker ps -aq --filter ancestor=gaiaadm/pumba
+      register: pumba_conts
+    # - name: stop any running pumba containers
+    #   shell: docker ps -aq --filter ancestor=gaiaadm/pumba | xargs docker rm -f
+    #   when: pumba_conts.stdout != ""
+    #   changed_when: pumba_conts.stdout != ""
+    # - name: Get info on docker host and list images
+    #   docker_host_info:
+    #     images: yes
+    #     containers: yes
+    #   register: docker_info
+    # - name: print containers info
+    #   debug:
+    #     msg: "IMAGE: {{ item.Image }}, NAMES: {{ item.Names }}"
+    #   loop: "{{ docker_info.containers }}"
+    - name: stop pumba
+      docker_container:
+        name: pumba_1
+        state: stopped
+        image: gaiaadm/pumba
+      when: pumba_conts.stdout != ""
+      changed_when: pumba_conts.stdout != ""

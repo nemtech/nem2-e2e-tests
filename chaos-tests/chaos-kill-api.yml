@@ -1,0 +1,8 @@
+version: "3"
+services:
+  kill-api-nodes-random:
+    image: gaiaadm/pumba
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: "--log-level=debug --json --random --interval 5m kill --limit 1 --signal SIGKILL \"re2:([A-Za-z0-9_])*api-node-(broker-){0,1}[\\d+]*\""
+    # The re2 regex corresponds to finding containers like xxxxxxxxx_api-node-nnn or xxxxxxxxx_api-node-broker-nnn etc.

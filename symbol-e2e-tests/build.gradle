@@ -1,0 +1,52 @@
+
+/*
+ * Copyright 2018 NEM
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = uri('https://oss.sonatype.org/content/repositories/snapshots')
+    }
+}
+
+dependencies {
+    compile project(':symbol-direct-java-sdk')
+    compile group: 'io.nem', name: 'symbol-sdk-core', version: '0.20.3-SNAPSHOT'
+    implementation 'io.nem:symbol-sdk-vertx-client:0.20.3-SNAPSHOT'
+    implementation 'org.rocksdb:rocksdbjni:6.5.3'
+    implementation 'org.apache.logging.log4j:log4j-api:2.13.0'
+    implementation 'org.apache.logging.log4j:log4j-core:2.13.0'
+    implementation 'org.apache.logging.log4j:log4j-jul:2.13.0'
+    testImplementation 'io.cucumber:cucumber-java:2.3.1'
+    testImplementation 'io.cucumber:cucumber-junit:2.3.1'
+    testImplementation 'io.cucumber:cucumber-picocontainer:2.3.1'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+    compileOnly 'info.cukes:gherkin:2.12.2'
+}
+
+group = 'io.nem'
+archivesBaseName = 'symbol-e2e-tests'
+version = '0.9.6.4'
+sourceCompatibility = '1.8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}

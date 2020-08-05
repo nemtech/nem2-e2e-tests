@@ -1,0 +1,8 @@
+---
+- hosts: all:!spammer*
+  gather_facts: no
+  tasks:
+  - name: reset symbol to nemesis
+    shell: |
+      cd /home/ubuntu/symbol-testnet/{{type}}
+      ./reset-to-nemesis.sh

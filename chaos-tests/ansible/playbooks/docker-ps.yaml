@@ -1,0 +1,11 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+  - name: get ps info
+    shell: |
+      docker ps
+    register: result
+  - debug:
+      var: result
+

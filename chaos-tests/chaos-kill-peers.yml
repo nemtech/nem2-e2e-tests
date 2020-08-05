@@ -1,0 +1,17 @@
+version: "2"
+services:
+  chaos-kill-peer-node-0:
+    image: gaiaadm/pumba
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: "--log-level debug --json --interval 3m kill --signal SIGKILL bootstrap_peer-node-0_1"
+  chaos-kill-peer-node-1:
+    image: gaiaadm/pumba
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: "--log-level debug --json --interval 2m kill --signal SIGKILL bootstrap_peer-node-1_1"
+  chaos-kill-random-peer-node:
+    image: gaiaadm/pumba
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: "--log-level debug --json --interval 5m kill --limit 1 --signal SIGKILL 're:^bootstrap_peer-node*'"

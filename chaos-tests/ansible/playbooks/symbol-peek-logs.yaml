@@ -1,0 +1,12 @@
+---
+- hosts: all:!spammer*
+  gather_facts: no
+  tasks:
+  - name: symbol status and peek into logs
+    shell: |
+      cd ~/symbol-testnet/{{type}}
+      docker-compose ps
+      docker-compose logs --tail 20
+    register: result
+  - debug:
+      var: result

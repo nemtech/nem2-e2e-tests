@@ -1,0 +1,90 @@
+---
+# this playbook is supposed to:
+# 1. build monit-cont image and start a container to monitor symbol containers
+# 2. stop any currently running pumba containers
+# check that all required symbol containers are running and start them if not -- this is done in a separate play
+# 3. start new pumba container to kill the peer node with an interval of x minutes
+# 4. If possible, set timeout for the pumba container also for x hours
+
+- hosts: peer*,beacon*
+  remote_user: ubuntu
+  tasks:
+    - name: install python-pip
+      apt:
+        state: latest
+        name: python3-pip
+      become: yes
+    - name: install docker python library required by ansible
+      pip:
+        name:
+        - docker
+    - name: copy container monitoring files
+      copy:
+        src: utils/monit-cont/
+        dest: ~/symbol-testnet/utilities/monit-cont/
+        force: yes
+        owner: ubuntu
+        mode: '754'
+    - name: build the container monitoring image
+      docker_image:
+        name: tech-bureau/monit-cont:latest
+        build:
+          path: ~/symbol-testnet/utilities/monit-cont/
+          pull: yes
+          rm: yes
+        source: build
+        state: present
+    - name: start container monitoring
+      docker_container:
+        name: monit-cont_1
+        state: started
+        image: tech-bureau/monit-cont:latest
+        detach: yes
+        log_driver: json-file
+        output_logs: yes
+        command: --end-time {{ MONITOR_END_TIME }} --sleep-interval {{ MONITOR_INTERVAL}} {{ CONTAINERS_TO_KILL }} {{ EXTRA_ARGS }}
+        volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:rw
+        restart_policy: on-failure
+        restart_retries: 5
+    # - name: "List all known variables and facts"
+    #   debug:
+    #     var: hostvars[inventory_hostname]
+    # - name: Get info on docker host and list images
+    #   docker_host_info:
+    #     images: yes
+    #     containers: yes
+    #   register: docker_info
+    # - name: print containers info
+    #   debug:
+    #     msg: "IMAGE: {{ item.Image }}, NAMES: {{ item.Names }}"
+    #   loop: "{{ docker_info.containers }}"
+    - name: identify any running pumba containers
+      shell: docker ps -aq --filter ancestor=gaiaadm/pumba
+      register: pumba_conts
+    - name: remove any running pumba containers
+      shell: docker ps -aq --filter ancestor=gaiaadm/pumba | xargs docker rm -f
+      when: pumba_conts.stdout != ""
+      changed_when: pumba_conts.stdout != ""
+    # - name: Get info on docker host and list images
+    #   docker_host_info:
+    #     images: yes
+    #     containers: yes
+    #   register: docker_info
+    # - name: print containers info
+    #   debug:
+    #     msg: "IMAGE: {{ item.Image }}, NAMES: {{ item.Names }}"
+    #   loop: "{{ docker_info.containers }}"
+    - name: start pumba
+      docker_container:
+        name: pumba_1
+        state: started
+        image: gaiaadm/pumba
+        detach: yes
+        log_driver: json-file
+        output_logs: yes
+        command: --log-level=debug --interval={{ PUMBA_INTERVAL }} --json kill --signal=SIGKILL {{ CONTAINERS_TO_KILL }}
+        volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:rw
+        restart_policy: always
+    

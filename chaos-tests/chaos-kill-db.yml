@@ -1,0 +1,8 @@
+version: "2"
+services:
+  # chaos commands
+  chaos-kill-db:
+    image: gaiaadm/pumba
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: "--log-level debug --random --interval 6h kill --limit 1 re2:^bootstrap_db*"

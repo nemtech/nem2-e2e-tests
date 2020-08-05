@@ -1,0 +1,13 @@
+version: "2"
+services:
+  # chaos commands
+  chaos-delay-peers:
+    image: gaiaadm/pumba
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: "--log-level debug --interval 2h netem --tc-image gaiadocker/iproute2 --duration 20m delay -- time 200ms --distribution paretonormal re2:peer-node"
+    chaos-delay-db:
+      image: gaiaadm/pumba
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      command: "--log-level debug --interval 90m netem --tc-image gaiadocker/iproute2 --duration 10m delay -- time 100ms --correlation 30 --distribution paretonormal re2:db"

@@ -1,4 +1,8 @@
-[submodule "integrationtests/src/main"]
-	path = integrationtests/src/main
-	url = https://github.com/nemtech/nem2-e2e-tests.git
-	branch = next
+[submodule "catapult-service-bootstrap"]
+	path = catapult-service-bootstrap
+	url = https://github.com/tech-bureau/catapult-service-bootstrap.git
+	branch = feature/chaos-tests
+[submodule "catapult-spammer"]
+	path = catapult-spammer
+	url = https://github.com/rich-dtk/debug-symbol-bootstrap.git
+	branch = feature/chaos-spammer
