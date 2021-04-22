@@ -2,8 +2,19 @@ pipeline {
   agent any
   stages {
     stage('Initialize') {
-      steps {
-        echo 'First run'
+      parallel {
+        stage('Initialize') {
+          steps {
+            echo 'First run'
+          }
+        }
+
+        stage('Version') {
+          steps {
+            sh 'Java --version'
+          }
+        }
+
       }
     }
 
