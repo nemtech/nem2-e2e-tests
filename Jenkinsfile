@@ -41,7 +41,7 @@ sudo apt -y install gradle'''
     stage('Build test') {
       steps {
         sh '''cd symbol-e2e-tests/
-gradle build -x test '''
+gradle build '''
       }
     }
 
