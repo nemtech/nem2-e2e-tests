@@ -1,5 +1,10 @@
 pipeline {
-  agent any
+  agent {
+    node {
+      label 'server_ubuntu_20.04'
+    }
+
+  }
   stages {
     stage('Initialize') {
       parallel {
