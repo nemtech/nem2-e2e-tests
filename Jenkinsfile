@@ -1,7 +1,7 @@
 pipeline {
   agent {
     node {
-      label 'server_ubuntu_20.04'
+      label 'ubuntu_20.04'
     }
 
   }
