@@ -1,7 +1,7 @@
 pipeline {
   agent {
     node {
-      label 'ubuntu_20.04_8core_16gig'
+      label 'ubuntu-20.04'
     }
 
   }
