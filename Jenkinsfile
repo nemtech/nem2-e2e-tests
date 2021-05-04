@@ -33,8 +33,19 @@ sudo apt -y install gradle'''
     }
 
     stage('Git checkout') {
-      steps {
-        git(url: 'https://github.com/nemtech/nem2-e2e-tests.git', branch: 'main', changelog: true, credentialsId: 'a7aaa97a-dc50-4d20-bf6c-b7343bc44b1b')
+      parallel {
+        stage('Git checkout') {
+          steps {
+            git(url: 'https://github.com/nemtech/nem2-e2e-tests.git', branch: 'main', changelog: true, credentialsId: 'a7aaa97a-dc50-4d20-bf6c-b7343bc44b1b')
+          }
+        }
+
+        stage('List share') {
+          steps {
+            sh 'ls -la /'
+          }
+        }
+
       }
     }
 
