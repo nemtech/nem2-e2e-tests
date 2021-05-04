@@ -46,6 +46,12 @@ sudo apt -y install gradle'''
           }
         }
 
+        stage('mkdir') {
+          steps {
+            sh 'mkdir jenkins_cache/ccache1;rmdir jenkins_cache/ccache1'
+          }
+        }
+
       }
     }
 
