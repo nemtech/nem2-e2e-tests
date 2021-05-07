@@ -1,7 +1,7 @@
 pipeline {
   agent {
     node {
-      label 'ubuntu-20.04'
+      label 'macos'
     }
 
   }
